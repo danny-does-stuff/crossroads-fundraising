@@ -22,9 +22,9 @@ export default function Index() {
               group's various programs and activities.
             </p>
             <p>
-              As part of our community service efforts, we will
-              be selling premium quality mulch and using the proceeds to fund
-              our programs. By purchasing mulch from us, not only will you be beautifying your
+              As part of our community service efforts, we will be selling
+              premium quality mulch and using the proceeds to fund our programs.
+              By purchasing mulch from us, not only will you be beautifying your
               own yard, but you will also be supporting the youth in our
               community. Our youth volunteers will be responsible for spreading
               the mulch at your residence, providing them with valuable work

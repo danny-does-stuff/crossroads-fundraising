@@ -19,7 +19,6 @@ export async function action({ request }: ActionArgs) {
     }
   });
 
-
   if (Object.keys(errors).length > 0) {
     return json({ errors }, { status: 400 });
   }
@@ -31,7 +30,7 @@ export async function action({ request }: ActionArgs) {
 }
 
 const fields = [
-  { name: "name", label: "Name", autocomplete: "name"},
+  { name: "name", label: "Name", autocomplete: "name" },
   { name: "street", label: "Street", autocomplete: "street-address" },
   { name: "city", label: "City", autocomplete: "address-level2" },
   { name: "state", label: "State", autocomplete: "address-level1" },
