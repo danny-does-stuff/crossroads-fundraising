@@ -76,14 +76,16 @@ export default function Join() {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? undefined;
   const actionData = useActionData<typeof action>();
+  const emailRef = React.useRef<HTMLInputElement>(null);
+  const passwordRef = React.useRef<HTMLInputElement>(null);
 
-  const refocusId = (() => {
+  React.useEffect(() => {
     if (actionData?.errors?.email) {
-      return "email";
+      emailRef.current?.focus();
     } else if (actionData?.errors?.password) {
-      return "password";
+      passwordRef.current?.focus();
     }
-  })();
+  }, [actionData]);
 
   return (
     <div className="flex min-h-full flex-col justify-center">
@@ -96,7 +98,7 @@ export default function Join() {
             autoComplete="email"
             required
             autoFocus
-            refocus={refocusId === "email"}
+            ref={emailRef}
           />
           <Input
             id="password"
@@ -104,14 +106,10 @@ export default function Join() {
             error={actionData?.errors?.password}
             type="password"
             autoComplete="new-password"
-            refocus={refocusId === "password"}
+            ref={passwordRef}
           />
           <input type="hidden" name="redirectTo" value={redirectTo} />
-          <Button
-            type="submit"
-          >
-            Create Account
-          </Button>
+          <Button type="submit">Create Account</Button>
           <div className="flex items-center justify-center">
             <div className="text-center text-sm text-gray-500">
               Already have an account?{" "}

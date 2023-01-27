@@ -8,29 +8,17 @@ export const Input = React.forwardRef(function Input(
     id,
     label,
     error,
-    refocus,
     ...props
   }: {
     id: string;
     label: string;
     error: string | null | undefined;
-    refocus: boolean;
     [key: string]: any;
   },
   _ref: React.Ref<HTMLInputElement>
 ) {
   const localRef = React.useRef<HTMLInputElement>(null);
   const ref = _ref || localRef;
-
-  React.useEffect(() => {
-    if (typeof ref === "function") {
-      throw new Error("Ref must be a React.RefObject");
-    }
-
-    if (refocus) {
-      ref.current?.focus();
-    }
-  }, [ref, refocus]);
 
   return (
     <div>
