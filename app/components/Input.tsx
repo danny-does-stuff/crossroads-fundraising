@@ -2,8 +2,6 @@ import * as React from "react";
 
 /**
  * An input field with a label and error message
- * @param param0
- * @returns
  */
 export const Input = React.forwardRef(function Input(
   {
