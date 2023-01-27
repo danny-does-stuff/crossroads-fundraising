@@ -15,10 +15,8 @@ export const Input = React.forwardRef(function Input(
     error: string | null | undefined;
     [key: string]: any;
   },
-  _ref: React.Ref<HTMLInputElement>
+  ref: React.Ref<HTMLInputElement>
 ) {
-  const localRef = React.useRef<HTMLInputElement>(null);
-  const ref = _ref || localRef;
 
   return (
     <div>
