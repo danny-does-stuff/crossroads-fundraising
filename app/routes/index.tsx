@@ -1,9 +1,10 @@
-import { Link } from "@remix-run/react";
+import { Button } from "~/components/Button";
 
 import { useOptionalUser } from "~/utils";
 
 export default function Index() {
   const user = useOptionalUser();
+
   return (
     <main className="relative min-h-screen bg-white sm:flex sm:items-center sm:justify-center">
       <div className="relative sm:pb-16 sm:pt-8">
@@ -42,12 +43,15 @@ export default function Index() {
               can make a difference!
             </p>
           </div>
-          <Link
-            to="/fundraisers/mulch/new"
-            className="flex items-center justify-center rounded-md border border-transparent bg-yellow-500 px-4 py-3 font-medium text-white hover:bg-yellow-600"
-          >
-            Order Mulch
-          </Link>
+          {user ? (
+            <Button linkTo="/fundraisers/mulch/new">Order Mulch</Button>
+          ) : (
+            // container styled with tailwind classes to center buttons with a gap
+            <div className="flex justify-center gap-4">
+              <Button linkTo="/login">Login</Button>
+              <Button linkTo="/join">Sign Up</Button>
+            </div>
+          )}
         </div>
       </div>
     </main>
