@@ -3,7 +3,7 @@ import { json, redirect } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
 import * as React from "react";
 
-import { createNote } from "~/models/note.server";
+import { createOrder } from "~/models/mulchOrder.server";
 import { requireUserId } from "~/session.server";
 
 export async function action({ request }: ActionArgs) {
@@ -27,12 +27,13 @@ export async function action({ request }: ActionArgs) {
     );
   }
 
-  const note = await createNote({ title, body, userId });
+  // support creating new orders... const order = await createOrder({ userId });
 
-  return redirect(`/notes/${note.id}`);
+  // return redirect(`/orders/${order.id}`);
+  return redirect(`/orders/new`);
 }
 
-export default function NewNotePage() {
+export default function NewOrderPage() {
   const actionData = useActionData<typeof action>();
   const titleRef = React.useRef<HTMLInputElement>(null);
   const bodyRef = React.useRef<HTMLTextAreaElement>(null);

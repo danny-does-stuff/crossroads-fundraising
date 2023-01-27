@@ -20,25 +20,51 @@ export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
-  const redirectTo = safeRedirect(formData.get("redirectTo"), "/");
+  const name = formData.get("name");
+  const phone = formData.get("phone");
+  const redirectTo = safeRedirect(
+    formData.get("redirectTo"),
+    "/fundraiser/mulch"
+  );
+
+  const emptyErrors = {
+    email: null,
+    password: null,
+    name: null,
+    phone: null,
+  };
 
   if (!validateEmail(email)) {
     return json(
-      { errors: { email: "Email is invalid", password: null } },
+      { errors: { ...emptyErrors, email: "Email is invalid" } },
       { status: 400 }
     );
   }
 
   if (typeof password !== "string" || password.length === 0) {
     return json(
-      { errors: { email: null, password: "Password is required" } },
+      { errors: { ...emptyErrors, password: "Password is required" } },
       { status: 400 }
     );
   }
 
   if (password.length < 8) {
     return json(
-      { errors: { email: null, password: "Password is too short" } },
+      { errors: { ...emptyErrors, password: "Password is too short" } },
+      { status: 400 }
+    );
+  }
+
+  if (typeof name !== "string" || name.trim().length === 0) {
+    return json(
+      { errors: { ...emptyErrors, name: "Name is required" } },
+      { status: 400 }
+    );
+  }
+
+  if (typeof phone !== "string" || phone.trim().length === 0) {
+    return json(
+      { errors: { ...emptyErrors, phone: "Phone is required" } },
       { status: 400 }
     );
   }
@@ -48,15 +74,15 @@ export async function action({ request }: ActionArgs) {
     return json(
       {
         errors: {
+          ...emptyErrors,
           email: "A user already exists with this email",
-          password: null,
         },
       },
       { status: 400 }
     );
   }
 
-  const user = await createUser(email, password);
+  const user = await createUser({ email, name, phone, password });
 
   return createUserSession({
     request,
@@ -78,6 +104,8 @@ export default function Join() {
   const actionData = useActionData<typeof action>();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const phoneRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (actionData?.errors?.email) {
@@ -99,6 +127,22 @@ export default function Join() {
             required
             autoFocus
             ref={emailRef}
+          />
+          <Input
+            id="name"
+            label="Name"
+            error={actionData?.errors?.name}
+            autoComplete="name"
+            required
+            ref={nameRef}
+          />
+          <Input
+            id="phone"
+            label="Phone"
+            error={actionData?.errors?.phone}
+            autoComplete="phone"
+            required
+            ref={phoneRef}
           />
           <Input
             id="password"
