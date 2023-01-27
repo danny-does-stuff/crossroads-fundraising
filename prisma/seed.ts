@@ -15,6 +15,8 @@ async function seed() {
 
   const user = await prisma.user.create({
     data: {
+      phone: "123-456-7890",
+      name: "Rachel Coolio",
       email,
       password: {
         create: {
@@ -24,21 +26,37 @@ async function seed() {
     },
   });
 
-  await prisma.note.create({
+  const address = await prisma.address.create({
     data: {
-      title: "My first note",
-      body: "Hello, world!",
+      street: "123 Main St",
+      neighborhood: "Arrowbrooke",
+      city: "San Francisco",
+      state: "CA",
+      zip: "94111",
       userId: user.id,
     },
   });
 
-  await prisma.note.create({
-    data: {
-      title: "My second note",
-      body: "Hello, world!",
-      userId: user.id,
-    },
-  });
+  await Promise.all([
+    prisma.mulchOrder.create({
+      data: {
+        quantity: 10,
+        userId: user.id,
+        pricePerUnit: 10,
+        orderType: "SPREAD",
+        deliveryAddressId: address.id,
+      },
+    }),
+    prisma.mulchOrder.create({
+      data: {
+        quantity: 5,
+        userId: user.id,
+        pricePerUnit: 4,
+        orderType: "DELIVERY",
+        deliveryAddressId: address.id,
+      },
+    }),
+  ]);
 
   console.log(`Database has been seeded. 🌱`);
 }

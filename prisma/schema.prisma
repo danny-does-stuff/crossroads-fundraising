@@ -8,25 +8,26 @@ generator client {
 }
 
 model User {
-  id    String @id @default(cuid())
-  email String @unique
-  name  String
-  phone String
-  addresses Address[] 
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String
+  phone     String
+  addresses Address[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  password Password?
+  password    Password?
   mulchOrders MulchOrder[]
 }
 
 model Address {
-  id    String @id @default(cuid())
-  street String
-  city  String
-  state String
-  zip   String
+  id           String @id @default(cuid())
+  street       String
+  neighborhood String // enum
+  city         String
+  state        String
+  zip          String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -45,16 +46,15 @@ model Password {
 }
 
 model MulchOrder {
-  id    String @id @default(cuid())
-  quantity Int
+  id           String @id @default(cuid())
+  quantity     Int
   pricePerUnit Float
 
-  // one of 'SPREAD' or 'DELIVERY'
-  orderType String
+  orderType String // enum - one of 'SPREAD' or 'DELIVERY'
 
-  paid    Boolean @default(false)
+  paid Boolean @default(false)
 
-  deliveryAddress Address @relation(fields: [deliveryAddressId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  deliveryAddress   Address @relation(fields: [deliveryAddressId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   deliveryAddressId String
 
   note String?

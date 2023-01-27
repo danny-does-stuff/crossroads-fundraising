@@ -17,7 +17,6 @@ export const Input = React.forwardRef(function Input(
   },
   ref: React.Ref<HTMLInputElement>
 ) {
-
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">
