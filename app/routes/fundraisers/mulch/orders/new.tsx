@@ -86,7 +86,7 @@ export async function action({ request }: ActionArgs) {
     address: { ...address, userId },
   });
 
-  return redirect(`/orders/${order.id}`);
+  return redirect(`/fundraisers/mulch/orders/${order.id}`);
 }
 
 export default function NewOrderPage() {
