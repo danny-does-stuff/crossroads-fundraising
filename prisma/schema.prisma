@@ -50,6 +50,7 @@ model MulchOrder {
   quantity     Int
   pricePerUnit Float
 
+  color     String // enum - one of 'BLACK' or 'BROWN'
   orderType String // enum - one of 'SPREAD' or 'DELIVERY'
 
   paid Boolean @default(false)

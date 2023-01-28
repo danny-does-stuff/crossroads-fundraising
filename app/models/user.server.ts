@@ -1,12 +1,21 @@
-import type { Password, User } from "@prisma/client";
+import type { Password, User, Address } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "~/db.server";
 
 export type { User } from "@prisma/client";
 
-export async function getUserById(id: User["id"]) {
-  return prisma.user.findUnique({ where: { id } });
+export type UserWithAddresses = User & {
+  addresses: Address[];
+};
+
+export async function getUserById(
+  id: User["id"]
+): Promise<UserWithAddresses | null> {
+  return prisma.user.findUnique({
+    where: { id },
+    include: { addresses: true },
+  });
 }
 
 export async function getUserByEmail(email: User["email"]) {

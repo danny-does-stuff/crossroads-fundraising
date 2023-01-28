@@ -24,7 +24,7 @@ export async function action({ request }: ActionArgs) {
   const phone = formData.get("phone");
   const redirectTo = safeRedirect(
     formData.get("redirectTo"),
-    "/fundraiser/mulch"
+    "/fundraisers/mulch/orders"
   );
 
   const emptyErrors = {

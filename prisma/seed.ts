@@ -40,6 +40,7 @@ async function seed() {
   await Promise.all([
     prisma.mulchOrder.create({
       data: {
+        color: "BLACK",
         quantity: 10,
         userId: user.id,
         pricePerUnit: 10,
@@ -49,6 +50,7 @@ async function seed() {
     }),
     prisma.mulchOrder.create({
       data: {
+        color: "BROWN",
         quantity: 5,
         userId: user.id,
         pricePerUnit: 4,
