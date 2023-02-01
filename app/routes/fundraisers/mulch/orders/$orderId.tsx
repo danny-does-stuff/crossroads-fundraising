@@ -7,6 +7,7 @@ import invariant from "tiny-invariant";
 import { z } from "zod";
 
 import { updateOrderById, getOrder } from "~/models/mulchOrder.server";
+import { useMatchesData } from "~/utils";
 
 export async function loader({ request, params }: LoaderArgs) {
   // TODO: use a short lived session to verify that the user is the one who created the order
@@ -66,13 +67,15 @@ export default function OrderDetailsPage() {
   const { order } = useLoaderData<typeof loader>();
 
   const fetcher = useFetcher();
+  const data = useMatchesData("root");
 
   const total = order.pricePerUnit * order.quantity;
 
   return (
     <PayPalScriptProvider
       options={{
-        "client-id": "test",
+        // @ts-ignore - we add the global ENV variable in the root.tsx file
+        "client-id": data?.ENV.PAYPAL_CLIENT_ID,
         components: "buttons",
         currency: "USD",
       }}
