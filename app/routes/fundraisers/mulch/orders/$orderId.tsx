@@ -5,6 +5,7 @@ import { Form, useCatch, useFetcher, useLoaderData } from "@remix-run/react";
 import { useRef } from "react";
 import invariant from "tiny-invariant";
 import { z } from "zod";
+import { CONTACT_EMAIL } from "~/constants";
 
 import { updateOrderById, getOrder } from "~/models/mulchOrder.server";
 import { useMatchesData } from "~/utils";
@@ -24,20 +25,16 @@ export async function action({ request, params }: ActionArgs) {
   invariant(params.orderId, "orderId not found");
 
   const body = await request.formData();
-  const obj = {
-    paypalOrderId: body.get("paypalOrderId"),
-    paypalPayerId: body.get("paypalPayerId"),
-    paypalPaymentSource: body.get("paypalPaymentSource"),
-    status: body.get("status"),
-  };
-  console.log({ obj });
-  const paypalInfo = z
-    .object({
-      paypalOrderId: z.string(),
-      paypalPayerId: z.string(),
-      paypalPaymentSource: z.string(),
-      status: z.literal("PAID"),
-    })
+  const orderUpdateInfo = z
+    .union([
+      z.object({
+        paypalOrderId: z.string(),
+        paypalPayerId: z.string(),
+        paypalPaymentSource: z.string(),
+        status: z.literal("PAID"),
+      }),
+      z.object({ status: z.literal("CANCELLED") }),
+    ])
     .safeParse({
       paypalOrderId: body.get("paypalOrderId"),
       paypalPayerId: body.get("paypalPayerId"),
@@ -45,11 +42,11 @@ export async function action({ request, params }: ActionArgs) {
       status: body.get("status"),
     });
 
-  if (!paypalInfo.success) {
-    throw new Response("Bad Request", { status: 400 });
+  if (!orderUpdateInfo.success) {
+    throw json({ errors: orderUpdateInfo.error.format() }, { status: 400 });
   }
 
-  const order = await updateOrderById(params.orderId, paypalInfo.data);
+  const order = await updateOrderById(params.orderId, orderUpdateInfo.data);
 
   return json({ order });
 }
@@ -105,7 +102,6 @@ export default function OrderDetailsPage() {
             <PayPalButtons
               disabled={fetcher.state === "submitting"}
               createOrder={async ({ paymentSource }, actions) => {
-                console.log(paymentSource);
                 const orderId = await actions.order.create({
                   purchase_units: [
                     {
@@ -168,16 +164,15 @@ export default function OrderDetailsPage() {
                   if (details.payer.payer_id) {
                     update.paypalPayerId = details.payer.payer_id;
                   }
-                  console.log("we got the money", details);
-                  const order = await fetcher.submit(update, { method: "put" });
-                  console.log("order", order);
+                  await fetcher.submit(update, { method: "put" });
                 } else {
-                  console.log("no money for you");
+                  console.log("payment not captured");
                 }
               }}
             />
             <hr className="my-4" />
-            <Form method="post">
+            <Form method="put">
+              <input type="hidden" name="status" value="CANCELLED" />
               <button
                 type="submit"
                 className="rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"
@@ -186,6 +181,8 @@ export default function OrderDetailsPage() {
               </button>
             </Form>
           </>
+        ) : order.status === "CANCELLED" ? (
+          <div className="font-bold text-red-500">Order Cancelled</div>
         ) : (
           <div className="font-bold text-green-500">
             Paid!! Thank you for your business. We will reach out to you through
@@ -207,9 +204,29 @@ export function ErrorBoundary({ error }: { error: Error }) {
 export function CatchBoundary() {
   const caught = useCatch();
 
-  if (caught.status === 404) {
-    return <div>Order not found</div>;
-  }
-
-  throw new Error(`Unexpected caught response with status: ${caught.status}`);
+  return (
+    <div
+      className="relative mb-3 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
+      role="alert"
+    >
+      {caught.status === 404 ? (
+        "Order not found"
+      ) : caught.status === 400 && caught.data ? (
+        <>
+          There was an error processing your order:
+          {Object.keys(caught.data.errors).map((errorKey) =>
+            errorKey === "_errors" ? null : (
+              <div key={errorKey}>
+                <b>{errorKey}:</b> {caught.data.errors[errorKey]._errors[0]}
+              </div>
+            )
+          )}
+        </>
+      ) : (
+        `An unexpected error occurred: ${caught.status}`
+      )}
+      If you believe you paid for this order, please contact us at{" "}
+      {CONTACT_EMAIL}
+    </div>
+  );
 }
