@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 
 describe("smoke tests", () => {
   afterEach(() => {
-    cy.cleanupUser();
+    // cy.cleanupUser();
   });
 
   it('has a test', () => {
