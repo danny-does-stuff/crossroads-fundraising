@@ -19,7 +19,7 @@ async function deleteUser(email: string) {
   }
 
   try {
-    await prisma.user.delete({ where: { email } });
+    await prisma.user.deleteMany({ where: { email } });
   } catch (error) {
     if (
       error instanceof PrismaClientKnownRequestError &&

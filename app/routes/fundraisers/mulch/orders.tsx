@@ -2,17 +2,24 @@ import type { LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
 
-import { requireUserId } from "~/session.server";
+import { getUserId } from "~/session.server";
 import { useUser } from "~/utils";
 import { getOrderListItems } from "~/models/mulchOrder.server";
 
 export async function loader({ request }: LoaderArgs) {
-  const userId = await requireUserId(request);
-  const orderListItems = await getOrderListItems({ userId });
+  const userId = await getUserId(request);
+  // get all orders
+  const orderListItems: Array<{ id: string; quantity: number }> = []; // await getOrderListItems(userId);
   return json({ orderListItems });
 }
 
 export default function OrdersPage() {
+  return (
+    <div className="p-6">
+      <Outlet />
+    </div>
+  );
+
   const data = useLoaderData<typeof loader>();
   const user = useUser();
 
@@ -53,7 +60,7 @@ export default function OrdersPage() {
                     }
                     to={order.id}
                   >
-                    📝 ${order.pricePerUnit * order.quantity}
+                    🪵 {order.quantity} bags
                   </NavLink>
                 </li>
               ))}

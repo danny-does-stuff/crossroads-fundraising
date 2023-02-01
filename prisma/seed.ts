@@ -11,29 +11,24 @@ async function seed() {
     // no worries if it doesn't exist yet
   });
 
-  const hashedPassword = await bcrypt.hash("racheliscool", 10);
+  // const hashedPassword = await bcrypt.hash("racheliscool", 10);
 
-  const user = await prisma.user.create({
-    data: {
-      phone: "123-456-7890",
-      name: "Rachel Coolio",
-      email,
-      password: {
-        create: {
-          hash: hashedPassword,
-        },
-      },
-    },
-  });
+  // const user = await prisma.user.create({
+  //   data: {
+  //     email,
+  //     password: {
+  //       create: {
+  //         hash: hashedPassword,
+  //       },
+  //     },
+  //   },
+  // });
 
-  const address = await prisma.address.create({
+  const customer = await prisma.customer.create({
     data: {
-      street: "123 Main St",
-      neighborhood: "Arrowbrooke",
-      city: "San Francisco",
-      state: "CA",
-      zip: "94111",
-      userId: user.id,
+      name: "Rachel",
+      email: "customer@custo.mer",
+      phone: "555-555-5555",
     },
   });
 
@@ -42,20 +37,22 @@ async function seed() {
       data: {
         color: "BLACK",
         quantity: 10,
-        userId: user.id,
+        customerId: customer.id,
         pricePerUnit: 10,
         orderType: "SPREAD",
-        deliveryAddressId: address.id,
+        neighborhood: "Arrowbrooke",
+        streetAddress: "1234 Arrowbrooke Lane",
       },
     }),
     prisma.mulchOrder.create({
       data: {
         color: "BROWN",
         quantity: 5,
-        userId: user.id,
+        customerId: customer.id,
         pricePerUnit: 4,
         orderType: "DELIVERY",
-        deliveryAddressId: address.id,
+        neighborhood: "Savannah",
+        streetAddress: "1234 Ranch Trial Rd",
       },
     }),
   ]);

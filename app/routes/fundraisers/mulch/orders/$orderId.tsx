@@ -1,16 +1,18 @@
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import { Form, useCatch, useLoaderData } from "@remix-run/react";
+import { json } from "@remix-run/node";
+import { Form, useCatch, useFetcher, useLoaderData } from "@remix-run/react";
+import { useRef } from "react";
 import invariant from "tiny-invariant";
+import { z } from "zod";
 
-import { deleteOrder, getOrder } from "~/models/mulchOrder.server";
-import { requireUserId } from "~/session.server";
+import { updateOrderById, getOrder } from "~/models/mulchOrder.server";
 
 export async function loader({ request, params }: LoaderArgs) {
-  const userId = await requireUserId(request);
+  // TODO: use a short lived session to verify that the user is the one who created the order
   invariant(params.orderId, "orderId not found");
 
-  const order = await getOrder({ userId, id: params.orderId });
+  const order = await getOrder({ id: params.orderId });
   if (!order) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -18,33 +20,178 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export async function action({ request, params }: ActionArgs) {
-  const userId = await requireUserId(request);
   invariant(params.orderId, "orderId not found");
 
-  await deleteOrder({ userId, id: params.orderId });
+  const body = await request.formData();
+  const obj = {
+    paypalOrderId: body.get("paypalOrderId"),
+    paypalPayerId: body.get("paypalPayerId"),
+    paypalPaymentSource: body.get("paypalPaymentSource"),
+    status: body.get("status"),
+  };
+  console.log({ obj });
+  const paypalInfo = z
+    .object({
+      paypalOrderId: z.string(),
+      paypalPayerId: z.string(),
+      paypalPaymentSource: z.string(),
+      status: z.literal("PAID"),
+    })
+    .safeParse({
+      paypalOrderId: body.get("paypalOrderId"),
+      paypalPayerId: body.get("paypalPayerId"),
+      paypalPaymentSource: body.get("paypalPaymentSource"),
+      status: body.get("status"),
+    });
 
-  return redirect("/fundraisers/mulch/orders");
+  if (!paypalInfo.success) {
+    throw new Response("Bad Request", { status: 400 });
+  }
+
+  const order = await updateOrderById(params.orderId, paypalInfo.data);
+
+  return json({ order });
 }
 
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+
 export default function OrderDetailsPage() {
-  const data = useLoaderData<typeof loader>();
+  const updateData = useRef<{
+    paypalOrderId: string;
+    paypalPaymentSource: string;
+  }>();
+  const { order } = useLoaderData<typeof loader>();
+
+  const fetcher = useFetcher();
+
+  const total = order.pricePerUnit * order.quantity;
 
   return (
-    <div>
-      <h3 className="text-2xl font-bold">
-        {data.order.deliveryAddress.neighborhood}
-      </h3>
-      <p className="py-6">{data.order.createdAt}</p>
-      <hr className="my-4" />
-      <Form method="post">
-        <button
-          type="submit"
-          className="rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"
-        >
-          Delete
-        </button>
-      </Form>
-    </div>
+    <PayPalScriptProvider
+      options={{
+        "client-id": "test",
+        components: "buttons",
+        currency: "USD",
+      }}
+    >
+      <div>
+        <h3 className="text-2xl font-bold">Mulch Order</h3>
+        <div className="font-l mb-4 flex flex-col gap-4">
+          <div>
+            <b>Number of bags:</b> {order.quantity}
+          </div>
+          <div>
+            <b>Spreading Service?</b>{" "}
+            {order.orderType === "SPREAD" ? "Yes" : "No, delivery only"}
+          </div>
+          <div>
+            <b>Delivery address:</b> <u>{order.streetAddress}</u> in{" "}
+            <u>{order.neighborhood}</u>
+          </div>
+          <h4>
+            <b>Total:</b> {order.quantity} bags X{" "}
+            {currencyFormatter.format(order.pricePerUnit)} ={" "}
+            {currencyFormatter.format(total)}
+          </h4>
+        </div>
+        {order.status === "PENDING" ? (
+          <>
+            <PayPalButtons
+              disabled={fetcher.state === "submitting"}
+              createOrder={async ({ paymentSource }, actions) => {
+                console.log(paymentSource);
+                const orderId = await actions.order.create({
+                  purchase_units: [
+                    {
+                      amount: {
+                        value: String(total),
+                        breakdown: {
+                          item_total: {
+                            value: String(total),
+                            currency_code: "USD",
+                          },
+                        },
+                      },
+                      custom_id: order.id,
+                      items: [
+                        {
+                          name: "Bag o' Mulch",
+                          description: `${
+                            order.color[0] + order.color.slice(1).toLowerCase()
+                          } mulch${
+                            order.orderType === "SPREAD"
+                              ? " plus mulch spreading service"
+                              : " delivered to your house, no spreading service"
+                          }`,
+                          unit_amount: {
+                            value: String(order.pricePerUnit),
+                            currency_code: "USD",
+                          },
+                          quantity: String(order.quantity),
+                        },
+                      ],
+                    },
+                  ],
+                });
+
+                updateData.current = {
+                  paypalPaymentSource: paymentSource,
+                  paypalOrderId: orderId,
+                };
+                return orderId;
+              }}
+              onApprove={async (data, actions) => {
+                const details = await actions.order?.capture();
+                if (!updateData.current) {
+                  return;
+                }
+                if (
+                  details &&
+                  updateData.current &&
+                  details.id === updateData.current?.paypalOrderId
+                ) {
+                  const update: {
+                    paypalOrderId: string;
+                    paypalPaymentSource: string;
+                    status: "PAID";
+                    paypalPayerId?: string;
+                  } = {
+                    ...updateData.current,
+                    status: "PAID",
+                  };
+                  if (details.payer.payer_id) {
+                    update.paypalPayerId = details.payer.payer_id;
+                  }
+                  console.log("we got the money", details);
+                  const order = await fetcher.submit(update, { method: "put" });
+                  console.log("order", order);
+                } else {
+                  console.log("no money for you");
+                }
+              }}
+            />
+            <hr className="my-4" />
+            <Form method="post">
+              <button
+                type="submit"
+                className="rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"
+              >
+                Cancel Order
+              </button>
+            </Form>
+          </>
+        ) : (
+          <div className="font-bold text-green-500">
+            Paid!! Thank you for your business. We will reach out to you through
+            email to schedule the delivery{" "}
+            {order.orderType === "SPREAD" ? "and spreading " : ""}service.
+          </div>
+        )}
+      </div>
+    </PayPalScriptProvider>
   );
 }
 

@@ -71,7 +71,8 @@ export const meta: MetaFunction = () => {
 
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/fundraisers/mulch/orders";
+  const redirectTo =
+    searchParams.get("redirectTo") || "/fundraisers/mulch/orders";
   const actionData = useActionData<typeof action>();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);

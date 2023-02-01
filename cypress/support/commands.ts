@@ -61,19 +61,19 @@ function login({
 
 function cleanupUser({ email }: { email?: string } = {}) {
   if (email) {
-    deleteUserByEmail(email);
+    deleteUsersByEmail(email);
   } else {
     cy.get("@user").then((user) => {
       const email = (user as { email?: string }).email;
       if (email) {
-        deleteUserByEmail(email);
+        deleteUsersByEmail(email);
       }
     });
   }
   cy.clearCookie("__session");
 }
 
-function deleteUserByEmail(email: string) {
+function deleteUsersByEmail(email: string) {
   cy.exec(
     `npx ts-node --require tsconfig-paths/register ./cypress/support/delete-user.ts "${email}"`
   );

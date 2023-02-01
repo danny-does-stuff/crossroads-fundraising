@@ -1,72 +1,85 @@
-import type { User, Address, MulchOrder as Order } from "@prisma/client";
+import type { Customer, MulchOrder as Order } from "@prisma/client";
 
 import { prisma } from "~/db.server";
 
 export type { MulchOrder as Order } from "@prisma/client";
 
-export function getOrder({
-  id,
-  userId,
-}: Pick<Order, "id"> & {
-  userId: User["id"];
-}) {
+export function getOrder({ id }: Pick<Order, "id">) {
   return prisma.mulchOrder.findFirst({
     select: {
       id: true,
       quantity: true,
       pricePerUnit: true,
       orderType: true,
-      paid: true,
-      deliveryAddress: true,
+      streetAddress: true,
+      neighborhood: true,
+      status: true,
       note: true,
       createdAt: true,
+      color: true,
+      customer: true,
     },
-    where: { id, userId },
+    where: { id },
   });
 }
 
-export function getOrderListItems({ userId }: { userId: User["id"] }) {
+export function updateOrderById(orderId: Order["id"], order: Partial<Order>): Promise<Order> {
+  return prisma.mulchOrder.update({
+    where: { id: orderId },
+    data: order,
+  });
+}
+
+export function getOrderListItems({
+  customerId,
+}: {
+  customerId: Customer["id"];
+}) {
   return prisma.mulchOrder.findMany({
-    where: { userId },
-    select: { id: true, quantity: true, pricePerUnit: true },
+    where: { customerId },
+    select: {
+      id: true,
+      quantity: true,
+      pricePerUnit: true,
+      createdAt: true,
+    },
     orderBy: { updatedAt: "desc" },
   });
 }
 
-export function createOrder({
-  userId,
-  deliveryAddressId,
-  address,
+export async function createOrder({
+  customer,
   ...order
-}: Pick<Order, "quantity" | "pricePerUnit" | "orderType" | "note" | "color"> & {
-  userId: User["id"];
-  deliveryAddressId?: Address["id"];
-  address: Pick<
-    Address,
-    "city" | "neighborhood" | "state" | "street" | "zip" | "userId"
-  >;
+}: Pick<
+  Order,
+  | "quantity"
+  | "pricePerUnit"
+  | "orderType"
+  | "note"
+  | "color"
+  | "neighborhood"
+  | "streetAddress"
+> & {
+  customer: Pick<Customer, "name" | "email" | "phone">;
 }) {
+  // Only connect the order to an existing customer if the customer's name, email, and phone match
+  const existingCustomer = await prisma.customer.findFirst({
+    where: {
+      email: customer.email,
+      phone: customer.phone,
+      name: customer.name,
+    },
+    select: { id: true },
+  });
+
   return prisma.mulchOrder.create({
     data: {
       ...order,
-      user: { connect: { id: userId } },
-      deliveryAddress: {
-        connectOrCreate: {
-          where: {
-            id: deliveryAddressId,
-          },
-          create: address,
-        },
+      customer: {
+        ...(existingCustomer
+          ? { connect: { id: existingCustomer.id } }
+          : { create: customer }),
       },
     },
-  });
-}
-
-export function deleteOrder({
-  id,
-  userId,
-}: Pick<Order, "id"> & { userId: User["id"] }) {
-  return prisma.mulchOrder.deleteMany({
-    where: { id, userId },
   });
 }

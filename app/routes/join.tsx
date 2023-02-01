@@ -62,13 +62,6 @@ export async function action({ request }: ActionArgs) {
     );
   }
 
-  if (typeof phone !== "string" || phone.trim().length === 0) {
-    return json(
-      { errors: { ...emptyErrors, phone: "Phone is required" } },
-      { status: 400 }
-    );
-  }
-
   const existingUser = await getUserByEmail(email);
   if (existingUser) {
     return json(
@@ -82,7 +75,7 @@ export async function action({ request }: ActionArgs) {
     );
   }
 
-  const user = await createUser({ email, name, phone, password });
+  const user = await createUser({ email, password });
 
   return createUserSession({
     request,
@@ -104,8 +97,6 @@ export default function Join() {
   const actionData = useActionData<typeof action>();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
-  const nameRef = React.useRef<HTMLInputElement>(null);
-  const phoneRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (actionData?.errors?.email) {
@@ -127,22 +118,6 @@ export default function Join() {
             required
             autoFocus
             ref={emailRef}
-          />
-          <Input
-            id="name"
-            label="Name"
-            error={actionData?.errors?.name}
-            autoComplete="name"
-            required
-            ref={nameRef}
-          />
-          <Input
-            id="phone"
-            label="Phone"
-            error={actionData?.errors?.phone}
-            autoComplete="phone"
-            required
-            ref={phoneRef}
           />
           <Input
             id="password"

@@ -4,15 +4,14 @@ import { Form, useActionData } from "@remix-run/react";
 import * as React from "react";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
-import { useUser } from "~/utils";
 
 import { createOrder } from "~/models/mulchOrder.server";
-import { requireUserId } from "~/session.server";
 import { z } from "zod";
 import { Select } from "~/components/Select";
 
+const SPREAD_PRICE_DIFFERENCE = 1;
 const DELIVER_PRICE = 7;
-const SPREAD_PRICE = DELIVER_PRICE + 1;
+const SPREAD_PRICE = DELIVER_PRICE + SPREAD_PRICE_DIFFERENCE;
 
 const COLORS = [
   { label: "Black", value: "BLACK" },
@@ -25,6 +24,7 @@ enum Neighborhood {
   UnionPark = "Union Park",
   PalomaCreek = "Paloma Creek",
   WinnRidge = "Winn Ridge",
+  Glenbrooke = "Glenbrooke",
 }
 
 const NEIGHBORHOODS: Neighborhood[] = [
@@ -33,13 +33,12 @@ const NEIGHBORHOODS: Neighborhood[] = [
   Neighborhood.UnionPark,
   Neighborhood.PalomaCreek,
   Neighborhood.WinnRidge,
+  Neighborhood.Glenbrooke,
 ];
 
 type Color = (typeof COLORS)[number]["value"];
 
 export async function action({ request }: ActionArgs) {
-  const userId = await requireUserId(request);
-
   const formData = await request.formData();
 
   const result = z
@@ -50,10 +49,9 @@ export async function action({ request }: ActionArgs) {
       note: z.string().trim(),
       neighborhood: z.enum(NEIGHBORHOODS as [Neighborhood, ...Neighborhood[]]),
       street: z.string().trim().min(1),
-      city: z.string().trim().min(1),
-      state: z.literal("TX"),
-      zip: z.string().trim().min(5),
-      deliveryAddressId: z.string().optional(),
+      name: z.string().trim().min(1),
+      email: z.string().trim().email(),
+      phone: z.string().trim(),
     })
     .safeParse({
       quantity: formData.get("quantity"),
@@ -61,185 +59,188 @@ export async function action({ request }: ActionArgs) {
       shouldSpread: formData.get("shouldSpread") === "on",
       neighborhood: formData.get("neighborhood"),
       street: formData.get("street"),
-      city: formData.get("city"),
-      state: formData.get("state"),
-      zip: formData.get("zip"),
-      deliveryAddressId: formData.get("deliveryAddressId"),
+      name: formData.get("name"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
       note: formData.get("note"),
     });
 
   if (!result.success) {
-    console.log(result);
     return json({ errors: result.error.format() }, { status: 400 });
   }
-  const { shouldSpread, quantity, color, note, deliveryAddressId, ...address } =
+  const { shouldSpread, quantity, color, note, neighborhood, street } =
     result.data;
 
   const order = await createOrder({
-    userId,
     quantity,
     color,
     note,
+    neighborhood,
+    streetAddress: street,
     orderType: shouldSpread ? "SPREAD" : "DELIVERY",
     pricePerUnit: shouldSpread ? SPREAD_PRICE : DELIVER_PRICE,
-    deliveryAddressId: deliveryAddressId,
-    address: { ...address, userId },
+    customer: {
+      name: result.data.name,
+      email: result.data.email,
+      phone: result.data.phone,
+    },
   });
 
   return redirect(`/fundraisers/mulch/orders/${order.id}`);
 }
 
-export default function NewOrderPage() {
-  const user = useUser();
-  const address = user.addresses[0];
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
 
+export default function NewOrderPage() {
   const actionData = useActionData<typeof action>();
   const quantityRef = React.useRef<HTMLInputElement>(null);
   const colorRef = React.useRef<HTMLSelectElement>(null);
   const streetRef = React.useRef<HTMLInputElement>(null);
-  const cityRef = React.useRef<HTMLInputElement>(null);
-  const stateRef = React.useRef<HTMLInputElement>(null);
-  const zipRef = React.useRef<HTMLInputElement>(null);
   const neighborhoodRef = React.useRef<HTMLSelectElement>(null);
-  const noteRef = React.useRef<HTMLInputElement>(null);
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const emailRef = React.useRef<HTMLInputElement>(null);
+  const phoneRef = React.useRef<HTMLInputElement>(null);
+  const noteRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const [quantity, setQuantity] = React.useState<string>("1");
+  const [shouldSpread, setShouldSpread] = React.useState(false);
+  const pricePerUnit = shouldSpread ? SPREAD_PRICE : DELIVER_PRICE;
 
   React.useEffect(() => {
-    if (actionData?.errors?.quantity) {
+    if (!actionData || !("errors" in actionData)) {
+      return;
+    }
+    if (actionData.errors?.quantity) {
       quantityRef.current?.focus();
-    } else if (actionData?.errors?.color) {
+    } else if (actionData.errors?.color) {
       colorRef.current?.focus();
-    } else if (actionData?.errors?.neighborhood) {
+    } else if (actionData.errors?.neighborhood) {
       neighborhoodRef.current?.focus();
-    } else if (actionData?.errors?.street) {
+    } else if (actionData.errors?.street) {
       streetRef.current?.focus();
-    } else if (actionData?.errors?.city) {
-      cityRef.current?.focus();
-    } else if (actionData?.errors?.state) {
-      stateRef.current?.focus();
-    } else if (actionData?.errors?.zip) {
-      zipRef.current?.focus();
+    } else if (actionData.errors?.name) {
+      nameRef.current?.focus();
+    } else if (actionData.errors?.email) {
+      emailRef.current?.focus();
+    } else if (actionData.errors?.phone) {
+      phoneRef.current?.focus();
     }
   }, [actionData]);
 
+  function getErrorForField(field: string) {
+    return (
+      actionData &&
+      "errors" in actionData &&
+      // @ts-expect-error - field should be a key of the errors object
+      actionData.errors?.[field]?._errors[0]
+    );
+  }
+
   return (
-    <Form
-      method="post"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        width: "100%",
-      }}
-    >
-      <Input
-        ref={quantityRef}
-        id="quantity"
-        label="Number of bags"
-        error={actionData?.errors?.quantity?._errors[0]}
-        type="number"
-      />
-
-      <Input
-        id="shouldSpread"
-        label="Would you like us to spread the mulch? (+$1/bag)"
-        type="checkbox"
-      />
-
-      {/* select element for color. */}
-      <div>
-        <label
-          htmlFor="color"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Color
-        </label>
-        <div className="mt-1">
-          <select
-            id="color"
-            name="color"
-            aria-invalid={
-              actionData?.errors?.color?._errors[0] ? true : undefined
-            }
-            aria-describedby="color-error"
-            className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
-            ref={colorRef}
-          >
-            {COLORS.map((color) => (
-              <option key={color.value} value={color.value}>
-                {color.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <Select
-          id="neighborhood"
-          label="Neighborhood"
-          error={actionData?.errors?.neighborhood?._errors[0]}
-          defaultDisplayValue={NEIGHBORHOODS.find(
-            (neighborhood) => neighborhood === address?.neighborhood
-          )}
-          defaultValue={address?.neighborhood}
-          readOnly={!!address?.neighborhood}
-        >
-          {NEIGHBORHOODS.map((neighborhood) => (
-            <option key={neighborhood} value={neighborhood}>
-              {neighborhood}
+    <div>
+      <p>
+        Order now and pay {currencyFormatter.format(SPREAD_PRICE)} per bag for
+        having the mulch spread in your landscaping, or{" "}
+        {currencyFormatter.format(DELIVER_PRICE)} per bag to have it delivered
+        to your driveway.
+      </p>
+      <br />
+      <Form
+        method="post"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          width: "100%",
+        }}
+      >
+        <Input
+          ref={quantityRef}
+          id="quantity"
+          label="Number of bags"
+          error={getErrorForField("quantity")}
+          type="number"
+          min={1}
+          value={quantity}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setQuantity(e.target.value)
+          }
+        />
+        <Input
+          id="shouldSpread"
+          label={`Would you like us to spread the mulch? (+$${SPREAD_PRICE_DIFFERENCE}/bag)`}
+          type="checkbox"
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setShouldSpread(e.target.checked)
+          }
+          value={shouldSpread}
+          wrapperClass="flex flex-row-reverse gap-2 items-center"
+        />
+        {currencyFormatter.format(pricePerUnit)}/bag X {Number(quantity)} ={" "}
+        {currencyFormatter.format(pricePerUnit * Number(quantity))}
+        <Select id="color" label="Color" error={getErrorForField("color")}>
+          {COLORS.map((color) => (
+            <option key={color.value} value={color.value}>
+              {color.label}
             </option>
           ))}
         </Select>
-      </div>
-
-      <Input
-        ref={streetRef}
-        id="street"
-        label="Street"
-        error={actionData?.errors?.street?._errors[0]}
-        autoComplete="street-address"
-        defaultValue={address?.street}
-        readOnly={!!address?.street}
-      />
-      <Input
-        ref={cityRef}
-        id="city"
-        label="City"
-        error={actionData?.errors?.city?._errors[0]}
-        autoComplete="address-level2"
-        defaultValue={address?.city}
-        readOnly={!!address?.city}
-      />
-      <Input
-        ref={stateRef}
-        id="state"
-        label="State"
-        error={actionData?.errors?.state?._errors[0]}
-        autoComplete="address-level1"
-        value="TX"
-        readOnly
-      />
-      <Input
-        ref={zipRef}
-        id="zip"
-        label="Zip"
-        error={actionData?.errors?.zip?._errors[0]}
-        autoComplete="postal-code"
-        defaultValue={address?.zip}
-        readOnly={!!address?.zip}
-      />
-      <Input
-        ref={noteRef}
-        id="note"
-        label="Extra Details"
-        error={actionData?.errors?.note?._errors[0]}
-      />
-      {/* hidden input for delivery address */}
-      <input type="hidden" name="deliveryAddressId" value={address?.id} />
-
-      <div className="text-right">
-        <Button type="submit">Go to payment</Button>
-      </div>
-    </Form>
+        <div>
+          <Select
+            id="neighborhood"
+            label="Neighborhood"
+            error={getErrorForField("neighborhood")}
+          >
+            {NEIGHBORHOODS.map((neighborhood) => (
+              <option key={neighborhood} value={neighborhood}>
+                {neighborhood}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <Input
+          ref={streetRef}
+          id="street"
+          label="Street Address"
+          error={getErrorForField("street")}
+          autoComplete="street-address"
+        />
+        <Input
+          type="textarea"
+          // @ts-ignore - We want to pass a textarea ref to Input
+          ref={noteRef}
+          id="note"
+          label="Extra Details"
+          error={getErrorForField("note")}
+        />
+        <Input
+          ref={nameRef}
+          id="name"
+          label="Name"
+          error={getErrorForField("name")}
+          autoComplete="name"
+        />
+        <Input
+          ref={emailRef}
+          id="email"
+          label="Email"
+          error={getErrorForField("email")}
+          autoComplete="email"
+        />
+        <Input
+          ref={phoneRef}
+          id="phone"
+          label="Phone"
+          error={getErrorForField("phone")}
+          autoComplete="tel"
+        />
+        <div className="text-right">
+          <Button type="submit">Submit</Button>
+        </div>
+      </Form>
+    </div>
   );
 }

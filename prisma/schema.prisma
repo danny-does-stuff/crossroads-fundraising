@@ -8,34 +8,13 @@ generator client {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  name      String
-  phone     String
-  addresses Address[]
+  id    String @id @default(cuid())
+  email String @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  password    Password?
-  mulchOrders MulchOrder[]
-}
-
-model Address {
-  id           String @id @default(cuid())
-  street       String
-  neighborhood String // enum
-  city         String
-  state        String
-  zip          String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String
-
-  mulchOrders MulchOrder[]
+  password Password?
 }
 
 model Password {
@@ -45,24 +24,37 @@ model Password {
   userId String @unique
 }
 
-model MulchOrder {
-  id           String @id @default(cuid())
-  quantity     Int
-  pricePerUnit Float
-
-  color     String // enum - one of 'BLACK' or 'BROWN'
-  orderType String // enum - one of 'SPREAD' or 'DELIVERY'
-
-  paid Boolean @default(false)
-
-  deliveryAddress   Address @relation(fields: [deliveryAddressId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  deliveryAddressId String
-
-  note String?
+model Customer {
+  id    String @id @default(cuid())
+  email String
+  name  String
+  phone String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  userId String
+  mulchOrders MulchOrder[]
+}
+
+model MulchOrder {
+  id           String  @id @default(cuid())
+  quantity     Int
+  pricePerUnit Float
+  color        String // enum - one of 'BLACK' or 'BROWN'
+  orderType    String // enum - one of 'SPREAD' or 'DELIVERY'
+  note         String?
+
+  neighborhood  String // enum
+  streetAddress String
+
+  status              String  @default("PENDING") // enum - one of 'PENDING', 'PAID', 'FULFILLED', 'CANCELLED'
+  paypalOrderId       String?
+  paypalPaymentSource String?
+  paypalPayerId       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  customerId String
 }

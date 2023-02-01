@@ -43,14 +43,9 @@ export default function Index() {
               can make a difference!
             </p>
           </div>
-          {user ? (
-            <Button linkTo="/fundraisers/mulch/orders/new">Order Mulch</Button>
-          ) : (
-            // container styled with tailwind classes to center buttons with a gap
-            <div className="flex justify-center gap-4">
-              <Button linkTo="/login">Login</Button>
-              <Button linkTo="/join">Sign Up</Button>
-            </div>
+          <Button linkTo="/fundraisers/mulch/orders/new">Order Mulch</Button>
+          {user && (
+            <Button linkTo="/fundraisers/mulch/orders">All Orders</Button>
           )}
         </div>
       </div>
