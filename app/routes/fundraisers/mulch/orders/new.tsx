@@ -56,7 +56,7 @@ export async function action({ request }: ActionArgs) {
     .safeParse({
       quantity: formData.get("quantity"),
       color: formData.get("color"),
-      shouldSpread: formData.get("shouldSpread") === "on",
+      shouldSpread: formData.get("shouldSpread") === "true",
       neighborhood: formData.get("neighborhood"),
       street: formData.get("street"),
       name: formData.get("name"),
