@@ -75,6 +75,7 @@ export default function OrderDetailsPage() {
         "client-id": data?.ENV.PAYPAL_CLIENT_ID,
         components: "buttons",
         currency: "USD",
+        "disable-funding": "credit",
       }}
     >
       <div>
