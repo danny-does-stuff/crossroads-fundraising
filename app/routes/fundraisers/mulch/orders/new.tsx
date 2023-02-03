@@ -56,7 +56,7 @@ export async function action({ request }: ActionArgs) {
     .safeParse({
       quantity: formData.get("quantity"),
       color: formData.get("color"),
-      shouldSpread: formData.get("shouldSpread") === "true",
+      shouldSpread: formData.get("shouldSpread") === "on",
       neighborhood: formData.get("neighborhood"),
       street: formData.get("street"),
       name: formData.get("name"),
@@ -176,7 +176,7 @@ export default function NewOrderPage() {
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setShouldSpread(e.target.checked)
           }
-          value={shouldSpread}
+          checked={shouldSpread}
           wrapperClass="flex flex-row-reverse gap-2 items-center"
         />
         {currencyFormatter.format(pricePerUnit)}/bag X {Number(quantity)} ={" "}
