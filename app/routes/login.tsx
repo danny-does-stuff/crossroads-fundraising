@@ -19,10 +19,7 @@ export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
-  const redirectTo = safeRedirect(
-    formData.get("redirectTo"),
-    "/fundraisers/mulch/orders"
-  );
+  const redirectTo = safeRedirect(formData.get("redirectTo"), "/");
   const remember = formData.get("remember");
 
   if (!validateEmail(email)) {
@@ -71,8 +68,7 @@ export const meta: MetaFunction = () => {
 
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
-  const redirectTo =
-    searchParams.get("redirectTo") || "/fundraisers/mulch/orders";
+  const redirectTo = searchParams.get("redirectTo");
   const actionData = useActionData<typeof action>();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
@@ -107,7 +103,7 @@ export default function LoginPage() {
             ref={passwordRef}
           />
 
-          <input type="hidden" name="redirectTo" value={redirectTo} />
+          <input type="hidden" name="redirectTo" value={redirectTo || ""} />
           <Button type="submit">Log in</Button>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
