@@ -5,7 +5,7 @@ describe("smoke tests", () => {
     // cy.cleanupUser();
   });
 
-  it('has a test', () => {
+  it("has a test", () => {
     expect(true).to.equal(true);
   });
 

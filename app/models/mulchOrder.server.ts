@@ -23,7 +23,15 @@ export function getOrder({ id }: Pick<Order, "id">) {
   });
 }
 
-export function updateOrderById(orderId: Order["id"], order: Partial<Pick<Order, 'status'| 'paypalOrderId' | 'paypalPayerId' | 'paypalPaymentSource'>>): Promise<Order> {
+export function updateOrderById(
+  orderId: Order["id"],
+  order: Partial<
+    Pick<
+      Order,
+      "status" | "paypalOrderId" | "paypalPayerId" | "paypalPaymentSource"
+    >
+  >
+): Promise<Order> {
   return prisma.mulchOrder.update({
     where: { id: orderId },
     data: order,
