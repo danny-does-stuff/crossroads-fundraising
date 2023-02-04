@@ -44,8 +44,8 @@ export default function Index() {
             </p>
           </div>
           <Button linkTo="/fundraisers/mulch/orders/new">Order Mulch</Button>
-          {user && (
-            <Button linkTo="/fundraisers/mulch/orders">All Orders</Button>
+          {user?.roles.some(({ role }) => role.name === "ADMIN") && (
+            <Button linkTo="/admin">Admin Dashboard</Button>
           )}
         </div>
       </div>

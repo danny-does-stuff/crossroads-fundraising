@@ -1,13 +1,24 @@
-import type { Password, User } from "@prisma/client";
+import type { Password, Role, User } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "~/db.server";
 
 export type { User } from "@prisma/client";
 
-export async function getUserById(id: User["id"]): Promise<User | null> {
+export type UserInSession = Pick<User, 'id' | 'email'> & {roles: Array<{role: Role}>}
+
+export async function getUserById(id: User["id"]): Promise<UserInSession | null> {
   return prisma.user.findUnique({
     where: { id },
+    select: {
+      id: true,
+      email: true,
+      roles: {
+        select: {
+          role: true,
+        }
+      },
+    }
   });
 }
 
@@ -45,6 +56,11 @@ export async function verifyLogin(
     where: { email },
     include: {
       password: true,
+      roles: {
+        select: {
+          role: true,
+        }
+      }
     },
   });
 

@@ -5,24 +5,48 @@ const prisma = new PrismaClient();
 
 async function seed() {
   const email = "rachel@remix.run";
+  const adminEmail = "admin@remix.run";
 
   // cleanup the existing database
-  await prisma.user.delete({ where: { email } }).catch(() => {
-    // no worries if it doesn't exist yet
-  });
+  await Promise.allSettled([
+    prisma.user.deleteMany({ where: { email: { in: [email, adminEmail] } } }),
+    prisma.role.deleteMany(),
+  ]);
 
-  // const hashedPassword = await bcrypt.hash("racheliscool", 10);
+  const hashedPassword = await bcrypt.hash("racheliscool", 10);
+  const hashedAdminPassword = await bcrypt.hash("testtest", 10);
 
-  // const user = await prisma.user.create({
-  //   data: {
-  //     email,
-  //     password: {
-  //       create: {
-  //         hash: hashedPassword,
-  //       },
-  //     },
-  //   },
-  // });
+  await Promise.all([
+    prisma.user.create({
+      data: {
+        email,
+        password: {
+          create: {
+            hash: hashedPassword,
+          },
+        },
+      },
+    }),
+    prisma.user.create({
+      data: {
+        email: adminEmail,
+        password: {
+          create: {
+            hash: hashedAdminPassword,
+          },
+        },
+        roles: {
+          create: {
+            role: {
+              create: {
+                name: "ADMIN",
+              },
+            },
+          },
+        },
+      },
+    }),
+  ]);
 
   const customer = await prisma.customer.create({
     data: {
