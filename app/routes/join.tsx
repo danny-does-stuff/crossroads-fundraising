@@ -20,8 +20,6 @@ export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
-  const name = formData.get("name");
-  const phone = formData.get("phone");
   const redirectTo = safeRedirect(
     formData.get("redirectTo"),
     "/fundraisers/mulch/orders"
@@ -51,13 +49,6 @@ export async function action({ request }: ActionArgs) {
   if (password.length < 8) {
     return json(
       { errors: { ...emptyErrors, password: "Password is too short" } },
-      { status: 400 }
-    );
-  }
-
-  if (typeof name !== "string" || name.trim().length === 0) {
-    return json(
-      { errors: { ...emptyErrors, name: "Name is required" } },
       { status: 400 }
     );
   }
