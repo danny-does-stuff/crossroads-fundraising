@@ -171,6 +171,7 @@ export default function NewOrderPage() {
             setQuantity(e.target.value)
           }
         />
+        <MulchCalculator />
         <Input
           id="shouldSpread"
           label={`Would you like us to spread the mulch? (+$${SPREAD_PRICE_DIFFERENCE}/bag)`}
@@ -238,6 +239,56 @@ export default function NewOrderPage() {
           <Button type="submit">Submit</Button>
         </div>
       </Form>
+    </div>
+  );
+}
+
+/**
+ * Component to help calculate how many bags of mulch the user needs
+ */
+function MulchCalculator() {
+  const [length, setLength] = React.useState(20);
+  const [width, setWidth] = React.useState(10);
+
+  return (
+    <div>
+      <details>
+        <summary className="cursor-pointer">How many bags do I need?</summary>
+        <p>
+          Texas can be hot. It is recommended to spread mulch to a depth of 4”.
+          One bag at 4 inch thickness covers 6 square feet.
+        </p>
+        <div className="flex gap-2">
+          <Input
+            id="length"
+            label="Length (feet)"
+            type="number"
+            min={0}
+            value={length}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setLength(parseInt(e.target.value))
+            }
+          />
+          <span className="pt-8">X</span>
+          <Input
+            id="width"
+            label="Width (feet)"
+            type="number"
+            min={0}
+            value={width}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setWidth(parseInt(e.target.value))
+            }
+          />
+          <span className="pt-8">
+            = {width * length} ft<sup>2</sup>.{" "}
+          </span>
+        </div>
+        <div className="pt-2 font-medium">
+          Suggested number of bags: {Math.ceil((width * length) / 6)}
+        </div>
+        <hr className="mt-2" />
+      </details>
     </div>
   );
 }
