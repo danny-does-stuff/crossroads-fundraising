@@ -171,7 +171,6 @@ export default function NewOrderPage() {
             setQuantity(e.target.value)
           }
         />
-        <MulchCalculator />
         <Input
           id="shouldSpread"
           label={`Would you like us to spread the mulch? (+$${SPREAD_PRICE_DIFFERENCE}/bag)`}
@@ -184,6 +183,8 @@ export default function NewOrderPage() {
         />
         {currencyFormatter.format(pricePerUnit)}/bag X {Number(quantity)} ={" "}
         {currencyFormatter.format(pricePerUnit * Number(quantity))}
+        <MulchCalculator />
+        <hr className="mt-2" />
         <Input
           ref={nameRef}
           id="name"
@@ -287,7 +288,6 @@ function MulchCalculator() {
         <div className="pt-2 font-medium">
           Suggested number of bags: {Math.ceil((width * length) / 6)}
         </div>
-        <hr className="mt-2" />
       </details>
     </div>
   );
