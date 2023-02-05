@@ -25,16 +25,11 @@ enum Neighborhood {
   PalomaCreek = "Paloma Creek",
   WinnRidge = "Winn Ridge",
   Glenbrooke = "Glenbrooke",
+  SandbrockRanch = "Sandbrock Ranch",
+  DelWebb = "Del Webb",
 }
 
-const NEIGHBORHOODS: Neighborhood[] = [
-  Neighborhood.Arrowbrooke,
-  Neighborhood.Savannah,
-  Neighborhood.UnionPark,
-  Neighborhood.PalomaCreek,
-  Neighborhood.WinnRidge,
-  Neighborhood.Glenbrooke,
-];
+const NEIGHBORHOODS: Neighborhood[] = Object.values(Neighborhood).sort();
 
 type Color = (typeof COLORS)[number]["value"];
 
@@ -51,7 +46,7 @@ export async function action({ request }: ActionArgs) {
       street: z.string().trim().min(1),
       name: z.string().trim().min(1),
       email: z.string().trim().email(),
-      phone: z.string().trim(),
+      phone: z.string().trim().min(10),
     })
     .safeParse({
       quantity: formData.get("quantity"),
@@ -157,6 +152,13 @@ export default function NewOrderPage() {
           width: "100%",
         }}
       >
+        <Select id="color" label="Color" error={getErrorForField("color")}>
+          {COLORS.map((color) => (
+            <option key={color.value} value={color.value}>
+              {color.label}
+            </option>
+          ))}
+        </Select>
         <Input
           ref={quantityRef}
           id="quantity"
@@ -177,58 +179,17 @@ export default function NewOrderPage() {
             setShouldSpread(e.target.checked)
           }
           checked={shouldSpread}
-          wrapperClass="flex flex-row-reverse gap-2 items-center"
+          wrapperClass="flex flex-row-reverse gap-2 items-center justify-end"
         />
         {currencyFormatter.format(pricePerUnit)}/bag X {Number(quantity)} ={" "}
         {currencyFormatter.format(pricePerUnit * Number(quantity))}
-        <Select id="color" label="Color" error={getErrorForField("color")}>
-          {COLORS.map((color) => (
-            <option key={color.value} value={color.value}>
-              {color.label}
-            </option>
-          ))}
-        </Select>
-        <div>
-          <Select
-            id="neighborhood"
-            label="Neighborhood"
-            error={getErrorForField("neighborhood")}
-          >
-            {NEIGHBORHOODS.map((neighborhood) => (
-              <option key={neighborhood} value={neighborhood}>
-                {neighborhood}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <Input
-          ref={streetRef}
-          id="street"
-          label="Street Address"
-          error={getErrorForField("street")}
-          autoComplete="street-address"
-        />
-        <Input
-          type="textarea"
-          // @ts-ignore - We want to pass a textarea ref to Input
-          ref={noteRef}
-          id="note"
-          label="Extra Details"
-          error={getErrorForField("note")}
-        />
         <Input
           ref={nameRef}
           id="name"
           label="Name"
           error={getErrorForField("name")}
           autoComplete="name"
-        />
-        <Input
-          ref={emailRef}
-          id="email"
-          label="Email"
-          error={getErrorForField("email")}
-          autoComplete="email"
+          placeholder="Chuck Norris"
         />
         <Input
           ref={phoneRef}
@@ -236,6 +197,42 @@ export default function NewOrderPage() {
           label="Phone"
           error={getErrorForField("phone")}
           autoComplete="tel"
+        />
+        <Input
+          ref={emailRef}
+          id="email"
+          label="Email"
+          error={getErrorForField("email")}
+          autoComplete="email"
+          placeholder="chuck@roundhouse.com"
+        />
+        <Select
+          id="neighborhood"
+          label="Neighborhood"
+          error={getErrorForField("neighborhood")}
+        >
+          {NEIGHBORHOODS.map((neighborhood) => (
+            <option key={neighborhood} value={neighborhood}>
+              {neighborhood}
+            </option>
+          ))}
+        </Select>
+        <Input
+          ref={streetRef}
+          id="street"
+          label="Street Address"
+          error={getErrorForField("street")}
+          autoComplete="street-address"
+          placeholder="42 Wallaby Way"
+        />
+        <Input
+          type="textarea"
+          // @ts-expect-error - Input supports text area refs too
+          ref={noteRef}
+          id="note"
+          label="Extra Details"
+          error={getErrorForField("note")}
+          placeholder="e.g. I have a driveway that is difficult to access, beware of the dog, etc."
         />
         <div className="text-right">
           <Button type="submit">Submit</Button>
