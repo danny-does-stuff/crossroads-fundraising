@@ -38,20 +38,14 @@ export function updateOrderById(
   });
 }
 
-export function getOrderListItems({
-  customerId,
-}: {
-  customerId: Customer["id"];
-}) {
+export type CompleteOrder = Order & {
+  customer: Customer;
+}
+
+export function getAllOrders(): Promise<CompleteOrder[]> {
   return prisma.mulchOrder.findMany({
-    where: { customerId },
-    select: {
-      id: true,
-      quantity: true,
-      pricePerUnit: true,
-      createdAt: true,
-    },
-    orderBy: { updatedAt: "desc" },
+    orderBy: { createdAt: "asc" },
+    include: { customer: true },
   });
 }
 
