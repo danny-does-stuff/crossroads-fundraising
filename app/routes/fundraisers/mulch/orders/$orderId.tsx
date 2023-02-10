@@ -115,7 +115,7 @@ export default function OrderDetailsPage() {
                           },
                         },
                       },
-                      custom_id: order.id,
+                      custom_id: String(order.id),
                       items: [
                         {
                           name: "Bag o' Mulch",

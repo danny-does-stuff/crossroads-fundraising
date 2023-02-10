@@ -54,7 +54,7 @@ model Customer {
 }
 
 model MulchOrder {
-  id           Int     @id @default(autoincrement())
+  id           String  @id @default(cuid())
   quantity     Int
   pricePerUnit Float
   color        String // enum - one of 'BLACK' or 'BROWN'
