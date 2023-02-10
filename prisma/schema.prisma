@@ -8,7 +8,7 @@ generator client {
 }
 
 model User {
-  id    String @id @default(cuid())
+  id    Int    @id @default(autoincrement())
   email String @unique
 
   createdAt DateTime @default(now())
@@ -19,17 +19,17 @@ model User {
 }
 
 model UserToRole {
-  id     String @id @default(cuid())
-  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  roleId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String
+  id     Int  @id @default(autoincrement())
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  roleId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId Int
 
   @@unique([roleId, userId])
 }
 
 model Role {
-  id    String       @id @default(cuid())
+  id    Int          @id @default(autoincrement())
   name  String       @unique
   users UserToRole[]
 }
@@ -37,12 +37,12 @@ model Role {
 model Password {
   hash String
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId Int  @unique
 }
 
 model Customer {
-  id    String @id @default(cuid())
+  id    Int    @id @default(autoincrement())
   email String
   name  String
   phone String
@@ -54,7 +54,7 @@ model Customer {
 }
 
 model MulchOrder {
-  id           String  @id @default(cuid())
+  id           Int     @id @default(autoincrement())
   quantity     Int
   pricePerUnit Float
   color        String // enum - one of 'BLACK' or 'BROWN'
@@ -73,5 +73,5 @@ model MulchOrder {
   updatedAt DateTime @updatedAt
 
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  customerId String
+  customerId Int
 }
