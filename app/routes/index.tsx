@@ -18,17 +18,13 @@ export default function Index() {
                 alt="Sonic Youth On Stage"
               />
             </div>
-            <div className="relative px-4 pt-16 pb-8 sm:px-6 sm:pt-24 sm:pb-14 lg:px-8 lg:pb-20 lg:pt-32">
-              <div className="mx-auto mt-10 max-w-sm sm:flex sm:max-w-none sm:justify-center">
-                <div className="space-y-4 sm:mx-auto sm:inline-grid sm:gap-5 sm:space-y-0">
-                  <Button
-                    linkTo="/fundraisers/mulch/orders/new"
-                    className="flex items-center justify-center px-4 py-3 font-medium"
-                  >
-                    Order Mulch
-                  </Button>
-                </div>
-              </div>
+            <div className="absolute bottom-3 left-0 right-0 mx-auto max-w-none px-10 sm:max-w-sm sm:px-3">
+              <Button
+                linkTo="/fundraisers/mulch/orders/new"
+                className="flex items-center justify-center px-4 py-3 font-medium"
+              >
+                Order Mulch
+              </Button>
             </div>
           </div>
           <div className="mb-3 [&>p]:mt-3">
