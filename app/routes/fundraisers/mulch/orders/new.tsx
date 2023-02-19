@@ -103,7 +103,7 @@ export default function NewOrderPage() {
   const noteRef = React.useRef<HTMLTextAreaElement>(null);
 
   const [quantity, setQuantity] = React.useState<string>("1");
-  const [shouldSpread, setShouldSpread] = React.useState(false);
+  const [shouldSpread, setShouldSpread] = React.useState(true);
   const pricePerUnit = shouldSpread ? SPREAD_PRICE : DELIVER_PRICE;
 
   React.useEffect(() => {
