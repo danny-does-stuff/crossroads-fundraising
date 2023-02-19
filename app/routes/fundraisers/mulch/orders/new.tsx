@@ -152,7 +152,11 @@ export default function NewOrderPage() {
           width: "100%",
         }}
       >
-        <Select id="color" label="Color" error={getErrorForField("color")}>
+        <Select
+          id="color"
+          label="Mulch Color"
+          error={getErrorForField("color")}
+        >
           {COLORS.map((color) => (
             <option key={color.value} value={color.value}>
               {color.label}
