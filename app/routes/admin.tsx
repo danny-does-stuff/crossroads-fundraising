@@ -50,6 +50,7 @@ export default function Admin() {
           Avg. Order: ${getTotalGrossIncome(orders, false) / orders.length}
         </RoundedBorder>
       </div>
+      <h2>All Orders</h2>
     </div>
   );
 }
