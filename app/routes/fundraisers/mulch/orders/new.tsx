@@ -22,7 +22,6 @@ enum Neighborhood {
   Arrowbrooke = "Arrowbrooke",
   Savannah = "Savannah",
   UnionPark = "Union Park",
-  PalomaCreek = "Paloma Creek",
   WinnRidge = "Winn Ridge",
   Glenbrooke = "Glenbrooke",
   SandbrockRanch = "Sandbrock Ranch",
@@ -47,6 +46,7 @@ export async function action({ request }: ActionArgs) {
       name: z.string().trim().min(1),
       email: z.string().trim().email(),
       phone: z.string().trim().min(10),
+      referralSource: z.string().optional(),
     })
     .safeParse({
       quantity: formData.get("quantity"),
@@ -58,6 +58,7 @@ export async function action({ request }: ActionArgs) {
       email: formData.get("email"),
       phone: formData.get("phone"),
       note: formData.get("note"),
+      referralSource: formData.get("referralSource"),
     });
 
   if (!result.success) {
@@ -74,6 +75,7 @@ export async function action({ request }: ActionArgs) {
     streetAddress: street,
     orderType: shouldSpread ? "SPREAD" : "DELIVERY",
     pricePerUnit: shouldSpread ? SPREAD_PRICE : DELIVER_PRICE,
+    referralSource: result.data.referralSource || null,
     customer: {
       name: result.data.name,
       email: result.data.email,
@@ -101,7 +103,7 @@ export default function NewOrderPage() {
   const noteRef = React.useRef<HTMLTextAreaElement>(null);
 
   const [quantity, setQuantity] = React.useState<string>("1");
-  const [shouldSpread, setShouldSpread] = React.useState(false);
+  const [shouldSpread, setShouldSpread] = React.useState(true);
   const pricePerUnit = shouldSpread ? SPREAD_PRICE : DELIVER_PRICE;
 
   React.useEffect(() => {
@@ -239,6 +241,11 @@ export default function NewOrderPage() {
           label="Extra Details"
           error={getErrorForField("note")}
           placeholder="e.g. I have a driveway that is difficult to access, beware of the dog, etc."
+        />
+        <Input
+          id="referralSource"
+          label="How did you hear about us?"
+          placeholder="e.g. Facebook, neighbor, NextDoor, etc."
         />
         <div className="text-right">
           <Button type="submit">Submit</Button>

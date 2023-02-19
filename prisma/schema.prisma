@@ -68,6 +68,8 @@ model MulchOrder {
   paypalOrderId       String?
   paypalPaymentSource String?
   paypalPayerId       String?
+  
+  referralSource String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

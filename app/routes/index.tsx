@@ -1,4 +1,3 @@
-import { Link } from "@remix-run/react";
 import { Button } from "~/components/Button";
 
 import { useOptionalUser } from "~/utils";
@@ -14,11 +13,11 @@ export default function Index() {
             <div className="absolute inset-0">
               <img
                 className="h-full w-full object-cover"
-                src="https://user-images.githubusercontent.com/1500684/157774694-99820c51-8165-4908-a031-34fc371ac0d6.jpg"
-                alt="Sonic Youth On Stage"
+                src="/assets/mulch_home.jpg"
+                alt="A home with beautiful mulch work"
               />
             </div>
-            <div className="absolute bottom-3 left-0 right-0 mx-auto max-w-none px-10 sm:max-w-sm sm:px-3">
+            <div className="absolute bottom-3 right-3 max-w-none sm:max-w-sm sm:px-10">
               <Button
                 linkTo="/fundraisers/mulch/orders/new"
                 className="flex items-center justify-center px-4 py-3 font-medium"

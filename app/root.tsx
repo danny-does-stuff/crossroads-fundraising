@@ -19,8 +19,11 @@ export const links: LinksFunction = () => {
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
-  title: "Crossroads Mulch Fundraiser",
+  title: "Crossroads Youth Mulch Fundraiser",
   viewport: "width=device-width,initial-scale=1",
+  description:
+    "Welcome to the Crossroads Youth Group Mulch Sale fundraiser! We are thrilled to be launching this campaign to raise funds for our group's various programs and activities.",
+  "og:image": "/assets/mulch_home.jpg",
 });
 
 export async function loader({ request }: LoaderArgs) {
