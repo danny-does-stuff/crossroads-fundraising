@@ -61,8 +61,9 @@ export async function createOrder({
   | "color"
   | "neighborhood"
   | "streetAddress"
+  | "referralSource"
 > & {
-  customer: Pick<Customer, "name" | "email" | "phone">;
+  customer: Pick<Customer, "name" | "email" | "phone" >;
 }) {
   // Only connect the order to an existing customer if the customer's name, email, and phone match
   const existingCustomer = await prisma.customer.findFirst({
