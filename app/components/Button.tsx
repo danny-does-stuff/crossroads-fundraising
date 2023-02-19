@@ -8,16 +8,18 @@ export const Button = React.forwardRef(function Button(
   {
     children,
     linkTo,
+    className,
     ...props
   }: {
     children: React.ReactNode;
     linkTo?: string;
+    className?: string;
     [key: string]: any;
   },
   ref: React.Ref<HTMLButtonElement>
 ) {
-  const classes =
-    "rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400";
+  const classes = `rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400 ${className}`;
+
   if (linkTo) {
     return (
       <Link to={linkTo} className={classes}>
