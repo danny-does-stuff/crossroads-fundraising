@@ -53,10 +53,12 @@ export default function Index() {
               can make a difference!
             </p>
           </div>
-          <Button linkTo="/fundraisers/mulch/orders/new">Order Mulch</Button>
-          {user?.roles.some(({ role }) => role.name === "ADMIN") && (
-            <Button linkTo="/admin">Admin Dashboard</Button>
-          )}
+          <div className="mb-3 flex gap-2">
+            <Button linkTo="/fundraisers/mulch/orders/new">Order Mulch</Button>
+            {user?.roles.some(({ role }) => role.name === "ADMIN") && (
+              <Button linkTo="/admin">Admin Dashboard</Button>
+            )}
+          </div>
         </div>
       </div>
     </main>
