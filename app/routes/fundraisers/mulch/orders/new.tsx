@@ -159,6 +159,7 @@ export default function NewOrderPage() {
           label="Mulch Color"
           error={getErrorForField("color")}
         >
+          <option value="">Select a color</option>
           {COLORS.map((color) => (
             <option key={color.value} value={color.value}>
               {color.label}
@@ -219,6 +220,7 @@ export default function NewOrderPage() {
           label="Neighborhood"
           error={getErrorForField("neighborhood")}
         >
+          <option value="">Select one</option>
           {NEIGHBORHOODS.map((neighborhood) => (
             <option key={neighborhood} value={neighborhood}>
               {neighborhood}
