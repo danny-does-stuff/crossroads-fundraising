@@ -8,6 +8,7 @@ import { Input } from "~/components/Input";
 import { createOrder } from "~/models/mulchOrder.server";
 import { z } from "zod";
 import { Select } from "~/components/Select";
+import { useMulchPrepContent } from "../orders";
 
 const SPREAD_PRICE_DIFFERENCE = 1;
 const DELIVER_PRICE = 7;
@@ -105,6 +106,8 @@ export default function NewOrderPage() {
   const [quantity, setQuantity] = React.useState<string>("1");
   const [shouldSpread, setShouldSpread] = React.useState(true);
   const pricePerUnit = shouldSpread ? SPREAD_PRICE : DELIVER_PRICE;
+
+  const mulchPrepContent = useMulchPrepContent();
 
   React.useEffect(() => {
     if (!actionData || !("errors" in actionData)) {
@@ -249,6 +252,7 @@ export default function NewOrderPage() {
           label="How did you hear about us?"
           placeholder="e.g. Facebook, neighbor, NextDoor, etc."
         />
+        {mulchPrepContent}
         <div className="text-right">
           <Button type="submit">Submit</Button>
         </div>

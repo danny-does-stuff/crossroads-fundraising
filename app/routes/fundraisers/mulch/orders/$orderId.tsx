@@ -9,6 +9,7 @@ import { CONTACT_EMAIL } from "~/constants";
 
 import { updateOrderById, getOrder } from "~/models/mulchOrder.server";
 import { useMatchesData } from "~/utils";
+import { useMulchPrepContent } from "../orders";
 
 export async function loader({ request, params }: LoaderArgs) {
   // TODO: use a short lived session to verify that the user is the one who created the order
@@ -65,6 +66,8 @@ export default function OrderDetailsPage() {
 
   const fetcher = useFetcher();
   const data = useMatchesData("root");
+
+  const mulchPrepContent = useMulchPrepContent();
 
   const total = order.pricePerUnit * order.quantity;
 
@@ -172,6 +175,7 @@ export default function OrderDetailsPage() {
               }}
             />
             <hr className="my-4" />
+            <div className="mb-4">{mulchPrepContent}</div>
             <Form method="put">
               <input type="hidden" name="status" value="CANCELLED" />
               <button
@@ -185,11 +189,14 @@ export default function OrderDetailsPage() {
         ) : order.status === "CANCELLED" ? (
           <div className="font-bold text-red-500">Order Cancelled</div>
         ) : (
-          <div className="font-bold text-green-500">
-            Paid!! Thank you for your business. We will reach out to you through
-            email to schedule the delivery{" "}
-            {order.orderType === "SPREAD" ? "and spreading " : ""}service.
-          </div>
+          <>
+            <div className="font-bold text-green-500">
+              Paid!! Thank you for your business. We will reach out to you
+              through email to schedule the delivery{" "}
+              {order.orderType === "SPREAD" ? "and spreading " : ""}service.
+            </div>
+            <div className="mt-4">{mulchPrepContent}</div>
+          </>
         )}
       </div>
     </PayPalScriptProvider>
