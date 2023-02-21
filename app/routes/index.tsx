@@ -26,7 +26,7 @@ export default function Index() {
               </Button>
             </div> */}
           </div>
-          <div className="mb-3 [&>p]:mt-3">
+          <div className="mx-4 mb-3 [&>p]:mt-3">
             <p>
               Welcome to the Crossroads Ward Youth fundraising page. As a group
               we are raising money to be used to help fund our various programs
@@ -65,12 +65,14 @@ export default function Index() {
                 cr.youth.fundraising@gmail.com
               </a>
             </p>
-          </div>
-          <div className="mb-3 flex gap-2">
-            <Button linkTo="/fundraisers/mulch/orders/new">Order Mulch</Button>
-            {user?.roles.some(({ role }) => role.name === "ADMIN") && (
-              <Button linkTo="/admin">Admin Dashboard</Button>
-            )}
+            <div className="my-3 flex gap-2">
+              <Button linkTo="/fundraisers/mulch/orders/new">
+                Order Mulch
+              </Button>
+              {user?.roles.some(({ role }) => role.name === "ADMIN") && (
+                <Button linkTo="/admin">Admin Dashboard</Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
