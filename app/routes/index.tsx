@@ -27,6 +27,12 @@ export default function Index() {
             </div> */}
           </div>
           <div className="mx-4 mb-3 [&>p]:mt-3">
+            <h1 className="mt-4 mb-3 text-4xl font-semibold">
+              Crossroads Youth Mulch Fundraiser
+            </h1>
+            <h2 className="text-2xl">
+              Have a Beautiful Yard. Support Local Youth.
+            </h2>
             <p>
               Welcome to the Crossroads Ward Youth fundraising page. As a group
               we are raising money to be used to help fund our various programs
