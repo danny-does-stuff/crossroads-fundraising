@@ -17,40 +17,53 @@ export default function Index() {
                 alt="A home with beautiful mulch work"
               />
             </div>
-            <div className="absolute bottom-3 right-3 max-w-none sm:max-w-sm sm:px-10">
+            {/* <div className="absolute bottom-3 right-3 max-w-none sm:max-w-sm sm:px-10">
               <Button
                 linkTo="/fundraisers/mulch/orders/new"
                 className="flex items-center justify-center px-4 py-3 font-medium"
               >
                 Order Mulch
               </Button>
-            </div>
+            </div> */}
           </div>
           <div className="mb-3 [&>p]:mt-3">
             <p>
-              Welcome to the Crossroads Youth Group Mulch Sale fundraiser! We
-              are thrilled to be launching this campaign to raise funds for our
-              group's various programs and activities.
+              Welcome to the Crossroads Ward Youth fundraising page. As a group
+              we are raising money to be used to help fund our various programs
+              and initiatives throughout the year.
             </p>
+
             <p>
-              As part of our community service efforts, we will be selling
-              premium quality mulch and using the proceeds to fund our programs.
-              By purchasing mulch from us, not only will you be beautifying your
-              own yard, but you will also be supporting the youth in our
-              community. Our youth volunteers will be responsible for spreading
-              the mulch at your residence, providing them with valuable work
-              experience and helping them develop important life skills.
+              We're excited to announce that we are selling and spreading fresh
+              mulch to help rejuvenate your garden and restore its life. Our
+              youth are dedicated to not only providing high-quality mulch, but
+              also providing the option to spread the mulch evenly and neatly
+              throughout your garden beds.
             </p>
+
             <p>
-              Your support will help us continue to provide these valuable
-              opportunities for our young participants. Your purchase will go
-              towards funding our programs, purchasing equipment and supplies,
-              and supporting our volunteer staff.
+              As you click to the next page, you will find that we have made the
+              process as simple as possible. You will find a mulch calculator
+              that you can use to help you determine how much mulch you will
+              need in your yard. You will also have the option to select your
+              neighborhood and the color of mulch you would like. If you do not
+              see your neighborhood as an option, we unfortunately will not be
+              able to serve your home.
             </p>
+
             <p>
-              We thank you for your support and for helping us make a positive
-              impact on the lives of young people in our community. Together, we
-              can make a difference!
+              Orders will be delivered and spread on March 11 or March 18. We
+              will confirm the specific delivery date via email a week or two
+              before the Saturday when we will arrive at your home. Let's work
+              together to create beautiful and healthy gardens while empowering
+              our youth!
+            </p>
+
+            <p>
+              If you have any questions, please email{" "}
+              <a href="mailto:cr.youth.fundraising@gmail.com.">
+                cr.youth.fundraising@gmail.com
+              </a>
             </p>
           </div>
           <div className="mb-3 flex gap-2">
