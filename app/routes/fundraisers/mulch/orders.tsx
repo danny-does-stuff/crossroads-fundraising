@@ -6,7 +6,10 @@ type ContextType = React.ReactNode;
 export default function OrdersPage() {
   return (
     <main>
-      <HeroImage />
+      <HeroImage
+        src="/assets/hands_spreading_mulch.jpg"
+        alt="Hands spreading mulch"
+      />
       <div className="p-6 pt-4">
         <Outlet
           context={

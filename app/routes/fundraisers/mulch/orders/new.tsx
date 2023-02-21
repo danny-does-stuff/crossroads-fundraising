@@ -141,7 +141,7 @@ export default function NewOrderPage() {
 
   return (
     <div>
-      <p>
+      <p className="text-lg">
         Order now and pay {currencyFormatter.format(SPREAD_PRICE)} per bag for
         having the mulch spread in your landscaping, or{" "}
         {currencyFormatter.format(DELIVER_PRICE)} per bag to have it delivered
@@ -183,7 +183,7 @@ export default function NewOrderPage() {
         />
         <Input
           id="shouldSpread"
-          label={`Would you like us to spread the mulch? (+$${SPREAD_PRICE_DIFFERENCE}/bag)`}
+          label={`Would you like us to spread the mulch? ($${SPREAD_PRICE_DIFFERENCE}/bag)`}
           type="checkbox"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setShouldSpread(e.target.checked)
