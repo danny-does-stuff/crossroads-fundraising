@@ -254,7 +254,7 @@ export default function NewOrderPage() {
         />
         {mulchPrepContent}
         <div className="text-right">
-          <Button type="submit">Submit</Button>
+          <Button type="submit">Proceed to Checkout</Button>
         </div>
       </Form>
     </div>
