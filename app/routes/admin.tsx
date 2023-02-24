@@ -130,7 +130,20 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
       },
       {
         Header: "Customer",
-        accessor: "customer.email",
+        accessor: "customer",
+        Cell: ({ value }: { value: CompleteOrder["customer"] }) => {
+          return (
+            <>
+              {value.email}
+              <br />
+              {value.phone}
+            </>
+          );
+        },
+      },
+      {
+        Header: "Note",
+        accessor: "note",
       },
     ],
     []
