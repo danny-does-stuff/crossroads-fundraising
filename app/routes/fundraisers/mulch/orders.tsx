@@ -14,20 +14,38 @@ export default function OrdersPage() {
         <Outlet
           context={
             <>
-              <h2 className="text-xl font-medium">How to Prepare</h2>
+              <h2 className="text-xl font-medium">
+                HOW TO PREPARE FOR MULCH DELIVERY
+              </h2>
               <p>
-                The Crossroads Ward Youth will be delivering and spreading mulch
-                on Saturday March 11 and Saturday March 18. We will reach out to
-                you by email beforehand to let you know which day we will be
-                servicing your home. Mulch removal is not included in the price
-                of the mulch, so please remove any existing mulch from your
-                garden beds before we arrive.
+                To best help you prepare for our youth to spread the mulch, we
+                recommend taking the following steps.
               </p>
               <ol className="ml-6 list-decimal">
-                <li>Order Mulch</li>
-                <li>Receive email notifying you of your delivery date</li>
-                <li>Remove any old mulch</li>
-                <li>Mulch Delivery!</li>
+                <li>
+                  <b>Remove all existing mulch from your yard.</b> Our youth
+                  will not be responsible for removing old mulch. If existing
+                  mulch is present, then we will spread the new mulch over the
+                  top of the existing mulch.
+                </li>
+                <li>
+                  <b>Remove all weeds from your garden beds.</b> We will not
+                  remove weeds for you, so to allow the mulch to be as effective
+                  as possible, please remove the weeds yourself.
+                </li>
+                <li>
+                  <b>Trim the bushes and trees in or around the garden beds.</b>{" "}
+                  Once the mulch is installed, removing the trimmings will be
+                  more difficult.
+                </li>
+                <li>
+                  <b>Edge your mulch bed.</b> If you have plans to remove grass
+                  overhang, then remove it before we come and spread the mulch.
+                </li>
+                <li>
+                  <b>After the mulch is laid,</b> you will want to wait a day or
+                  two and then water the mulch to help it settle into place.
+                </li>
               </ol>
             </>
           }
