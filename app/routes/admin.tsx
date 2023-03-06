@@ -118,6 +118,10 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
           value === "SPREAD" ? "Yes" : "No",
       },
       {
+        Header: "Color",
+        accessor: "color",
+      },
+      {
         Header: "Status",
         accessor: "status",
       },
