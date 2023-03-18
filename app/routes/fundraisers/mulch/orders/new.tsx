@@ -9,6 +9,7 @@ import { createOrder } from "~/models/mulchOrder.server";
 import { z } from "zod";
 import { Select } from "~/components/Select";
 import { useMulchPrepContent } from "../orders";
+import { ACCEPTING_MULCH_ORDERS } from "~/constants";
 
 const SPREAD_PRICE_DIFFERENCE = 1;
 const DELIVER_PRICE = 7;
@@ -34,6 +35,10 @@ const NEIGHBORHOODS: Neighborhood[] = Object.values(Neighborhood).sort();
 type Color = (typeof COLORS)[number]["value"];
 
 export async function action({ request }: ActionArgs) {
+  if (!ACCEPTING_MULCH_ORDERS) {
+    return redirect("/fundraisers/mulch/orders");
+  }
+
   const formData = await request.formData();
 
   const result = z
