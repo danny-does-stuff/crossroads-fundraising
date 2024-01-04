@@ -17,7 +17,7 @@ export default function Index() {
           Have a Beautiful Yard. Support Local Youth.
         </h2>
         <p>
-          Welcome to the Crossroads Ward Youth fundraising page. As a group we
+          Welcome to the Crossroads Ward Youth fundraising page! As a group we
           are raising money to be used to help fund our various programs and
           initiatives throughout the year.
         </p>
