@@ -1,5 +1,6 @@
 import { Button } from "~/components/Button";
 import { HeroImage } from "~/components/HeroImage";
+import { MULCH_DELIVERY_DATE_1, MULCH_DELIVERY_DATE_2 } from "~/constants";
 
 import { useOptionalUser } from "~/utils";
 
@@ -40,10 +41,11 @@ export default function Index() {
         </p>
 
         <p>
-          Orders will be delivered and spread on March 11 or March 18. We will
-          confirm the specific delivery date via email a week or two before the
-          Saturday when we will arrive at your home. Let's work together to
-          create beautiful and healthy gardens while empowering our youth!
+          Orders will be delivered and spread on {MULCH_DELIVERY_DATE_1} or{" "}
+          {MULCH_DELIVERY_DATE_2}. We will confirm the specific delivery date
+          via email a week or two before the Saturday when we will arrive at
+          your home. Let's work together to create beautiful and healthy gardens
+          while empowering our youth!
         </p>
 
         <p>
