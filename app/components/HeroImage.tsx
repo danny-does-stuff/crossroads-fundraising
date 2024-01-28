@@ -1,6 +1,6 @@
 export function HeroImage({
-  src = "/assets/mulch_wagon.jpg",
-  alt = "Beautiful mulch and a wagon",
+  src = "/assets/youth_with_mulch_bags.png",
+  alt = "Crossroads Youth Prepared to Spread Mulch",
 }: {
   src?: string;
   alt?: string;

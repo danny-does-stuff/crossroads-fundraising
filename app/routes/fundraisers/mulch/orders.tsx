@@ -1,16 +1,30 @@
-import { Outlet, useOutletContext } from "@remix-run/react";
+import {
+  Outlet,
+  useLocation,
+  useMatches,
+  useOutletContext,
+  useParams,
+} from "@remix-run/react";
 import { HeroImage } from "~/components/HeroImage";
 import { ACCEPTING_MULCH_ORDERS, NEXT_MULCH_YEAR } from "~/constants";
 
 type ContextType = React.ReactNode;
 
 export default function OrdersPage() {
+  const { orderId } = useParams();
+
+  const image = orderId
+    ? {
+        src: "/assets/youth_jumping.png",
+        alt: "Crossroads Youth Jumping for Joy",
+      }
+    : {
+        src: "/assets/youth_with_completed_mulch.png",
+        alt: "Crossroads Youth with Beautifully Spread Mulch",
+      };
   return (
     <main>
-      <HeroImage
-        src="/assets/hands_spreading_mulch.jpg"
-        alt="Hands spreading mulch"
-      />
+      <HeroImage {...image} />
 
       <div className="p-6 pt-4">
         {ACCEPTING_MULCH_ORDERS ? (
