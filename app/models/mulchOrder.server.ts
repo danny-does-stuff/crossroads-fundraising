@@ -40,10 +40,24 @@ export function updateOrderById(
 
 export type CompleteOrder = Order & {
   customer: Customer;
-}
+};
 
 export function getAllOrders(): Promise<CompleteOrder[]> {
   return prisma.mulchOrder.findMany({
+    orderBy: { createdAt: "asc" },
+    include: { customer: true },
+  });
+}
+
+/**
+ * Gets all the orders for a given year.
+ * @param year
+ */
+export function getAllOrdersForYear(year: number): Promise<CompleteOrder[]> {
+  return prisma.mulchOrder.findMany({
+    where: {
+      createdAt: { gte: new Date(year, 0, 1), lt: new Date(year + 1, 0, 1) },
+    },
     orderBy: { createdAt: "asc" },
     include: { customer: true },
   });
@@ -63,7 +77,7 @@ export async function createOrder({
   | "streetAddress"
   | "referralSource"
 > & {
-  customer: Pick<Customer, "name" | "email" | "phone" >;
+  customer: Pick<Customer, "name" | "email" | "phone">;
 }) {
   // Only connect the order to an existing customer if the customer's name, email, and phone match
   const existingCustomer = await prisma.customer.findFirst({

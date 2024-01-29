@@ -218,7 +218,7 @@ export function CatchBoundary() {
       role="alert"
     >
       {caught.status === 404 ? (
-        "Order not found"
+        "Order not found."
       ) : caught.status === 400 && caught.data ? (
         <>
           There was an error processing your order:
@@ -233,6 +233,8 @@ export function CatchBoundary() {
       ) : (
         `An unexpected error occurred: ${caught.status}`
       )}
+      <br />
+      <br />
       If you believe you paid for this order, please contact us at{" "}
       {CONTACT_EMAIL}
     </div>

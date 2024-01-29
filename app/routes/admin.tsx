@@ -1,7 +1,10 @@
 import { useMemo } from "react";
 import { type LoaderArgs } from "@remix-run/node";
 import { typedjson, useTypedLoaderData, redirect } from "remix-typedjson";
-import { getAllOrders, type CompleteOrder } from "~/models/mulchOrder.server";
+import {
+  type CompleteOrder,
+  getAllOrdersForYear,
+} from "~/models/mulchOrder.server";
 import { requireUser } from "~/session.server";
 import { useTable, useGlobalFilter, useSortBy } from "react-table";
 import type { MulchOrder } from "@prisma/client";
@@ -13,7 +16,9 @@ export async function loader({ request }: LoaderArgs) {
     return redirect("/login");
   }
 
-  const orders: CompleteOrder[] = await getAllOrders();
+  const orders: CompleteOrder[] = await getAllOrdersForYear(
+    new Date().getFullYear()
+  );
 
   return typedjson({ orders });
 }
@@ -44,6 +49,8 @@ export default function Admin() {
 
   const paidOrders = orders.filter((o) => o.status === "PAID");
 
+  const year = new Date().getFullYear();
+
   return (
     <div className="p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:[&>*]:flex-1">
@@ -73,7 +80,7 @@ export default function Admin() {
           </span>
         </RoundedBorder>
       </div>
-      <h2 className="mt-4 mb-2 text-4xl font-semibold">All Orders</h2>
+      <h2 className="mt-4 mb-2 text-4xl font-semibold">All Orders ({year})</h2>
       <OrdersTable orders={orders} />
     </div>
   );
@@ -99,6 +106,11 @@ function RoundedBorder({
 export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
   const columns = useMemo(
     () => [
+      {
+        Header: "Date",
+        accessor: "createdAt",
+        Cell: ({ value }: { value: Date }) => value.toLocaleDateString(),
+      },
       {
         Header: "Address",
         accessor: "streetAddress",
