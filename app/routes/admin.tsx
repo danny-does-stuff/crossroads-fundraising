@@ -16,11 +16,13 @@ export async function loader({ request }: LoaderArgs) {
     return redirect("/login");
   }
 
-  const orders: CompleteOrder[] = await getAllOrdersForYear(
-    new Date().getFullYear()
-  );
+  const year =
+    Number(new URL(request.url).searchParams.get("year")) ||
+    new Date().getFullYear();
 
-  return typedjson({ orders });
+  const orders: CompleteOrder[] = await getAllOrdersForYear(year);
+
+  return typedjson({ orders, year });
 }
 
 function getOrderGrossIncome(order: CompleteOrder) {
@@ -45,11 +47,9 @@ function getTotalGrossIncome(
 }
 
 export default function Admin() {
-  const { orders } = useTypedLoaderData<typeof loader>();
+  const { orders, year } = useTypedLoaderData<typeof loader>();
 
   const paidOrders = orders.filter((o) => o.status === "PAID");
-
-  const year = new Date().getFullYear();
 
   return (
     <div className="p-6">
