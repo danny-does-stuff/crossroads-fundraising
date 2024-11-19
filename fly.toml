@@ -1,4 +1,5 @@
 app = "crossroads-fundraising-6bcf"
+primary_region = "dfw"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = [ ]
