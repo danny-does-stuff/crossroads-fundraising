@@ -54,26 +54,22 @@ model Customer {
 }
 
 model MulchOrder {
-  id           String  @id @default(cuid())
-  quantity     Int
-  pricePerUnit Float
-  color        String // enum - one of 'BLACK' or 'BROWN'
-  orderType    String // enum - one of 'SPREAD' or 'DELIVERY'
-  note         String?
-
-  neighborhood  String // enum
-  streetAddress String
-
-  status              String  @default("PENDING") // enum - one of 'PENDING', 'PAID', 'FULFILLED', 'CANCELLED'
+  id                   String    @id @default(cuid())
+  quantity            Int
+  pricePerUnit        Float
+  color               String // enum - one of 'BLACK' or 'BROWN'
+  orderType           String // enum - one of 'SPREAD' or 'DELIVERY'
+  note                String?
+  neighborhood        String
+  streetAddress       String
+  status              String    @default("PENDING") // enum - one of 'PENDING', 'PAID', 'FULFILLED', 'CANCELLED'
   paypalOrderId       String?
   paypalPaymentSource String?
   paypalPayerId       String?
-  
-  referralSource String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  customerId Int
+  referralSource      String?
+  referralSourceDetails String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  customer            Customer  @relation(fields: [customerId], references: [id])
+  customerId          Int
 }
