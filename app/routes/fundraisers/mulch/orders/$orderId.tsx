@@ -74,11 +74,12 @@ export default function OrderDetailsPage() {
   return (
     <PayPalScriptProvider
       options={{
-        // @ts-ignore - we add the global ENV variable in the root.tsx file
+        // @ts-expect-error - we add the global ENV variable in the root.tsx file
         "client-id": data?.ENV.PAYPAL_CLIENT_ID,
         components: "buttons",
         currency: "USD",
         "disable-funding": "credit",
+        "enable-funding": "venmo",
       }}
     >
       <div>
