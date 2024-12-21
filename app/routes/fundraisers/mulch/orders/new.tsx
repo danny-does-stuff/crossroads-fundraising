@@ -34,6 +34,22 @@ const NEIGHBORHOODS: Neighborhood[] = Object.values(Neighborhood).sort();
 
 type Color = (typeof COLORS)[number]["value"];
 
+enum ReferralSource {
+  Friend = "FRIEND",
+  Flyer = "FLYER",
+  ReturningCustomer = "RETURNING_CUSTOMER",
+  Online = "ONLINE",
+  Other = "OTHER",
+}
+
+const REFERRAL_SOURCE_LABELS: Record<ReferralSource, string> = {
+  [ReferralSource.Friend]: "Friend",
+  [ReferralSource.Flyer]: "Flyer",
+  [ReferralSource.ReturningCustomer]: "Returning Customer",
+  [ReferralSource.Online]: "Online/Social Media",
+  [ReferralSource.Other]: "Other",
+};
+
 export async function action({ request }: ActionArgs) {
   if (!ACCEPTING_MULCH_ORDERS) {
     return redirect("/fundraisers/mulch/orders");
@@ -52,7 +68,20 @@ export async function action({ request }: ActionArgs) {
       name: z.string().trim().min(1),
       email: z.string().trim().email(),
       phone: z.string().trim().min(10),
-      referralSource: z.string().optional(),
+      referralSource: z.nativeEnum(ReferralSource),
+      referralSourceDetails: z
+        .union([
+          z.string().trim().min(1, "Please specify how you heard about us"),
+          z.null(),
+        ])
+        .superRefine((val, ctx) => {
+          if (formData.get("referralSource") === ReferralSource.Other && !val) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Please specify how you heard about us",
+            });
+          }
+        }),
     })
     .safeParse({
       quantity: formData.get("quantity"),
@@ -65,6 +94,7 @@ export async function action({ request }: ActionArgs) {
       phone: formData.get("phone"),
       note: formData.get("note"),
       referralSource: formData.get("referralSource"),
+      referralSourceDetails: formData.get("referralSourceDetails"),
     });
 
   if (!result.success) {
@@ -81,7 +111,8 @@ export async function action({ request }: ActionArgs) {
     streetAddress: street,
     orderType: shouldSpread ? "SPREAD" : "DELIVERY",
     pricePerUnit: shouldSpread ? SPREAD_PRICE : DELIVER_PRICE,
-    referralSource: result.data.referralSource || null,
+    referralSource: result.data.referralSource,
+    referralSourceDetails: result.data.referralSourceDetails,
     customer: {
       name: result.data.name,
       email: result.data.email,
@@ -113,6 +144,9 @@ export default function NewOrderPage() {
   const pricePerUnit = shouldSpread ? SPREAD_PRICE : DELIVER_PRICE;
 
   const mulchPrepContent = useMulchPrepContent();
+
+  const [selectedReferralSource, setSelectedReferralSource] =
+    React.useState("");
 
   React.useEffect(() => {
     if (!actionData || !("errors" in actionData)) {
@@ -252,11 +286,29 @@ export default function NewOrderPage() {
           error={getErrorForField("note")}
           placeholder="e.g. I have a driveway that is difficult to access, beware of the dog, etc."
         />
-        <Input
+        <Select
           id="referralSource"
           label="How did you hear about us?"
-          placeholder="e.g. Facebook, neighbor, NextDoor, etc."
-        />
+          error={getErrorForField("referralSource")}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setSelectedReferralSource(e.target.value)
+          }
+        >
+          <option value="">Select one</option>
+          {Object.values(ReferralSource).map((value) => (
+            <option key={value} value={value}>
+              {REFERRAL_SOURCE_LABELS[value]}
+            </option>
+          ))}
+        </Select>
+        {selectedReferralSource === ReferralSource.Other && (
+          <Input
+            id="referralSourceDetails"
+            label="Please specify"
+            error={getErrorForField("referralSourceDetails")}
+            placeholder="Tell us how you heard about us"
+          />
+        )}
         {mulchPrepContent}
         <div className="text-right">
           <Button type="submit">Proceed to Checkout</Button>
@@ -278,7 +330,7 @@ function MulchCalculator() {
       <hr className="my-2" />
       <h3 className="text-xl font-medium">How many bags do I need?</h3>
       <p>
-        Texas can be hot. It is recommended to spread mulch to a depth of 4”.
+        Texas can be hot. It is recommended to spread mulch to a depth of 4".
         One bag at 4 inch thickness covers 6 square feet.
       </p>
       <div className="flex gap-2">

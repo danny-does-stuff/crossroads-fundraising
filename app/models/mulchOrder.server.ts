@@ -76,6 +76,7 @@ export async function createOrder({
   | "neighborhood"
   | "streetAddress"
   | "referralSource"
+  | "referralSourceDetails"
 > & {
   customer: Pick<Customer, "name" | "email" | "phone">;
 }) {
