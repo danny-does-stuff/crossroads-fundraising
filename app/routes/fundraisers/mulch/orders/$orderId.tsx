@@ -191,9 +191,44 @@ export default function OrderDetailsPage() {
         ) : (
           <>
             <div className="font-bold text-green-500">
-              Paid!! Thank you for your business. We will reach out to you
-              through email to schedule the delivery{" "}
-              {order.orderType === "SPREAD" ? "and spreading " : ""}service.
+              Paid!! Thank you for your business.
+            </div>
+            <div className="mt-4 space-y-4">
+              <div className="rounded border border-gray-200 p-4 shadow">
+                <p className="font-semibold">
+                  Important Notice Regarding Refunds:
+                </p>
+                <p>
+                  If you are dissatisfied with your order for any reason, please
+                  contact us at{" "}
+                  <a
+                    href={`mailto:${CONTACT_EMAIL}`}
+                    className="font-semibold underline"
+                  >
+                    {CONTACT_EMAIL}
+                  </a>{" "}
+                  before making any claims with your credit card company. We are
+                  committed to your satisfaction and will work with you to
+                  resolve any issues.
+                </p>
+              </div>
+
+              <div className="rounded border border-gray-200 p-4 shadow">
+                <p className="font-semibold">Delivery Notification:</p>
+                <p>
+                  You will receive an email notification 5 days prior to your
+                  scheduled delivery{" "}
+                  {order.orderType === "SPREAD" ? "and spreading " : ""}service.
+                  If you do not receive this notification, please contact us at{" "}
+                  <a
+                    href={`mailto:${CONTACT_EMAIL}`}
+                    className="font-semibold underline"
+                  >
+                    {CONTACT_EMAIL}
+                  </a>{" "}
+                  to verify your order status.
+                </p>
+              </div>
             </div>
             <div className="mt-4">{mulchPrepContent}</div>
           </>
