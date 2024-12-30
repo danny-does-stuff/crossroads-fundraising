@@ -73,3 +73,16 @@ model MulchOrder {
   customer            Customer  @relation(fields: [customerId], references: [id])
   customerId          Int
 }
+
+model Donation {
+  id                   String    @id @default(cuid())
+  amount              Float
+  paypalOrderId       String?
+  paypalPaymentSource String?
+  paypalPayerId       String?
+  donorGivenName      String?
+  donorSurname        String?
+  donorEmail          String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}

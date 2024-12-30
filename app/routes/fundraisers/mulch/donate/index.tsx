@@ -1,5 +1,5 @@
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
-import { Form, useActionData, useMatches } from "@remix-run/react";
+import { Form, useActionData, useMatches, useFetcher } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type { ActionArgs } from "@remix-run/node";
 import { useState, useRef } from "react";
@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Input } from "~/components/Input";
 import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
+import { createDonation } from "~/models/donation.server";
 
 const PRESET_AMOUNTS = [
   { label: "$20", value: "20" },
@@ -16,29 +17,39 @@ const PRESET_AMOUNTS = [
 ] as const;
 
 /**
- * Handles form submission for donations. Validates the amount and returns
- * either an error or the validated amount.
+ * Handles form submission for donations. Validates the amount and creates
+ * the donation record in the database.
  */
 export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
 
-  const result = z
+  const orderUpdateInfo = z
     .object({
-      amount: z
-        .string()
-        .regex(/^\d+(\.\d{2})?$/)
-        .transform(Number)
-        .refine((n) => n >= 1, "Minimum donation is $1"),
+      paypalOrderId: z.string(),
+      paypalPayerId: z.string().nullable(),
+      paypalPaymentSource: z.string(),
+      amount: z.number(),
+      donorGivenName: z.string().nullable(),
+      donorSurname: z.string().nullable(),
+      donorEmail: z.string().email().nullable(),
     })
     .safeParse({
-      amount: formData.get("amount"),
+      paypalOrderId: formData.get("paypalOrderId"),
+      paypalPayerId: formData.get("paypalPayerId"),
+      paypalPaymentSource: formData.get("paypalPaymentSource"),
+      amount: Number(formData.get("amount")),
+      donorGivenName: formData.get("donorGivenName"),
+      donorSurname: formData.get("donorSurname"),
+      donorEmail: formData.get("donorEmail"),
     });
 
-  if (!result.success) {
-    return json({ errors: result.error.format() }, { status: 400 });
+  if (!orderUpdateInfo.success) {
+    return json({ errors: orderUpdateInfo.error.format() }, { status: 400 });
   }
 
-  return json({ amount: result.data.amount });
+  const donation = await createDonation(orderUpdateInfo.data);
+
+  return json({ donation });
 }
 
 /**
@@ -53,12 +64,15 @@ export default function DonatePage() {
   const [selectedAmount, setSelectedAmount] = useState<string | null>(null);
   const actionData = useActionData<typeof action>();
   const data = useMatches().find((m) => m.id === "root")?.data;
+  const fetcher = useFetcher();
 
   /**
    * Gets the error message for a specific form field from the action data.
    * Currently only handles the "amount" field.
    */
-  function getErrorForField(field: "amount") {
+  function getErrorForField(
+    field: "amount" | "donorGivenName" | "donorSurname" | "donorEmail"
+  ) {
     return actionData && "errors" in actionData
       ? actionData.errors[field]?._errors[0]
       : undefined;
@@ -148,9 +162,30 @@ export default function DonatePage() {
                     ],
                   });
                 }}
-                onApprove={async (_, actions) => {
-                  await actions.order?.capture();
-                  window.location.href = "/fundraisers/mulch/donate/thank-you";
+                onApprove={async (data, actions) => {
+                  const details = await actions.order?.capture();
+                  if (!details) {
+                    return;
+                  }
+
+                  if (details.id === data.orderID) {
+                    const donationInfo = {
+                      paypalOrderId: details.id,
+                      paypalPaymentSource: details.payment_source
+                        ?.type as string,
+                      paypalPayerId: details.payer?.payer_id ?? null,
+                      amount: Number(details.purchase_units[0].amount.value),
+                      donorGivenName: details.payer?.name?.given_name ?? null,
+                      donorSurname: details.payer?.name?.surname ?? null,
+                      donorEmail: details.payer?.email_address ?? null,
+                    };
+
+                    fetcher.submit(donationInfo, { method: "post" });
+                    window.location.href =
+                      "/fundraisers/mulch/donate/thank-you";
+                  } else {
+                    console.log("payment not captured");
+                  }
                 }}
               />
             </div>

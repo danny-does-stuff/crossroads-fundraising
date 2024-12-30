@@ -192,7 +192,9 @@ export default function OrderDetailsPage() {
         ) : (
           <>
             <div className="font-bold text-green-500">
-              Paid!! Thank you for your business.
+              Paid!! Thank you for your business. We will reach out to you
+              through email to schedule the delivery{" "}
+              {order.orderType === "SPREAD" ? "and spreading " : ""}service.
             </div>
             <div className="mt-4 space-y-4">
               <div className="rounded border border-gray-200 p-4 shadow">
