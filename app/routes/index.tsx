@@ -56,6 +56,7 @@ export default function Index() {
         </p>
         <div className="my-3 flex gap-2">
           <Button linkTo="/fundraisers/mulch/orders/new">Order Mulch</Button>
+          <Button linkTo="/fundraisers/mulch/donate">Donate Here</Button>
           {user?.roles.some(({ role }) => role.name === "ADMIN") && (
             <Button linkTo="/admin">Admin Dashboard</Button>
           )}
