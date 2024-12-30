@@ -1,10 +1,4 @@
-import {
-  Outlet,
-  useLocation,
-  useMatches,
-  useOutletContext,
-  useParams,
-} from "@remix-run/react";
+import { Outlet, useOutletContext, useParams } from "@remix-run/react";
 import { HeroImage } from "~/components/HeroImage";
 import { ACCEPTING_MULCH_ORDERS, NEXT_MULCH_YEAR } from "~/constants";
 
