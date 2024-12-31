@@ -156,6 +156,12 @@ export default function DonatePage() {
                       {
                         amount: {
                           value: amountRef.current,
+                          breakdown: {
+                            item_total: {
+                              currency_code: "USD",
+                              value: amountRef.current,
+                            },
+                          },
                         },
                         description: "Crossroads Youth Fundraiser Donation",
                         items: [
@@ -171,6 +177,9 @@ export default function DonatePage() {
                         ],
                       },
                     ],
+                    application_context: {
+                      shipping_preference: "NO_SHIPPING",
+                    },
                   });
                 }}
                 onApprove={async (data, actions) => {
