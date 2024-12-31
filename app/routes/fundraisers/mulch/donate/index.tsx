@@ -158,6 +158,17 @@ export default function DonatePage() {
                           value: amountRef.current,
                         },
                         description: "Crossroads Youth Fundraiser Donation",
+                        items: [
+                          {
+                            name: "Crossroads Youth Fundraiser Donation",
+                            quantity: "1",
+                            unit_amount: {
+                              currency_code: "USD",
+                              value: amountRef.current,
+                            },
+                            category: "DONATION",
+                          },
+                        ],
                       },
                     ],
                   });
