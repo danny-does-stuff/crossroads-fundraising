@@ -7,5 +7,5 @@ export const ACCEPTING_MULCH_ORDERS = true;
 export const NEXT_MULCH_YEAR = 2026;
 
 // The dates that mulch will be delivered.
-export const MULCH_DELIVERY_DATE_1 = "March 16";
-export const MULCH_DELIVERY_DATE_2 = "March 23";
+export const MULCH_DELIVERY_DATE_1 = "March 15";
+export const MULCH_DELIVERY_DATE_2 = "March 22";

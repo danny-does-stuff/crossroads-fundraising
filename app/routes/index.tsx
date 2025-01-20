@@ -1,6 +1,10 @@
 import { Button } from "~/components/Button";
 import { HeroImage } from "~/components/HeroImage";
-import { MULCH_DELIVERY_DATE_1, MULCH_DELIVERY_DATE_2 } from "~/constants";
+import {
+  MULCH_DELIVERY_DATE_1,
+  MULCH_DELIVERY_DATE_2,
+  CONTACT_EMAIL,
+} from "~/constants";
 
 import { useOptionalUser } from "~/utils";
 
@@ -10,50 +14,61 @@ export default function Index() {
   return (
     <main className="relative min-h-screen bg-white">
       <HeroImage />
-      <div className="mx-4 mb-3 [&>p]:mt-3">
-        <h1 className="mt-4 mb-3 text-4xl font-semibold">
+      <div className="mx-auto max-w-4xl p-6">
+        <h1 className="mb-4 text-3xl font-bold">
           Crossroads Youth Mulch Fundraiser
         </h1>
-        <h2 className="text-2xl">
-          Have a Beautiful Yard. Support Local Youth.
+        <h2 className="mb-6 text-xl font-medium">
+          Beautify Your Yard. Support Local Youth.
         </h2>
-        <p>
-          Welcome to the Crossroads Ward Youth fundraising page! As a group we
-          are raising money to be used to help fund our various programs and
-          initiatives throughout the year.
+
+        <p className="mb-4">
+          Thank you for supporting the Crossroads Ward Youth! Proceeds from this
+          fundraiser help fund impactful programs and initiatives for our youth
+          throughout the year.
         </p>
 
-        <p>
-          We're excited to announce that we are selling and spreading fresh
-          mulch to help rejuvenate your garden and restore its life. Our youth
-          are dedicated to not only providing high-quality mulch, but also
-          providing the option to spread the mulch evenly and neatly throughout
-          your garden beds.
+        <p className="mb-4">
+          We're offering high-quality mulch with optional spreading services to
+          refresh your garden and improve its health. Our youth are committed to
+          providing exceptional service and ensuring your yard looks its best.
         </p>
 
-        <p>
-          As you click to the next page, you will find that we have made the
-          process as simple as possible. You will find a mulch calculator that
-          you can use to help you determine how much mulch you will need in your
-          yard. You will also have the option to select your neighborhood and
-          the color of mulch you would like. If you do not see your neighborhood
-          as an option, we unfortunately will not be able to serve your home.
+        <p className="mb-4 font-medium">
+          Early Bird Special: Take advantage of reduced spreading fees! Prices
+          will increase after February 22nd, so order early to lock in savings.
         </p>
 
-        <p>
-          Orders will be delivered and spread on {MULCH_DELIVERY_DATE_1} or{" "}
-          {MULCH_DELIVERY_DATE_2}. We will confirm the specific delivery date
-          via email a week or two before the Saturday when we will arrive at
-          your home. Let's work together to create beautiful and healthy gardens
-          while empowering our youth!
+        <h3 className="mb-3 text-lg font-medium">How It Works:</h3>
+        <ul className="mb-4 ml-6 list-disc">
+          <li>Use our mulch calculator to determine your needs.</li>
+          <li>
+            Select your neighborhood and mulch color (service limited to listed
+            neighborhoods).
+          </li>
+          <li>Choose delivery-only or delivery with spreading services.</li>
+        </ul>
+
+        <p className="mb-4">
+          Delivery Dates: {MULCH_DELIVERY_DATE_1} or {MULCH_DELIVERY_DATE_2}{" "}
+          (you'll receive a confirmation email 5 days prior to delivery with
+          instructions).
         </p>
 
-        <p>
-          If you have any questions, please email{" "}
-          <a href="mailto:cr.youth.fundraising@gmail.com.">
-            cr.youth.fundraising@gmail.com
+        <p className="mb-4">
+          Let's create beautiful gardens while empowering local youth!
+        </p>
+
+        <p className="mb-4">
+          📧 Questions? Email us at{" "}
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="text-blue-600 hover:underline"
+          >
+            {CONTACT_EMAIL}
           </a>
         </p>
+
         <div className="my-3 flex gap-2">
           <Button linkTo="/fundraisers/mulch/orders/new">Order Mulch</Button>
           <Button linkTo="/fundraisers/mulch/donate">Donate Here</Button>
