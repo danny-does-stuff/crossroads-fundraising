@@ -123,6 +123,7 @@ export default function OrderDetailsPage() {
                       items: [
                         {
                           name: "Bag o' Mulch",
+                          quantity: String(order.quantity),
                           description: `${
                             order.color[0] + order.color.slice(1).toLowerCase()
                           } mulch${
@@ -134,12 +135,13 @@ export default function OrderDetailsPage() {
                             value: String(order.pricePerUnit),
                             currency_code: "USD",
                           },
-                          quantity: String(order.quantity),
                         },
                       ],
                     },
                   ],
                 });
+
+                console.log({ paymentSource, orderId });
 
                 updateData.current = {
                   paypalPaymentSource: paymentSource,
@@ -148,8 +150,14 @@ export default function OrderDetailsPage() {
                 return orderId;
               }}
               onApprove={async (data, actions) => {
+                console.log("onApprove", { data, actions });
+
                 const details = await actions.order?.capture();
-                if (!updateData.current) {
+                if (!updateData.current || !details) {
+                  console.log("no update data or details", {
+                    data: updateData.current,
+                    details,
+                  });
                   return;
                 }
                 if (
@@ -157,6 +165,7 @@ export default function OrderDetailsPage() {
                   updateData.current &&
                   details.id === updateData.current?.paypalOrderId
                 ) {
+                  console.log("approval is valid");
                   const update: {
                     paypalOrderId: string;
                     paypalPaymentSource: string;
@@ -169,10 +178,19 @@ export default function OrderDetailsPage() {
                   if (details.payer.payer_id) {
                     update.paypalPayerId = details.payer.payer_id;
                   }
-                  await fetcher.submit(update, { method: "put" });
+                  fetcher.submit(update, { method: "put" });
                 } else {
-                  console.log("payment not captured");
+                  console.log("payment not captured", {
+                    detailsId: details?.id,
+                    updateData: updateData.current,
+                  });
                 }
+              }}
+              onError={(error) => {
+                console.log("received an error", { error });
+              }}
+              onCancel={(cancelEvent) => {
+                console.log("payment cancelled", cancelEvent);
               }}
             />
             <hr className="my-4" />
