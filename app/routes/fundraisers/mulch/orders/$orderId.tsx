@@ -75,7 +75,7 @@ export default function OrderDetailsPage() {
     <PayPalScriptProvider
       options={{
         // @ts-expect-error - we add the global ENV variable in the root.tsx file
-        "client-id": data?.ENV.PAYPAL_CLIENT_ID,
+        clientId: data?.ENV.PAYPAL_CLIENT_ID,
         components: "buttons",
         currency: "USD",
         "disable-funding": "credit",
@@ -112,9 +112,11 @@ export default function OrderDetailsPage() {
               disabled={fetcher.state === "submitting"}
               createOrder={async ({ paymentSource }, actions) => {
                 const orderId = await actions.order.create({
+                  intent: "CAPTURE",
                   purchase_units: [
                     {
                       amount: {
+                        currency_code: "USD",
                         value: String(total),
                         breakdown: {
                           item_total: {
@@ -179,8 +181,9 @@ export default function OrderDetailsPage() {
                     ...updateData.current,
                     status: "PAID",
                   };
-                  if (details.payer.payer_id) {
-                    update.paypalPayerId = details.payer.payer_id;
+                  if (details.payment_source?.paypal?.account_id) {
+                    update.paypalPayerId =
+                      details.payment_source.paypal.account_id;
                   }
                   fetcher.submit(update, { method: "put" });
                 } else {

@@ -88,7 +88,7 @@ export default function DonatePage() {
 
       <PayPalScriptProvider
         options={{
-          "client-id": data?.ENV.PAYPAL_CLIENT_ID,
+          clientId: data?.ENV.PAYPAL_CLIENT_ID,
           components: "buttons",
           currency: "USD",
           "disable-funding": "credit",
@@ -152,10 +152,12 @@ export default function DonatePage() {
                     throw new Error("Amount is required");
                   }
                   return actions.order.create({
+                    intent: "CAPTURE",
                     purchase_units: [
                       {
                         amount: {
                           value: amountRef.current,
+                          currency_code: "USD",
                           breakdown: {
                             item_total: {
                               currency_code: "USD",
@@ -189,12 +191,18 @@ export default function DonatePage() {
                   }
 
                   if (details.id === data.orderID) {
+                    const paymentSource = details.payment_source;
                     const donationInfo = {
                       paypalOrderId: details.id,
-                      paypalPaymentSource: details.payment_source
-                        ?.type as string,
+                      paypalPaymentSource: paymentSource?.paypal
+                        ? "paypal"
+                        : paymentSource?.venmo
+                        ? "venmo"
+                        : paymentSource?.card
+                        ? "card"
+                        : "unknown",
                       paypalPayerId: details.payer?.payer_id ?? null,
-                      amount: Number(details.purchase_units[0].amount.value),
+                      amount: Number(details.purchase_units?.[0].amount?.value),
                       donorGivenName: details.payer?.name?.given_name ?? null,
                       donorSurname: details.payer?.name?.surname ?? null,
                       donorEmail: details.payer?.email_address ?? null,
