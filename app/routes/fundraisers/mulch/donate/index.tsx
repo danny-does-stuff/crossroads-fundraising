@@ -190,6 +190,8 @@ export default function DonatePage() {
                     return;
                   }
 
+                  const paypalPayer = details.payment_source?.paypal;
+
                   if (details.id === data.orderID) {
                     const paymentSource = details.payment_source;
                     const donationInfo = {
@@ -201,11 +203,11 @@ export default function DonatePage() {
                         : paymentSource?.card
                         ? "card"
                         : "unknown",
-                      paypalPayerId: details.payer?.payer_id ?? null,
+                      paypalPayerId: paypalPayer?.account_id ?? null,
                       amount: Number(details.purchase_units?.[0].amount?.value),
-                      donorGivenName: details.payer?.name?.given_name ?? null,
-                      donorSurname: details.payer?.name?.surname ?? null,
-                      donorEmail: details.payer?.email_address ?? null,
+                      donorGivenName: paypalPayer?.name?.given_name ?? null,
+                      donorSurname: paypalPayer?.name?.surname ?? null,
+                      donorEmail: paypalPayer?.email_address ?? null,
                     };
 
                     fetcher.submit(donationInfo, { method: "post" });
