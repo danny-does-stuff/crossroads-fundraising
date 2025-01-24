@@ -104,6 +104,10 @@ export default function OrderDetailsPage() {
         </div>
         {order.status === "PENDING" ? (
           <>
+            <p className="mb-4 italic text-gray-500">
+              Safari users: Please select PayPal or Venmo. The option "Debit or
+              Credit Card" will not work in Safari.
+            </p>
             <PayPalButtons
               disabled={fetcher.state === "submitting"}
               createOrder={async ({ paymentSource }, actions) => {
