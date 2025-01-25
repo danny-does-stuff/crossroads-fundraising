@@ -178,9 +178,8 @@ export default function OrderDetailsPage() {
                       ...updateData.current,
                       status: "PAID",
                     };
-                    if (details.payment_source?.paypal?.account_id) {
-                      update.paypalPayerId =
-                        details.payment_source.paypal.account_id;
+                    if (details.payer?.payer_id) {
+                      update.paypalPayerId = details.payer.payer_id;
                     }
                     fetcher.submit(update, { method: "put" });
                   } else {

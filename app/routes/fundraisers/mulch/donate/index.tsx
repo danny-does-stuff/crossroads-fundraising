@@ -155,8 +155,8 @@ export default function DonatePage() {
                     purchase_units: [
                       {
                         amount: {
-                          value: amountRef.current,
                           currency_code: "USD",
+                          value: amountRef.current,
                           breakdown: {
                             item_total: {
                               currency_code: "USD",
@@ -189,31 +189,24 @@ export default function DonatePage() {
                     return;
                   }
 
-                  const paypalPayer = details.payment_source?.paypal;
-
                   if (details.id === data.orderID) {
-                    const paymentSource = details.payment_source;
+                    console.log("details", details);
                     const donationInfo = {
                       paypalOrderId: details.id,
-                      paypalPaymentSource: paymentSource?.paypal
-                        ? "paypal"
-                        : paymentSource?.venmo
-                        ? "venmo"
-                        : paymentSource?.card
-                        ? "card"
-                        : "unknown",
-                      paypalPayerId: paypalPayer?.account_id ?? null,
+                      // @ts-expect-error These types seem to be all wrong... use Stripe instead!
+                      paypalPaymentSource: data.paymentSource,
+                      paypalPayerId: data.payerID ?? null,
                       amount: Number(details.purchase_units?.[0].amount?.value),
-                      donorGivenName: paypalPayer?.name?.given_name ?? null,
-                      donorSurname: paypalPayer?.name?.surname ?? null,
-                      donorEmail: paypalPayer?.email_address ?? null,
+                      donorGivenName: details.payer?.name?.given_name ?? null,
+                      donorSurname: details.payer?.name?.surname ?? null,
+                      donorEmail: details.payer?.email_address ?? null,
                     };
 
                     fetcher.submit(donationInfo, { method: "post" });
                     window.location.href =
                       "/fundraisers/mulch/donate/thank-you";
                   } else {
-                    console.log("payment not captured");
+                    console.log("donation not captured", details);
                   }
                 }}
               />
