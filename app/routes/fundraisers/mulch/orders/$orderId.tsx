@@ -78,8 +78,7 @@ export default function OrderDetailsPage() {
         clientId: data?.ENV.PAYPAL_CLIENT_ID,
         components: "buttons",
         currency: "USD",
-        "disable-funding": "credit",
-        "enable-funding": "venmo",
+        "disable-funding": "credit,card",
       }}
     >
       <div>
@@ -104,102 +103,104 @@ export default function OrderDetailsPage() {
         </div>
         {order.status === "PENDING" ? (
           <>
-            <p className="mb-4 italic text-gray-500">
-              Safari users: Please select PayPal or Venmo. The option "Debit or
-              Credit Card" will not work in Safari.
-            </p>
-            <PayPalButtons
-              disabled={fetcher.state === "submitting"}
-              createOrder={async ({ paymentSource }, actions) => {
-                const orderId = await actions.order.create({
-                  intent: "CAPTURE",
-                  purchase_units: [
-                    {
-                      amount: {
-                        currency_code: "USD",
-                        value: String(total),
-                        breakdown: {
-                          item_total: {
-                            value: String(total),
-                            currency_code: "USD",
+            <div className="max-w-xs">
+              <PayPalButtons
+                disabled={fetcher.state === "submitting"}
+                createOrder={async ({ paymentSource }, actions) => {
+                  const orderId = await actions.order.create({
+                    intent: "CAPTURE",
+                    purchase_units: [
+                      {
+                        amount: {
+                          currency_code: "USD",
+                          value: String(total),
+                          breakdown: {
+                            item_total: {
+                              value: String(total),
+                              currency_code: "USD",
+                            },
                           },
                         },
+                        custom_id: String(order.id),
+                        items: [
+                          {
+                            name: "Bag o' Mulch",
+                            quantity: String(order.quantity),
+                            description: `${
+                              order.color[0] +
+                              order.color.slice(1).toLowerCase()
+                            } mulch${
+                              order.orderType === "SPREAD"
+                                ? " plus mulch spreading service"
+                                : " delivered to your house, no spreading service"
+                            }`,
+                            unit_amount: {
+                              value: String(order.pricePerUnit),
+                              currency_code: "USD",
+                            },
+                          },
+                        ],
                       },
-                      custom_id: String(order.id),
-                      items: [
-                        {
-                          name: "Bag o' Mulch",
-                          quantity: String(order.quantity),
-                          description: `${
-                            order.color[0] + order.color.slice(1).toLowerCase()
-                          } mulch${
-                            order.orderType === "SPREAD"
-                              ? " plus mulch spreading service"
-                              : " delivered to your house, no spreading service"
-                          }`,
-                          unit_amount: {
-                            value: String(order.pricePerUnit),
-                            currency_code: "USD",
-                          },
-                        },
-                      ],
-                    },
-                  ],
-                });
-
-                console.log({ paymentSource, orderId });
-
-                updateData.current = {
-                  paypalPaymentSource: paymentSource,
-                  paypalOrderId: orderId,
-                };
-                return orderId;
-              }}
-              onApprove={async (data, actions) => {
-                console.log("onApprove", { data, actions });
-
-                const details = await actions.order?.capture();
-                if (!updateData.current || !details) {
-                  console.log("no update data or details", {
-                    data: updateData.current,
-                    details,
+                    ],
                   });
-                  return;
-                }
-                if (
-                  details &&
-                  updateData.current &&
-                  details.id === updateData.current?.paypalOrderId
-                ) {
-                  console.log("approval is valid");
-                  const update: {
-                    paypalOrderId: string;
-                    paypalPaymentSource: string;
-                    status: "PAID";
-                    paypalPayerId?: string;
-                  } = {
-                    ...updateData.current,
-                    status: "PAID",
+
+                  console.log({ paymentSource, orderId });
+
+                  updateData.current = {
+                    paypalPaymentSource: paymentSource,
+                    paypalOrderId: orderId,
                   };
-                  if (details.payment_source?.paypal?.account_id) {
-                    update.paypalPayerId =
-                      details.payment_source.paypal.account_id;
+                  return orderId;
+                }}
+                onApprove={async (data, actions) => {
+                  console.log("onApprove", { data, actions });
+
+                  const details = await actions.order?.capture();
+                  if (!updateData.current || !details) {
+                    console.log("no update data or details", {
+                      data: updateData.current,
+                      details,
+                    });
+                    return;
                   }
-                  fetcher.submit(update, { method: "put" });
-                } else {
-                  console.log("payment not captured", {
-                    detailsId: details?.id,
-                    updateData: updateData.current,
-                  });
-                }
-              }}
-              onError={(error) => {
-                console.log("received an error", { error });
-              }}
-              onCancel={(cancelEvent) => {
-                console.log("payment cancelled", cancelEvent);
-              }}
-            />
+                  if (
+                    details &&
+                    updateData.current &&
+                    details.id === updateData.current?.paypalOrderId
+                  ) {
+                    console.log("approval is valid", details);
+                    const update: {
+                      paypalOrderId: string;
+                      paypalPaymentSource: string;
+                      status: "PAID";
+                      paypalPayerId?: string;
+                    } = {
+                      ...updateData.current,
+                      status: "PAID",
+                    };
+                    if (details.payment_source?.paypal?.account_id) {
+                      update.paypalPayerId =
+                        details.payment_source.paypal.account_id;
+                    }
+                    fetcher.submit(update, { method: "put" });
+                  } else {
+                    console.log("payment not captured", {
+                      detailsId: details?.id,
+                      updateData: updateData.current,
+                    });
+                  }
+                }}
+                onError={(error) => {
+                  console.log("received an error", { error });
+                }}
+                onCancel={(cancelEvent) => {
+                  console.log("payment cancelled", cancelEvent);
+                }}
+              />
+            </div>
+            <p className="mb-4 italic text-gray-500">
+              To pay with credit card, select PayPal.
+            </p>
             <hr className="my-4" />
             <div className="mb-4">{mulchPrepContent}</div>
             <Form method="put">

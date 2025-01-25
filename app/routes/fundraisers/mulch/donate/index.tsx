@@ -91,8 +91,7 @@ export default function DonatePage() {
           clientId: data?.ENV.PAYPAL_CLIENT_ID,
           components: "buttons",
           currency: "USD",
-          "disable-funding": "credit",
-          "enable-funding": "venmo",
+          "disable-funding": "credit,card",
         }}
       >
         <Form method="post" className="mb-6 space-y-4">
@@ -218,6 +217,9 @@ export default function DonatePage() {
                   }
                 }}
               />
+              <p className="mb-4 italic text-gray-500">
+                To donate with credit card, select PayPal.
+              </p>
             </div>
           )}
         </Form>
