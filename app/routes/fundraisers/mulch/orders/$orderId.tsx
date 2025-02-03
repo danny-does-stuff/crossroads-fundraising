@@ -1,7 +1,13 @@
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, useCatch, useFetcher, useLoaderData } from "@remix-run/react";
+import {
+  Form,
+  isRouteErrorResponse,
+  useFetcher,
+  useLoaderData,
+  useRouteError,
+} from "@remix-run/react";
 import { useRef } from "react";
 import invariant from "tiny-invariant";
 import { z } from "zod";
@@ -266,40 +272,45 @@ export default function OrderDetailsPage() {
   );
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
+export function ErrorBoundary() {
+  const error = useRouteError();
+
   console.error(error);
 
-  return <div>An unexpected error occurred: {error.message}</div>;
-}
-
-export function CatchBoundary() {
-  const caught = useCatch();
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div
+        className="relative mb-3 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
+        role="alert"
+      >
+        {error.status === 404 ? (
+          "Order not found."
+        ) : error.status === 400 && error.data ? (
+          <>
+            There was an error processing your order:
+            {Object.keys(error.data.errors).map((errorKey) =>
+              errorKey === "_errors" ? null : (
+                <div key={errorKey}>
+                  <b>{errorKey}:</b> {error.data.errors[errorKey]._errors[0]}
+                </div>
+              )
+            )}
+          </>
+        ) : (
+          `An unexpected error occurred: ${error.status}`
+        )}
+        <br />
+        <br />
+        If you believe you paid for this order, please contact us at{" "}
+        {CONTACT_EMAIL}
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="relative mb-3 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
-      role="alert"
-    >
-      {caught.status === 404 ? (
-        "Order not found."
-      ) : caught.status === 400 && caught.data ? (
-        <>
-          There was an error processing your order:
-          {Object.keys(caught.data.errors).map((errorKey) =>
-            errorKey === "_errors" ? null : (
-              <div key={errorKey}>
-                <b>{errorKey}:</b> {caught.data.errors[errorKey]._errors[0]}
-              </div>
-            )
-          )}
-        </>
-      ) : (
-        `An unexpected error occurred: ${caught.status}`
-      )}
-      <br />
-      <br />
-      If you believe you paid for this order, please contact us at{" "}
-      {CONTACT_EMAIL}
+    <div>
+      An unexpected error occurred:{" "}
+      {error instanceof Error ? error.message : String(error)}
     </div>
   );
 }
