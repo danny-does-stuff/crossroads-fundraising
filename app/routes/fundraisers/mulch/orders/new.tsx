@@ -1,4 +1,4 @@
-import type { ActionArgs } from "@remix-run/node";
+import type { ActionFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
 import * as React from "react";
@@ -50,7 +50,7 @@ const REFERRAL_SOURCE_LABELS: Record<ReferralSource, string> = {
   [ReferralSource.Other]: "Other",
 };
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   if (!ACCEPTING_MULCH_ORDERS) {
     return redirect("/fundraisers/mulch/orders");
   }

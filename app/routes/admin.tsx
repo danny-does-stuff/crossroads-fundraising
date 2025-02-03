@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { type LoaderArgs } from "@remix-run/node";
+import { type LoaderFunctionArgs } from "@remix-run/node";
 import { typedjson, useTypedLoaderData, redirect } from "remix-typedjson";
 import {
   type CompleteOrder,
@@ -9,7 +9,7 @@ import { requireUser } from "~/session.server";
 import { useTable, useGlobalFilter, useSortBy } from "react-table";
 import type { MulchOrder } from "@prisma/client";
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request);
 
   if (!user || !user.roles.some(({ role }) => role.name === "ADMIN")) {
