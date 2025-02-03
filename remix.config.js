@@ -1,7 +1,20 @@
+const { createRoutesFromFolders } = require("@remix-run/v1-route-convention");
+
 /**
  * @type {import('@remix-run/dev').AppConfig}
  */
 module.exports = {
   cacheDirectory: "./node_modules/.cache/remix",
   ignoredRouteFiles: ["**/.*", "**/*.css", "**/*.test.{js,jsx,ts,tsx}"],
+  future: {
+    v2_dev: true,
+    v2_routeConvention: true,
+    v2_headers: true,
+    v2_meta: true,
+  },
+
+  routes(defineRoutes) {
+    // uses the v1 routes convention (nested in folders)
+    return createRoutesFromFolders(defineRoutes);
+  },
 };

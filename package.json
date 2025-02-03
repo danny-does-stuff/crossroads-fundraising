@@ -49,6 +49,7 @@
     "@faker-js/faker": "^7.6.0",
     "@remix-run/dev": "^1.19.3",
     "@remix-run/eslint-config": "^1.19.3",
+    "@remix-run/v1-route-convention": "^0.1.4",
     "@testing-library/cypress": "^8.0.7",
     "@testing-library/dom": "^8.20.0",
     "@testing-library/jest-dom": "^5.16.5",

@@ -1,4 +1,8 @@
-import type { LinksFunction, LoaderArgs, MetaFunction } from "@remix-run/node";
+import type {
+  LinksFunction,
+  LoaderArgs,
+  V2_MetaFunction,
+} from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
   Links,
@@ -17,14 +21,15 @@ export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
 };
 
-export const meta: MetaFunction = () => ({
-  charset: "utf-8",
-  title: "Crossroads Youth Mulch Fundraiser",
-  viewport: "width=device-width,initial-scale=1",
-  description:
-    "Welcome to the Crossroads Youth Group Mulch Sale fundraiser! We are thrilled to be launching this campaign to raise funds for our group's various programs and activities.",
-  "og:image": "/assets/mulch_wagon.jpg",
-});
+export const meta: V2_MetaFunction = () => [
+  { title: "Crossroads Youth Mulch Fundraiser" },
+  {
+    name: "description",
+    content:
+      "Welcome to the Crossroads Youth Group Mulch Sale fundraiser! We are thrilled to be launching this campaign to raise funds for our group's various programs and activities.",
+  },
+  { property: "og:image", content: "/assets/mulch_wagon.jpg" },
+];
 
 export async function loader({ request }: LoaderArgs) {
   return json({
@@ -40,6 +45,8 @@ export default function App() {
   return (
     <html lang="en" className="h-full">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
       </head>
