@@ -1,13 +1,14 @@
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { Form, useActionData, useMatches, useFetcher } from "@remix-run/react";
 import { json } from "@remix-run/node";
-import type { ActionArgs } from "@remix-run/node";
+import type { ActionFunctionArgs } from "@remix-run/node";
 import { useState, useRef } from "react";
 import { z } from "zod";
 import { Input } from "~/components/Input";
 import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
 import { createDonation } from "~/models/donation.server";
+import { useMatchesData } from "~/utils";
 
 const PRESET_AMOUNTS = [
   { label: "$20", value: "20" },
@@ -20,7 +21,7 @@ const PRESET_AMOUNTS = [
  * Handles form submission for donations. Validates the amount and creates
  * the donation record in the database.
  */
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   const orderUpdateInfo = z
@@ -63,7 +64,7 @@ export default function DonatePage() {
   amountRef.current = amount;
   const [selectedAmount, setSelectedAmount] = useState<string | null>(null);
   const actionData = useActionData<typeof action>();
-  const data = useMatches().find((m) => m.id === "root")?.data;
+  const data = useMatchesData("root");
   const fetcher = useFetcher();
 
   /**
@@ -88,6 +89,7 @@ export default function DonatePage() {
 
       <PayPalScriptProvider
         options={{
+          // @ts-expect-error - we add the global ENV variable in the root.tsx file
           clientId: data?.ENV.PAYPAL_CLIENT_ID,
           components: "buttons",
           currency: "USD",

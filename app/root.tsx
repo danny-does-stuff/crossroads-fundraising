@@ -1,7 +1,7 @@
 import type {
   LinksFunction,
-  LoaderArgs,
-  V2_MetaFunction,
+  LoaderFunctionArgs,
+  MetaFunction,
 } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
@@ -21,7 +21,7 @@ export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
 };
 
-export const meta: V2_MetaFunction = () => [
+export const meta: MetaFunction = () => [
   { title: "Crossroads Youth Mulch Fundraiser" },
   {
     name: "description",
@@ -31,7 +31,7 @@ export const meta: V2_MetaFunction = () => [
   { property: "og:image", content: "/assets/mulch_wagon.jpg" },
 ];
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   return json({
     user: await getUser(request),
     ENV: {

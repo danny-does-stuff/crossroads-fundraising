@@ -1,5 +1,5 @@
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
   Form,
@@ -17,7 +17,7 @@ import { updateOrderById, getOrder } from "~/models/mulchOrder.server";
 import { useMatchesData } from "~/utils";
 import { useMulchPrepContent } from "../orders";
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   // TODO: use a short lived session to verify that the user is the one who created the order
   invariant(params.orderId, "orderId not found");
 
@@ -28,7 +28,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ order });
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   invariant(params.orderId, "orderId not found");
 
   const body = await request.formData();
