@@ -1,6 +1,11 @@
 import { useMemo } from "react";
-import { type LoaderArgs } from "@remix-run/node";
-import { typedjson, useTypedLoaderData, redirect } from "remix-typedjson";
+import { ActionArgs, LoaderArgs } from "@remix-run/node";
+import {
+  typedjson,
+  useTypedLoaderData,
+  redirect,
+  useTypedFetcher,
+} from "remix-typedjson";
 import {
   type CompleteOrder,
   getAllOrdersForYear,
@@ -8,6 +13,42 @@ import {
 import { requireUser } from "~/session.server";
 import { useTable, useGlobalFilter, useSortBy } from "react-table";
 import type { MulchOrder } from "@prisma/client";
+import { prisma } from "~/db.server";
+
+/**
+ * Handles admin actions for updating order statuses.
+ * Validates admin permissions and updates order status in the database.
+ * Returns refreshed orders data to update the UI.
+ *
+ * @param {ActionFunctionArgs} args - Contains the request object with form data
+ * @returns {Promise<Response>} JSON response with updated orders or error
+ * @throws {Response} Redirects to login if user lacks admin permissions
+ */
+export async function action({ request }: ActionArgs) {
+  const user = await requireUser(request);
+  if (!user?.roles.some(({ role }) => role.name === "ADMIN")) {
+    return redirect("/login");
+  }
+
+  const formData = await request.formData();
+  const orderId = formData.get("orderId") as string;
+  const newStatus = formData.get("status") as string;
+
+  if (!orderId || !newStatus) {
+    return typedjson({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  await prisma.mulchOrder.update({
+    where: { id: orderId },
+    data: { status: newStatus },
+  });
+
+  // Get the current year to fetch updated orders
+  const year = new Date().getFullYear();
+  const orders = await getAllOrdersForYear(year);
+
+  return typedjson({ orders, success: true });
+}
 
 export async function loader({ request }: LoaderArgs) {
   const user = await requireUser(request);
@@ -136,6 +177,7 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
       {
         Header: "Status",
         accessor: "status",
+        Cell: StatusCell,
       },
       {
         Header: "Total",
@@ -224,5 +266,39 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+/**
+ * Status cell component for the orders table.
+ * Uses Remix Form for proper revalidation of page data after status changes.
+ */
+function StatusCell({
+  value,
+  row,
+}: {
+  value: string;
+  row: { original: CompleteOrder };
+}) {
+  const fetcher = useTypedFetcher();
+  const isUpdating = fetcher.state !== "idle";
+
+  return (
+    <fetcher.Form method="post">
+      <input type="hidden" name="orderId" value={row.original.id} />
+      <select
+        name="status"
+        defaultValue={value}
+        onChange={(e) => fetcher.submit(e.target.form)}
+        disabled={isUpdating}
+        className="rounded border border-gray-300 px-2 py-1"
+      >
+        <option value="PENDING">PENDING</option>
+        <option value="PAID">PAID</option>
+        <option value="FULFILLED">FULFILLED</option>
+        <option value="CANCELLED">CANCELLED</option>
+        <option value="REFUNDED">REFUNDED</option>
+      </select>
+    </fetcher.Form>
   );
 }
