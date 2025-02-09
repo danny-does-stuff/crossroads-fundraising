@@ -272,6 +272,11 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
 /**
  * Status cell component for the orders table.
  * Uses Remix Form for proper revalidation of page data after status changes.
+ *
+ * @param {Object} props
+ * @param {string} props.value - The current status of the order
+ * @param {Object} props.row - The row data from react-table
+ * @param {CompleteOrder} props.row.original - The original order data
  */
 function StatusCell({
   value,
@@ -291,7 +296,7 @@ function StatusCell({
         defaultValue={value}
         onChange={(e) => fetcher.submit(e.target.form)}
         disabled={isUpdating}
-        className="rounded border border-gray-300 px-2 py-1"
+        className="rounded bg-transparent px-2 py-1 text-sm hover:bg-gray-50 focus:ring-1 focus:ring-gray-300"
       >
         <option value="PENDING">PENDING</option>
         <option value="PAID">PAID</option>
