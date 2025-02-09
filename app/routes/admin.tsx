@@ -101,6 +101,27 @@ function getTotalGrossIncome(
   );
 }
 
+/**
+ * Formats the referral source for display, using the source details if "Other" was selected
+ *
+ * @param {string | null} referralSource - The referral source type
+ * @param {string | null} referralSourceDetails - Additional details for "Other" source
+ * @returns {string} Formatted referral source for display
+ */
+function formatReferralSource(
+  referralSource: string | null,
+  referralSourceDetails: string | null
+): string {
+  if (referralSource === ReferralSource.Other) {
+    return (
+      referralSourceDetails || REFERRAL_SOURCE_LABELS[ReferralSource.Other]
+    );
+  }
+  return referralSource
+    ? REFERRAL_SOURCE_LABELS[referralSource as ReferralSource]
+    : "";
+}
+
 export default function Admin() {
   const { orders, year } = useTypedLoaderData<typeof loader>();
 
@@ -137,7 +158,15 @@ export default function Admin() {
           </span>
         </RoundedBorder>
       </div>
-      <h2 className="mb-2 mt-4 text-4xl font-semibold">All Orders ({year})</h2>
+      <div className="mb-2 mt-4 flex items-center justify-between">
+        <h2 className="text-4xl font-semibold">All Orders ({year})</h2>
+        <button
+          onClick={() => downloadOrdersCsv(orders)}
+          className="rounded bg-gray-100 px-4 py-2 text-sm hover:bg-gray-200"
+        >
+          Download CSV
+        </button>
+      </div>
       <OrdersTable orders={orders} />
     </div>
   );
@@ -218,13 +247,10 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
       {
         Header: "Source",
         Cell: ({ row }: { row: { original: CompleteOrder } }) => {
-          const { referralSource, referralSourceDetails } = row.original;
-          return referralSource === ReferralSource.Other
-            ? referralSourceDetails ||
-                REFERRAL_SOURCE_LABELS[ReferralSource.Other]
-            : referralSource
-            ? REFERRAL_SOURCE_LABELS[referralSource as ReferralSource]
-            : "";
+          return formatReferralSource(
+            row.original.referralSource,
+            row.original.referralSourceDetails
+          );
         },
       },
       {
@@ -334,4 +360,59 @@ function StatusCell({
       </select>
     </fetcher.Form>
   );
+}
+
+/**
+ * Downloads order data as a CSV file
+ * @param {CompleteOrder[]} orders - Array of orders to include in CSV
+ */
+function downloadOrdersCsv(orders: CompleteOrder[]) {
+  const headers = [
+    "Date",
+    "Address",
+    "Neighborhood",
+    "Quantity",
+    "Spread",
+    "Color",
+    "Status",
+    "Total",
+    "Customer Email",
+    "Customer Phone",
+    "Source",
+    "Note",
+  ];
+
+  const rows = orders.map((order) => [
+    new Date(order.createdAt).toLocaleDateString(),
+    order.streetAddress,
+    order.neighborhood,
+    order.quantity,
+    order.orderType === "SPREAD" ? "Yes" : "No",
+    order.color,
+    order.status,
+    `$${(order.pricePerUnit * order.quantity).toFixed(2)}`,
+    order.customer.email,
+    order.customer.phone,
+    formatReferralSource(order.referralSource, order.referralSourceDetails),
+    order.note || "",
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute(
+    "download",
+    `mulch-orders-${
+      new URL(window.location.href).searchParams.get("year") ||
+      new Date().getFullYear()
+    }.csv`
+  );
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
