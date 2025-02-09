@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ActionArgs, LoaderArgs } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import {
   typedjson,
   useTypedLoaderData,
@@ -24,7 +24,7 @@ import { prisma } from "~/db.server";
  * @returns {Promise<Response>} JSON response with updated orders or error
  * @throws {Response} Redirects to login if user lacks admin permissions
  */
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const user = await requireUser(request);
   if (!user?.roles.some(({ role }) => role.name === "ADMIN")) {
     return redirect("/login");
@@ -75,14 +75,26 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
+/**
+ * Calculates the total gross income from orders.
+ * Includes orders with status PAID or FULFILLED.
+ *
+ * @param {CompleteOrder[]} orders - Array of orders to calculate total from
+ * @param {boolean} [onlyPaidOrFulfilled=true] - When true, only includes PAID or FULFILLED orders
+ * @returns {number} Total gross income
+ */
 function getTotalGrossIncome(
   orders: CompleteOrder[],
-  onlyPaid: boolean = true
+  onlyPaidOrFulfilled: boolean = true
 ) {
   return orders.reduce(
     (total, order) =>
       total +
-      (!onlyPaid || order.status === "PAID" ? getOrderGrossIncome(order) : 0),
+      (!onlyPaidOrFulfilled ||
+      order.status === "PAID" ||
+      order.status === "FULFILLED"
+        ? getOrderGrossIncome(order)
+        : 0),
     0
   );
 }
@@ -90,7 +102,9 @@ function getTotalGrossIncome(
 export default function Admin() {
   const { orders, year } = useTypedLoaderData<typeof loader>();
 
-  const paidOrders = orders.filter((o) => o.status === "PAID");
+  const paidOrders = orders.filter(
+    (o) => o.status === "PAID" || o.status === "FULFILLED"
+  );
 
   return (
     <div className="p-6">
