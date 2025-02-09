@@ -62,7 +62,7 @@ model MulchOrder {
   note                String?
   neighborhood        String
   streetAddress       String
-  status              String    @default("PENDING") // enum - one of 'PENDING', 'PAID', 'FULFILLED', 'CANCELLED'
+  status              String    @default("PENDING") // enum - one of 'PENDING', 'PAID', 'FULFILLED', 'CANCELLED', 'REFUNDED'
   paypalOrderId       String?
   paypalPaymentSource String?
   paypalPayerId       String?
