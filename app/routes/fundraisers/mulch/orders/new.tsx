@@ -9,7 +9,11 @@ import { createOrder } from "~/models/mulchOrder.server";
 import { z } from "zod";
 import { Select } from "~/components/Select";
 import { useMulchPrepContent } from "../orders";
-import { ACCEPTING_MULCH_ORDERS } from "~/constants";
+import {
+  ACCEPTING_MULCH_ORDERS,
+  REFERRAL_SOURCE_LABELS,
+  ReferralSource,
+} from "~/constants";
 
 const SPREAD_PRICE_DIFFERENCE = 1;
 const DELIVER_PRICE = 7;
@@ -33,22 +37,6 @@ enum Neighborhood {
 const NEIGHBORHOODS: Neighborhood[] = Object.values(Neighborhood).sort();
 
 type Color = (typeof COLORS)[number]["value"];
-
-enum ReferralSource {
-  Friend = "FRIEND",
-  Flyer = "FLYER",
-  ReturningCustomer = "RETURNING_CUSTOMER",
-  Online = "ONLINE",
-  Other = "OTHER",
-}
-
-const REFERRAL_SOURCE_LABELS: Record<ReferralSource, string> = {
-  [ReferralSource.Friend]: "Friend",
-  [ReferralSource.Flyer]: "Flyer",
-  [ReferralSource.ReturningCustomer]: "Returning Customer",
-  [ReferralSource.Online]: "Online/Social Media",
-  [ReferralSource.Other]: "Other",
-};
 
 export async function action({ request }: ActionFunctionArgs) {
   if (!ACCEPTING_MULCH_ORDERS) {

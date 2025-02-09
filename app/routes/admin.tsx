@@ -14,6 +14,8 @@ import { requireUser } from "~/session.server";
 import { useTable, useGlobalFilter, useSortBy } from "react-table";
 import type { MulchOrder } from "@prisma/client";
 import { prisma } from "~/db.server";
+import { ReferralSource } from "~/constants";
+import { REFERRAL_SOURCE_LABELS } from "~/constants";
 
 /**
  * Handles admin actions for updating order statuses.
@@ -211,6 +213,18 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
               {value.phone}
             </>
           );
+        },
+      },
+      {
+        Header: "Source",
+        Cell: ({ row }: { row: { original: CompleteOrder } }) => {
+          const { referralSource, referralSourceDetails } = row.original;
+          return referralSource === ReferralSource.Other
+            ? referralSourceDetails ||
+                REFERRAL_SOURCE_LABELS[ReferralSource.Other]
+            : referralSource
+            ? REFERRAL_SOURCE_LABELS[referralSource as ReferralSource]
+            : "";
         },
       },
       {
