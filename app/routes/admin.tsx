@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import {
   typedjson,
   useTypedLoaderData,
@@ -14,8 +14,7 @@ import { requireUser } from "~/session.server";
 import { useTable, useGlobalFilter, useSortBy } from "react-table";
 import type { MulchOrder } from "@prisma/client";
 import { prisma } from "~/db.server";
-import { ReferralSource } from "~/constants";
-import { REFERRAL_SOURCE_LABELS } from "~/constants";
+import { ReferralSource, REFERRAL_SOURCE_LABELS } from "~/constants";
 
 /**
  * Handles admin actions for updating order statuses.
