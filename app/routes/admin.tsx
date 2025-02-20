@@ -15,6 +15,7 @@ import { useTable, useGlobalFilter, useSortBy } from "react-table";
 import type { MulchOrder } from "@prisma/client";
 import { prisma } from "~/db.server";
 import { ReferralSource, REFERRAL_SOURCE_LABELS } from "~/constants";
+import { Link } from "@remix-run/react";
 
 /**
  * Handles admin actions for updating order statuses.
@@ -191,6 +192,18 @@ function RoundedBorder({
 export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
   const columns = useMemo(
     () => [
+      {
+        Header: "View",
+        accessor: "id",
+        Cell: ({ value }: { value: string }) => (
+          <Link
+            to={`/fundraisers/mulch/orders/${value}`}
+            className="text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            View
+          </Link>
+        ),
+      },
       {
         Header: "Date",
         accessor: "createdAt",
@@ -379,6 +392,7 @@ function downloadOrdersCsv(orders: CompleteOrder[]) {
     "Customer Phone",
     "Source",
     "Note",
+    "Link",
   ];
 
   const rows = orders.map((order) => [
@@ -394,6 +408,7 @@ function downloadOrdersCsv(orders: CompleteOrder[]) {
     order.customer.phone,
     formatReferralSource(order.referralSource, order.referralSourceDetails),
     order.note || "",
+    `${window.location.origin}/fundraisers/mulch/orders/${order.id}`,
   ]);
 
   const csvContent = [
