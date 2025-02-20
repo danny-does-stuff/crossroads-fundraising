@@ -126,6 +126,30 @@ function formatReferralSource(
     : "";
 }
 
+/**
+ * Generates email content for order reminders
+ * @param orderId - The ID of the order
+ * @returns Formatted email content string
+ */
+function getEmailContent(orderId: string) {
+  const orderUrl = `${
+    typeof window !== "undefined" ? window.location.origin : ""
+  }/fundraisers/mulch/orders/${orderId}`;
+
+  return `Hello!
+
+We noticed you started your mulch order but didn't get a chance to finish—there's still time, but orders are closing soon!
+
+Secure your high-quality mulch for $7 a bag, with optional spreading for just $1 more. The delivery and spreading service will be done by our hardworking youth on March 16 or March 23. Your purchase directly supports youth summer camps and service opportunities for our youth!
+
+Click here to complete your order: ${orderUrl}
+
+Thank you for your support! If you have any questions, feel free to reach out at cr.youth.fundraising@gmail.com.
+
+Have a wonderful day!
+Crossroads Ward Youth`;
+}
+
 export default function Admin() {
   const { orders, year } = useTypedLoaderData<typeof loader>();
 
@@ -428,22 +452,37 @@ function StatusCell({
   const isUpdating = fetcher.state !== "idle";
 
   return (
-    <fetcher.Form method="post">
-      <input type="hidden" name="orderId" value={row.original.id} />
-      <select
-        name="status"
-        defaultValue={value}
-        onChange={(e) => fetcher.submit(e.target.form)}
-        disabled={isUpdating}
-        className="rounded bg-transparent px-2 py-1 text-sm hover:bg-gray-50 focus:ring-1 focus:ring-gray-300"
-      >
-        <option value="PENDING">PENDING</option>
-        <option value="PAID">PAID</option>
-        <option value="FULFILLED">FULFILLED</option>
-        <option value="CANCELLED">CANCELLED</option>
-        <option value="REFUNDED">REFUNDED</option>
-      </select>
-    </fetcher.Form>
+    <div className="flex items-center gap-2">
+      <fetcher.Form method="post">
+        <input type="hidden" name="orderId" value={row.original.id} />
+        <select
+          name="status"
+          defaultValue={value}
+          onChange={(e) => fetcher.submit(e.target.form)}
+          disabled={isUpdating}
+          className="rounded bg-transparent px-2 py-1 text-sm hover:bg-gray-50 focus:ring-1 focus:ring-gray-300"
+        >
+          <option value="PENDING">PENDING</option>
+          <option value="PAID">PAID</option>
+          <option value="FULFILLED">FULFILLED</option>
+          <option value="CANCELLED">CANCELLED</option>
+          <option value="REFUNDED">REFUNDED</option>
+        </select>
+      </fetcher.Form>
+      {value === "PENDING" && (
+        <a
+          href={`mailto:${
+            row.original.customer?.email
+          }?subject=Complete Your Mulch Order&body=${encodeURIComponent(
+            getEmailContent(row.original.id)
+          )}`}
+          title="Send reminder email"
+          className="rounded p-1 hover:bg-gray-200"
+        >
+          ✉️
+        </a>
+      )}
+    </div>
   );
 }
 
@@ -481,7 +520,9 @@ function downloadOrdersCsv(orders: CompleteOrder[]) {
     order.customer.phone,
     formatReferralSource(order.referralSource, order.referralSourceDetails),
     order.note || "",
-    `${window.location.origin}/fundraisers/mulch/orders/${order.id}`,
+    typeof window !== "undefined"
+      ? `${window.location.origin}/fundraisers/mulch/orders/${order.id}`
+      : "",
   ]);
 
   const csvContent = [
