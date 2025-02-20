@@ -18,6 +18,7 @@ import {
   ReferralSource,
   REFERRAL_SOURCE_LABELS,
   Neighborhood,
+  CONTACT_EMAIL,
 } from "~/constants";
 import { Link } from "@remix-run/react";
 
@@ -144,10 +145,38 @@ Secure your high-quality mulch for $7 a bag, with optional spreading for just $1
 
 Click here to complete your order: ${orderUrl}
 
-Thank you for your support! If you have any questions, feel free to reach out at cr.youth.fundraising@gmail.com.
+Thank you for your support! If you have any questions, feel free to reach out at ${CONTACT_EMAIL}.
 
 Have a wonderful day!
-Crossroads Ward Youth`;
+Crossroads Ward Youth Program`;
+}
+
+/**
+ * Generates email content for order confirmations
+ * @param order - The order details
+ * @returns Formatted email content string
+ */
+function getConfirmationEmailContent(order: CompleteOrder) {
+  return `Hello ${order.customer.name},
+
+Thank you for your order! We're excited to deliver your mulch and appreciate your support of our youth fundraiser. Below are the details of your order:
+
+Number of Bags: ${order.quantity}
+Mulch Color: ${order.color}
+Spreading Service: ${order.orderType === "SPREAD" ? "Yes" : "No"}
+Delivery ${order.orderType === "SPREAD" ? "& Spreading " : ""}Date: March DATE
+
+You can find the complete details of your order here: ${
+    typeof window !== "undefined"
+      ? `${window.location.origin}/fundraisers/mulch/orders/${order.id}`
+      : ""
+  }
+
+If you have any questions, please reply to this email or contact us at ${CONTACT_EMAIL}.
+
+Thanks again for supporting our youth—your purchase makes a difference!
+
+Crossroads Ward Youth Program`;
 }
 
 export default function Admin() {
@@ -456,11 +485,12 @@ function StatusCell({
 }) {
   const fetcher = useTypedFetcher();
   const isUpdating = fetcher.state !== "idle";
+  const order = row.original;
 
   return (
     <div className="flex items-center gap-2">
       <fetcher.Form method="post">
-        <input type="hidden" name="orderId" value={row.original.id} />
+        <input type="hidden" name="orderId" value={order.id} />
         <select
           name="status"
           defaultValue={value}
@@ -478,14 +508,27 @@ function StatusCell({
       {value === "PENDING" && (
         <a
           href={`mailto:${
-            row.original.customer?.email
+            order.customer?.email
           }?subject=Complete Your Mulch Order&body=${encodeURIComponent(
-            getEmailContent(row.original.id)
+            getEmailContent(order.id)
           )}`}
           title="Send reminder email"
           className="rounded p-1 hover:bg-gray-200"
         >
           ✉️
+        </a>
+      )}
+      {(value === "PAID" || value === "FULFILLED") && (
+        <a
+          href={`mailto:${
+            order.customer?.email
+          }?subject=Your Mulch Order Confirmation – Thank You!&body=${encodeURIComponent(
+            getConfirmationEmailContent(order)
+          )}`}
+          title="Send confirmation email"
+          className="rounded p-1 hover:bg-gray-200"
+        >
+          📧
         </a>
       )}
     </div>
