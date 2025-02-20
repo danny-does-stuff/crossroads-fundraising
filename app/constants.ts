@@ -25,3 +25,13 @@ export const REFERRAL_SOURCE_LABELS: Record<ReferralSource, string> = {
   [ReferralSource.Online]: "Online/Social Media",
   [ReferralSource.Other]: "Other",
 };
+
+export enum Neighborhood {
+  Arrowbrooke = "Arrowbrooke",
+  DelWebb = "Del Webb",
+  Glenbrooke = "Glenbrooke",
+  SandbrockRanch = "Sandbrock Ranch",
+  Savannah = "Savannah",
+  UnionPark = "Union Park",
+  WinnRidge = "Winn Ridge",
+}

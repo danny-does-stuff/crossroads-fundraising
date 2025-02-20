@@ -14,7 +14,11 @@ import { requireUser } from "~/session.server";
 import { useTable, useGlobalFilter, useSortBy } from "react-table";
 import type { MulchOrder } from "@prisma/client";
 import { prisma } from "~/db.server";
-import { ReferralSource, REFERRAL_SOURCE_LABELS } from "~/constants";
+import {
+  ReferralSource,
+  REFERRAL_SOURCE_LABELS,
+  Neighborhood,
+} from "~/constants";
 import { Link } from "@remix-run/react";
 
 /**
@@ -129,6 +133,40 @@ export default function Admin() {
     (o) => o.status === "PAID" || o.status === "FULFILLED"
   );
 
+  // Calculate neighborhood stats
+  const neighborhoodStats = useMemo(() => {
+    const statsMap = orders.reduce((acc, order) => {
+      if (order.status !== "PAID" && order.status !== "FULFILLED") {
+        return acc;
+      }
+
+      if (!acc[order.neighborhood]) {
+        acc[order.neighborhood] = {
+          totalOrders: 0,
+          totalBags: 0,
+          totalRevenue: 0,
+          spreadBags: 0,
+        };
+      }
+      acc[order.neighborhood].totalOrders += 1;
+      acc[order.neighborhood].totalBags += order.quantity;
+      acc[order.neighborhood].totalRevenue += getOrderGrossIncome(order);
+      if (order.orderType === "SPREAD") {
+        acc[order.neighborhood].spreadBags += order.quantity;
+      }
+      return acc;
+    }, {} as Record<string, { totalOrders: number; totalBags: number; totalRevenue: number; spreadBags: number }>);
+
+    // Ensure all neighborhoods from constants are included
+    return Object.values(Neighborhood).map((neighborhood) => ({
+      neighborhood,
+      totalOrders: statsMap[neighborhood]?.totalOrders || 0,
+      totalBags: statsMap[neighborhood]?.totalBags || 0,
+      totalRevenue: statsMap[neighborhood]?.totalRevenue || 0,
+      spreadBags: statsMap[neighborhood]?.spreadBags || 0,
+    }));
+  }, [orders]);
+
   return (
     <div className="p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:[&>*]:flex-1">
@@ -158,6 +196,41 @@ export default function Admin() {
           </span>
         </RoundedBorder>
       </div>
+
+      {/* Updated Neighborhood Summary */}
+      <div className="mb-4 mt-6">
+        <h2 className="mb-2 text-2xl font-semibold">Neighborhood Summary</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {neighborhoodStats.map((stats) => (
+            <div
+              key={stats.neighborhood}
+              className="rounded-md border border-gray-200 p-4 shadow-lg"
+            >
+              <h3 className="mb-2 text-lg font-semibold">
+                {stats.neighborhood}
+              </h3>
+              <div className="space-y-1 text-sm">
+                <div>
+                  Orders:{" "}
+                  <span className="font-medium">{stats.totalOrders}</span>
+                </div>
+                <div>
+                  Bags: <span className="font-medium">{stats.totalBags}</span> -
+                  Spread:{" "}
+                  <span className="font-medium">{stats.spreadBags}</span>
+                </div>
+                <div>
+                  Revenue:{" "}
+                  <span className="font-medium">
+                    {currencyFormatter.format(stats.totalRevenue)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="mb-2 mt-4 flex items-center justify-between">
         <h2 className="text-4xl font-semibold">All Orders ({year})</h2>
         <button

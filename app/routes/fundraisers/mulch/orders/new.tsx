@@ -11,6 +11,7 @@ import { Select } from "~/components/Select";
 import { useMulchPrepContent } from "../orders";
 import {
   ACCEPTING_MULCH_ORDERS,
+  Neighborhood,
   REFERRAL_SOURCE_LABELS,
   ReferralSource,
 } from "~/constants";
@@ -23,16 +24,6 @@ const COLORS = [
   { label: "Black", value: "BLACK" },
   { label: "Brown", value: "BROWN" },
 ];
-
-enum Neighborhood {
-  Arrowbrooke = "Arrowbrooke",
-  Savannah = "Savannah",
-  UnionPark = "Union Park",
-  WinnRidge = "Winn Ridge",
-  Glenbrooke = "Glenbrooke",
-  SandbrockRanch = "Sandbrock Ranch",
-  DelWebb = "Del Webb",
-}
 
 const NEIGHBORHOODS: Neighborhood[] = Object.values(Neighborhood).sort();
 
