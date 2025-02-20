@@ -201,29 +201,35 @@ export default function Admin() {
           <h2 className="text-2xl sm:text-4xl">Gross Income</h2>
         </RoundedBorder>
         <RoundedBorder className="text-2xl sm:text-4xl [&>hr]:my-2 [&>span]:float-right">
-          Total Orders: <span>{orders.length}</span>
+          Orders:
+          <span>{paidOrders.length}</span>
           <hr />
-          Total Paid Orders: <span>{paidOrders.length}</span>
-          <hr />
-          Total Bags:{" "}
+          Bags:
           <span>
-            {orders.reduce((total, order) => total + order.quantity, 0)}
+            {paidOrders.reduce((total, order) => total + order.quantity, 0)}
           </span>
           <hr />
-          Avg. Paid Order:{" "}
+          Bags to Spread:
+          <span>
+            {paidOrders.reduce(
+              (total, order) =>
+                total + (order.orderType === "SPREAD" ? order.quantity : 0),
+              0
+            )}
+          </span>
+          <hr />
+          Avg. Order:
           <span>
             {currencyFormatter.format(
               paidOrders.length
-                ? getTotalGrossIncome(orders) / paidOrders.length
+                ? getTotalGrossIncome(paidOrders) / paidOrders.length
                 : 0
             )}
           </span>
         </RoundedBorder>
       </div>
 
-      {/* Updated Neighborhood Summary */}
       <div className="mb-4 mt-6">
-        <h2 className="mb-2 text-2xl font-semibold">Neighborhood Summary</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {neighborhoodStats.map((stats) => (
             <div
