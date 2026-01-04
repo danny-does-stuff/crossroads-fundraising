@@ -1,34 +1,29 @@
 import type { Donation } from "@prisma/client";
 import { prisma } from "~/db.server";
 
-export async function createDonation({
-  amount,
-  paypalOrderId,
-  paypalPaymentSource,
-  paypalPayerId,
-  donorGivenName,
-  donorSurname,
-  donorEmail,
-}: Pick<
+type DonationPaymentFields =
+  | {
+      // PayPal payment fields (legacy)
+      paypalOrderId: string;
+      paypalPaymentSource: string;
+      paypalPayerId: string | null;
+    }
+  | {
+      // Stripe payment fields
+      stripeSessionId: string;
+      stripePaymentIntentId: string | null;
+      stripeCustomerId: string | null;
+    };
+
+type CreateDonationInput = Pick<
   Donation,
-  | "amount"
-  | "paypalOrderId"
-  | "paypalPaymentSource"
-  | "paypalPayerId"
-  | "donorGivenName"
-  | "donorSurname"
-  | "donorEmail"
->) {
+  "amount" | "donorGivenName" | "donorSurname" | "donorEmail"
+> &
+  DonationPaymentFields;
+
+export async function createDonation(data: CreateDonationInput) {
   return prisma.donation.create({
-    data: {
-      amount,
-      paypalOrderId,
-      paypalPaymentSource,
-      paypalPayerId,
-      donorGivenName,
-      donorSurname,
-      donorEmail,
-    },
+    data,
   });
 }
 

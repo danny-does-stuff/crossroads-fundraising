@@ -23,17 +23,41 @@ export function getOrder({ id }: Pick<Order, "id">) {
   });
 }
 
+type OrderPaymentUpdateFields = Partial<
+  Pick<
+    Order,
+    | "status"
+    // PayPal fields (legacy)
+    | "paypalOrderId"
+    | "paypalPayerId"
+    | "paypalPaymentSource"
+    // Stripe fields
+    | "stripeSessionId"
+    | "stripePaymentIntentId"
+    | "stripeCustomerId"
+  >
+>;
+
 export function updateOrderById(
   orderId: Order["id"],
-  order: Partial<
-    Pick<
-      Order,
-      "status" | "paypalOrderId" | "paypalPayerId" | "paypalPaymentSource"
-    >
-  >
+  order: OrderPaymentUpdateFields
 ): Promise<Order> {
   return prisma.mulchOrder.update({
     where: { id: orderId },
+    data: order,
+  });
+}
+
+/**
+ * Updates an order by its Stripe session ID.
+ * Useful for webhook handlers that only have the session ID.
+ */
+export function updateOrderByStripeSession(
+  stripeSessionId: string,
+  order: Omit<OrderPaymentUpdateFields, "stripeSessionId">
+): Promise<Order> {
+  return prisma.mulchOrder.update({
+    where: { stripeSessionId },
     data: order,
   });
 }

@@ -54,35 +54,45 @@ model Customer {
 }
 
 model MulchOrder {
-  id                   String    @id @default(cuid())
-  quantity            Int
-  pricePerUnit        Float
-  color               String // enum - one of 'BLACK' or 'BROWN'
-  orderType           String // enum - one of 'SPREAD' or 'DELIVERY'
-  note                String?
-  neighborhood        String
-  streetAddress       String
-  status              String    @default("PENDING") // enum - one of 'PENDING', 'PAID', 'FULFILLED', 'CANCELLED', 'REFUNDED'
-  paypalOrderId       String?
-  paypalPaymentSource String?
-  paypalPayerId       String?
-  referralSource      String?
+  id                    String    @id @default(cuid())
+  quantity              Int
+  pricePerUnit          Float
+  color                 String // enum - one of 'BLACK' or 'BROWN'
+  orderType             String // enum - one of 'SPREAD' or 'DELIVERY'
+  note                  String?
+  neighborhood          String
+  streetAddress         String
+  status                String    @default("PENDING") // enum - one of 'PENDING', 'PAID', 'FULFILLED', 'CANCELLED', 'REFUNDED'
+  // PayPal fields (preserved for historical data)
+  paypalOrderId         String?
+  paypalPaymentSource   String?
+  paypalPayerId         String?
+  // Stripe fields
+  stripeSessionId       String?   @unique
+  stripePaymentIntentId String?
+  stripeCustomerId      String?
+  referralSource        String?
   referralSourceDetails String?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  customer            Customer  @relation(fields: [customerId], references: [id])
-  customerId          Int
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  customer              Customer  @relation(fields: [customerId], references: [id])
+  customerId            Int
 }
 
 model Donation {
-  id                   String    @id @default(cuid())
-  amount              Float
-  paypalOrderId       String?
-  paypalPaymentSource String?
-  paypalPayerId       String?
-  donorGivenName      String?
-  donorSurname        String?
-  donorEmail          String?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  amount                Float
+  // PayPal fields (preserved for historical data)
+  paypalOrderId         String?
+  paypalPaymentSource   String?
+  paypalPayerId         String?
+  // Stripe fields
+  stripeSessionId       String?   @unique
+  stripePaymentIntentId String?
+  stripeCustomerId      String?
+  donorGivenName        String?
+  donorSurname          String?
+  donorEmail            String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }

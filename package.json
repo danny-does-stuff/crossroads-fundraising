@@ -25,7 +25,6 @@
     "/.output"
   ],
   "dependencies": {
-    "@paypal/react-paypal-js": "^8.9.2",
     "@prisma/client": "^4.16.2",
     "@tanstack/react-router": "^1.144.0",
     "@tanstack/react-start": "^1.145.3",
@@ -34,6 +33,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-table": "^7.8.0",
+    "stripe": "^20.1.0",
     "tiny-invariant": "^1.3.3",
     "zod": "^3.20.2"
   },

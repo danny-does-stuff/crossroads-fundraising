@@ -9,7 +9,7 @@ export function getRouter() {
     context: {
       user: null,
       ENV: {
-        PAYPAL_CLIENT_ID: undefined,
+        STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
       },
     },
   });

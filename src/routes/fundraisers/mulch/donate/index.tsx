@@ -1,13 +1,11 @@
-import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { Input } from "~/components/Input";
 import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
-import { createDonation } from "~/models/donation.server";
-import { useEnv } from "~/utils";
+import { createDonationCheckoutSession } from "~/services/stripe/checkout.server";
 
 const PRESET_AMOUNTS = [
   { label: "$20", value: "20" },
@@ -16,22 +14,28 @@ const PRESET_AMOUNTS = [
   { label: "Other", value: "other" },
 ] as const;
 
-const donationSchema = z.object({
-  paypalOrderId: z.string(),
-  paypalPayerId: z.string().nullable(),
-  paypalPaymentSource: z.string(),
-  amount: z.number(),
+const createCheckoutSchema = z.object({
+  amount: z.number().positive("Amount must be positive"),
+  donorEmail: z.string().email().nullable(),
   donorGivenName: z.string().nullable(),
   donorSurname: z.string().nullable(),
-  donorEmail: z.string().email().nullable(),
+  returnUrl: z.string().url(),
 });
 
-// Server function to create donation
-const createDonationFn = createServerFn()
-  .inputValidator((data: unknown) => donationSchema.parse(data))
+// Server function to create Stripe Checkout session
+const createCheckoutSessionFn = createServerFn()
+  .inputValidator((data: unknown) => createCheckoutSchema.parse(data))
   .handler(async ({ data }) => {
-    const donation = await createDonation(data);
-    return { donation };
+    const session = await createDonationCheckoutSession({
+      amount: data.amount,
+      donorEmail: data.donorEmail,
+      donorGivenName: data.donorGivenName,
+      donorSurname: data.donorSurname,
+      successUrl: `${data.returnUrl}/fundraisers/mulch/donate/thank-you`,
+      cancelUrl: `${data.returnUrl}/fundraisers/mulch/donate`,
+    });
+
+    return { checkoutUrl: session.url };
   });
 
 export const Route = createFileRoute("/fundraisers/mulch/donate/")({
@@ -40,22 +44,46 @@ export const Route = createFileRoute("/fundraisers/mulch/donate/")({
 
 function DonatePage() {
   const [amount, setAmount] = useState("");
-  const amountRef = useRef<string>(amount);
-  // Copy the amount to the ref so that the PayPalButtons component doesn't use stale state
-  amountRef.current = amount;
   const [selectedAmount, setSelectedAmount] = useState<string | null>(null);
-  const [actionData, setActionData] = useState<{
-    errors?: Record<string, { _errors: string[] }>;
-  } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const ENV = useEnv();
-  const createDonation = useServerFn(createDonationFn);
-  const navigate = useNavigate();
+  const createCheckoutSession = useServerFn(createCheckoutSessionFn);
 
-  function getErrorForField(
-    field: "amount" | "donorGivenName" | "donorSurname" | "donorEmail"
-  ) {
-    return actionData?.errors?.[field]?._errors[0];
+  const numericAmount = parseFloat(amount);
+  const isValidAmount = !isNaN(numericAmount) && numericAmount > 0;
+
+  async function handleCheckout() {
+    if (!isValidAmount) {
+      setError("Please enter a valid amount");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const result = await createCheckoutSession({
+        data: {
+          amount: numericAmount,
+          donorEmail: null,
+          donorGivenName: null,
+          donorSurname: null,
+          returnUrl: window.location.origin,
+        },
+      });
+
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      } else {
+        setError("Failed to create checkout session");
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -66,136 +94,78 @@ function DonatePage() {
         for your generosity!
       </p>
 
-      <PayPalScriptProvider
-        options={{
-          clientId: ENV?.PAYPAL_CLIENT_ID || "",
-          components: "buttons",
-          currency: "USD",
-          "disable-funding": "credit,card",
-        }}
-      >
-        <div className="mb-6 space-y-4">
-          <div className="mx-auto grid max-w-md grid-cols-2 gap-4">
-            {PRESET_AMOUNTS.map((preset) => {
-              const isSelected = selectedAmount === preset.value;
-              const isActive =
-                isSelected && (preset.value === "other" ? amount : true);
+      <div className="mb-6 space-y-4">
+        <div className="mx-auto grid max-w-md grid-cols-2 gap-4">
+          {PRESET_AMOUNTS.map((preset) => {
+            const isSelected = selectedAmount === preset.value;
+            const isActive =
+              isSelected && (preset.value === "other" ? amount : true);
 
-              return (
-                <Button
-                  key={preset.value}
-                  type="button"
-                  variant={isActive ? "selected" : "primary"}
-                  className={`h-16 text-lg ${
-                    isSelected ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedAmount(preset.value);
-                    if (preset.value !== "other") {
-                      setAmount(preset.value);
-                    } else {
-                      setAmount("");
-                    }
-                  }}
-                >
-                  {preset.label}
-                </Button>
-              );
-            })}
-          </div>
-
-          {selectedAmount === "other" && (
-            <div className="mx-auto max-w-md">
-              <Input
-                id="amount"
-                label="Custom Amount ($)"
-                type="number"
-                min="1"
-                step="0.01"
-                value={amount}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setAmount(e.target.value);
-                }}
-                error={getErrorForField("amount")}
-                placeholder="Enter amount"
-              />
-            </div>
-          )}
-
-          {amount && !getErrorForField("amount") && (
-            <div className="mx-auto max-w-md">
-              <PayPalButtons
-                style={{ layout: "vertical" }}
-                createOrder={async (_, actions) => {
-                  if (!amountRef.current) {
-                    throw new Error("Amount is required");
-                  }
-                  return actions.order.create({
-                    intent: "CAPTURE",
-                    purchase_units: [
-                      {
-                        amount: {
-                          currency_code: "USD",
-                          value: amountRef.current,
-                          breakdown: {
-                            item_total: {
-                              currency_code: "USD",
-                              value: amountRef.current,
-                            },
-                          },
-                        },
-                        description: "Crossroads Youth Fundraiser Donation",
-                        items: [
-                          {
-                            name: "Crossroads Youth Fundraiser Donation",
-                            quantity: "1",
-                            unit_amount: {
-                              currency_code: "USD",
-                              value: amountRef.current,
-                            },
-                            category: "DONATION",
-                          },
-                        ],
-                      },
-                    ],
-                    application_context: {
-                      shipping_preference: "NO_SHIPPING",
-                    },
-                  });
-                }}
-                onApprove={async (data, actions) => {
-                  const details = await actions.order?.capture();
-                  if (!details) {
-                    return;
-                  }
-
-                  if (details.id === data.orderID) {
-                    console.log("details", details);
-                    const donationInfo = {
-                      paypalOrderId: details.id,
-                      // @ts-expect-error These types seem to be all wrong... use Stripe instead!
-                      paypalPaymentSource: data.paymentSource,
-                      paypalPayerId: data.payerID ?? null,
-                      amount: Number(details.purchase_units?.[0].amount?.value),
-                      donorGivenName: details.payer?.name?.given_name ?? null,
-                      donorSurname: details.payer?.name?.surname ?? null,
-                      donorEmail: details.payer?.email_address ?? null,
-                    };
-
-                    await createDonation({ data: donationInfo });
-                    navigate({ to: "/fundraisers/mulch/donate/thank-you" });
+            return (
+              <Button
+                key={preset.value}
+                type="button"
+                variant={isActive ? "selected" : "primary"}
+                className={`h-16 text-lg ${
+                  isSelected ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                }`}
+                onClick={() => {
+                  setSelectedAmount(preset.value);
+                  if (preset.value !== "other") {
+                    setAmount(preset.value);
                   } else {
-                    console.log("donation not captured", details);
+                    setAmount("");
                   }
+                  setError(null);
                 }}
-              />
-              <p className="mb-4 italic text-gray-500">
-                To donate with credit card, select PayPal.
-              </p>
-            </div>
-          )}
+              >
+                {preset.label}
+              </Button>
+            );
+          })}
         </div>
-      </PayPalScriptProvider>
+
+        {selectedAmount === "other" && (
+          <div className="mx-auto max-w-md">
+            <Input
+              id="amount"
+              label="Custom Amount ($)"
+              type="number"
+              min="1"
+              step="0.01"
+              value={amount}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setAmount(e.target.value);
+                setError(null);
+              }}
+              error={error || undefined}
+              placeholder="Enter amount"
+            />
+          </div>
+        )}
+
+        {amount && isValidAmount && (
+          <div className="mx-auto max-w-md">
+            <Button
+              type="button"
+              onClick={handleCheckout}
+              disabled={isSubmitting}
+              className="w-full py-4 text-lg"
+            >
+              {isSubmitting
+                ? "Redirecting to checkout..."
+                : `Donate $${numericAmount.toFixed(2)}`}
+            </Button>
+            <p className="mt-2 text-center text-sm text-gray-500">
+              You&apos;ll be redirected to Stripe&apos;s secure checkout
+            </p>
+          </div>
+        )}
+
+        {error && selectedAmount !== "other" && (
+          <p className="mx-auto max-w-md text-center text-red-500">{error}</p>
+        )}
+      </div>
 
       <p className="mt-4 text-sm text-gray-600">
         If you have any questions about donations, please contact us at{" "}
@@ -206,4 +176,3 @@ function DonatePage() {
     </div>
   );
 }
-

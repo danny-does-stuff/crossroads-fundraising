@@ -14,7 +14,7 @@ import type { UserInSession } from "~/models/user.server";
 export interface RouterContext {
   user: UserInSession | null;
   ENV: {
-    PAYPAL_CLIENT_ID: string | undefined;
+    STRIPE_PUBLISHABLE_KEY: string | undefined;
   };
 }
 
