@@ -1,20 +1,19 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import { Form, useActionData } from "@remix-run/react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createServerFn, useServerFn } from "@tanstack/react-start";
 import * as React from "react";
+import { z } from "zod";
+
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
-
-import { createOrder } from "~/models/mulchOrder.server";
-import { z } from "zod";
 import { Select } from "~/components/Select";
-import { useMulchPrepContent } from "../orders";
+import { createOrder } from "~/models/mulchOrder.server";
 import {
   ACCEPTING_MULCH_ORDERS,
   Neighborhood,
   REFERRAL_SOURCE_LABELS,
   ReferralSource,
 } from "~/constants";
+import { useMulchPrepContent } from "../orders";
 
 const SPREAD_PRICE_DIFFERENCE = 1;
 const DELIVER_PRICE = 7;
@@ -29,86 +28,79 @@ const NEIGHBORHOODS: Neighborhood[] = Object.values(Neighborhood).sort();
 
 type Color = (typeof COLORS)[number]["value"];
 
-export async function action({ request }: ActionFunctionArgs) {
-  if (!ACCEPTING_MULCH_ORDERS) {
-    return redirect("/fundraisers/mulch/orders");
-  }
+const orderSchema = z.object({
+  quantity: z.string().regex(/^\d+$/).transform(Number),
+  color: z.enum(COLORS.map((c) => c.value) as [Color, ...Color[]]),
+  shouldSpread: z.boolean(),
+  note: z.string().trim(),
+  neighborhood: z.enum(NEIGHBORHOODS as [Neighborhood, ...Neighborhood[]]),
+  street: z.string().trim().min(1, "Street address is required"),
+  name: z.string().trim().min(1, "Name is required"),
+  email: z.string().trim().email("Valid email is required"),
+  phone: z.string().trim().min(10, "Phone must be at least 10 digits"),
+  referralSource: z.nativeEnum(ReferralSource),
+  referralSourceDetails: z.string().trim().nullable(),
+});
 
-  const formData = await request.formData();
+// Server function to create order
+const createOrderFn = createServerFn()
+  .inputValidator((data: unknown) => orderSchema.parse(data))
+  .handler(async ({ data }) => {
+    if (!ACCEPTING_MULCH_ORDERS) {
+      throw redirect({ to: "/fundraisers/mulch/orders" });
+    }
 
-  const result = z
-    .object({
-      quantity: z.string().regex(/^\d+$/).transform(Number),
-      color: z.enum(COLORS.map((c) => c.value) as [Color, ...Color[]]),
-      shouldSpread: z.boolean(),
-      note: z.string().trim(),
-      neighborhood: z.enum(NEIGHBORHOODS as [Neighborhood, ...Neighborhood[]]),
-      street: z.string().trim().min(1),
-      name: z.string().trim().min(1),
-      email: z.string().trim().email(),
-      phone: z.string().trim().min(10),
-      referralSource: z.nativeEnum(ReferralSource),
-      referralSourceDetails: z
-        .union([
-          z.string().trim().min(1, "Please specify how you heard about us"),
-          z.null(),
-        ])
-        .superRefine((val, ctx) => {
-          if (formData.get("referralSource") === ReferralSource.Other && !val) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: "Please specify how you heard about us",
-            });
-          }
-        }),
-    })
-    .safeParse({
-      quantity: formData.get("quantity"),
-      color: formData.get("color"),
-      shouldSpread: formData.get("shouldSpread") === "on",
-      neighborhood: formData.get("neighborhood"),
-      street: formData.get("street"),
-      name: formData.get("name"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      note: formData.get("note"),
-      referralSource: formData.get("referralSource"),
-      referralSourceDetails: formData.get("referralSourceDetails"),
+    // Additional validation for referralSourceDetails when Other is selected
+    if (
+      data.referralSource === ReferralSource.Other &&
+      !data.referralSourceDetails
+    ) {
+      return {
+        errors: {
+          referralSourceDetails: {
+            _errors: ["Please specify how you heard about us"],
+          },
+        },
+      };
+    }
+
+    const { shouldSpread, quantity, color, note, neighborhood, street } = data;
+
+    const order = await createOrder({
+      quantity,
+      color,
+      note,
+      neighborhood,
+      streetAddress: street,
+      orderType: shouldSpread ? "SPREAD" : "DELIVERY",
+      pricePerUnit: shouldSpread ? SPREAD_PRICE : DELIVER_PRICE,
+      referralSource: data.referralSource,
+      referralSourceDetails: data.referralSourceDetails,
+      customer: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+      },
     });
 
-  if (!result.success) {
-    return json({ errors: result.error.format() }, { status: 400 });
-  }
-  const { shouldSpread, quantity, color, note, neighborhood, street } =
-    result.data;
-
-  const order = await createOrder({
-    quantity,
-    color,
-    note,
-    neighborhood,
-    streetAddress: street,
-    orderType: shouldSpread ? "SPREAD" : "DELIVERY",
-    pricePerUnit: shouldSpread ? SPREAD_PRICE : DELIVER_PRICE,
-    referralSource: result.data.referralSource,
-    referralSourceDetails: result.data.referralSourceDetails,
-    customer: {
-      name: result.data.name,
-      email: result.data.email,
-      phone: result.data.phone,
-    },
+    throw redirect({ to: `/fundraisers/mulch/orders/${order.id}` });
   });
-
-  return redirect(`/fundraisers/mulch/orders/${order.id}`);
-}
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 });
 
-export default function NewOrderPage() {
-  const actionData = useActionData<typeof action>();
+export const Route = createFileRoute("/fundraisers/mulch/orders/new")({
+  component: NewOrderPage,
+});
+
+function NewOrderPage() {
+  const [actionData, setActionData] = React.useState<{
+    errors?: Record<string, { _errors: string[] }>;
+  } | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const quantityRef = React.useRef<HTMLInputElement>(null);
   const colorRef = React.useRef<HTMLSelectElement>(null);
   const streetRef = React.useRef<HTMLInputElement>(null);
@@ -126,6 +118,8 @@ export default function NewOrderPage() {
 
   const [selectedReferralSource, setSelectedReferralSource] =
     React.useState("");
+
+  const createOrderAction = useServerFn(createOrderFn);
 
   React.useEffect(() => {
     if (!actionData || !("errors" in actionData)) {
@@ -149,12 +143,44 @@ export default function NewOrderPage() {
   }, [actionData]);
 
   function getErrorForField(field: string) {
-    return (
-      actionData &&
-      "errors" in actionData &&
-      // @ts-expect-error - field should be a key of the errors object
-      actionData.errors?.[field]?._errors[0]
-    );
+    return actionData?.errors?.[field]?._errors[0];
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+
+    const formData = new FormData(event.currentTarget);
+
+    try {
+      const result = await createOrderAction({
+        data: {
+          quantity: formData.get("quantity") as string,
+          color: formData.get("color") as Color,
+          shouldSpread: formData.get("shouldSpread") === "on",
+          note: (formData.get("note") as string) || "",
+          neighborhood: formData.get("neighborhood") as Neighborhood,
+          street: formData.get("street") as string,
+          name: formData.get("name") as string,
+          email: formData.get("email") as string,
+          phone: formData.get("phone") as string,
+          referralSource: formData.get("referralSource") as ReferralSource,
+          referralSourceDetails:
+            (formData.get("referralSourceDetails") as string) || null,
+        },
+      });
+      if (result?.errors) {
+        setActionData(result);
+      }
+    } catch (error) {
+      // Redirect errors are expected and handled by TanStack Router
+      if (error instanceof Response || (error as any)?.to) {
+        throw error;
+      }
+      console.error("Order creation error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -166,8 +192,8 @@ export default function NewOrderPage() {
         to your driveway.
       </p>
       <br />
-      <Form
-        method="post"
+      <form
+        onSubmit={handleSubmit}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -175,11 +201,7 @@ export default function NewOrderPage() {
           width: "100%",
         }}
       >
-        <Select
-          id="color"
-          label="Mulch Color"
-          error={getErrorForField("color")}
-        >
+        <Select id="color" label="Mulch Color" error={getErrorForField("color")}>
           <option value="">Select a color</option>
           {COLORS.map((color) => (
             <option key={color.value} value={color.value}>
@@ -290,9 +312,11 @@ export default function NewOrderPage() {
         )}
         {mulchPrepContent}
         <div className="text-right">
-          <Button type="submit">Proceed to Checkout</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Processing..." : "Proceed to Checkout"}
+          </Button>
         </div>
-      </Form>
+      </form>
     </div>
   );
 }
@@ -344,3 +368,4 @@ function MulchCalculator() {
     </div>
   );
 }
+

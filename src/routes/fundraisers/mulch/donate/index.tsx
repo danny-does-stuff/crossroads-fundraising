@@ -1,14 +1,13 @@
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
-import { Form, useActionData, useFetcher } from "@remix-run/react";
-import { json } from "@remix-run/node";
-import type { ActionFunctionArgs } from "@remix-run/node";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { useState, useRef } from "react";
 import { z } from "zod";
 import { Input } from "~/components/Input";
 import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
 import { createDonation } from "~/models/donation.server";
-import { useMatchesData } from "~/utils";
+import { useEnv } from "~/utils";
 
 const PRESET_AMOUNTS = [
   { label: "$20", value: "20" },
@@ -17,66 +16,46 @@ const PRESET_AMOUNTS = [
   { label: "Other", value: "other" },
 ] as const;
 
-/**
- * Handles form submission for donations. Validates the amount and creates
- * the donation record in the database.
- */
-export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
+const donationSchema = z.object({
+  paypalOrderId: z.string(),
+  paypalPayerId: z.string().nullable(),
+  paypalPaymentSource: z.string(),
+  amount: z.number(),
+  donorGivenName: z.string().nullable(),
+  donorSurname: z.string().nullable(),
+  donorEmail: z.string().email().nullable(),
+});
 
-  const orderUpdateInfo = z
-    .object({
-      paypalOrderId: z.string(),
-      paypalPayerId: z.string().nullable(),
-      paypalPaymentSource: z.string(),
-      amount: z.number(),
-      donorGivenName: z.string().nullable(),
-      donorSurname: z.string().nullable(),
-      donorEmail: z.string().email().nullable(),
-    })
-    .safeParse({
-      paypalOrderId: formData.get("paypalOrderId"),
-      paypalPayerId: formData.get("paypalPayerId"),
-      paypalPaymentSource: formData.get("paypalPaymentSource"),
-      amount: Number(formData.get("amount")),
-      donorGivenName: formData.get("donorGivenName"),
-      donorSurname: formData.get("donorSurname"),
-      donorEmail: formData.get("donorEmail"),
-    });
+// Server function to create donation
+const createDonationFn = createServerFn()
+  .inputValidator((data: unknown) => donationSchema.parse(data))
+  .handler(async ({ data }) => {
+    const donation = await createDonation(data);
+    return { donation };
+  });
 
-  if (!orderUpdateInfo.success) {
-    return json({ errors: orderUpdateInfo.error.format() }, { status: 400 });
-  }
+export const Route = createFileRoute("/fundraisers/mulch/donate/")({
+  component: DonatePage,
+});
 
-  const donation = await createDonation(orderUpdateInfo.data);
-
-  return json({ donation });
-}
-
-/**
- * Main donation page component. Displays preset donation amounts and PayPal
- * integration for processing payments.
- */
-export default function DonatePage() {
+function DonatePage() {
   const [amount, setAmount] = useState("");
   const amountRef = useRef<string>(amount);
   // Copy the amount to the ref so that the PayPalButtons component doesn't use stale state
   amountRef.current = amount;
   const [selectedAmount, setSelectedAmount] = useState<string | null>(null);
-  const actionData = useActionData<typeof action>();
-  const data = useMatchesData("root");
-  const fetcher = useFetcher();
+  const [actionData, setActionData] = useState<{
+    errors?: Record<string, { _errors: string[] }>;
+  } | null>(null);
 
-  /**
-   * Gets the error message for a specific form field from the action data.
-   * Currently only handles the "amount" field.
-   */
+  const ENV = useEnv();
+  const createDonation = useServerFn(createDonationFn);
+  const navigate = useNavigate();
+
   function getErrorForField(
     field: "amount" | "donorGivenName" | "donorSurname" | "donorEmail"
   ) {
-    return actionData && "errors" in actionData
-      ? actionData.errors[field]?._errors[0]
-      : undefined;
+    return actionData?.errors?.[field]?._errors[0];
   }
 
   return (
@@ -89,14 +68,13 @@ export default function DonatePage() {
 
       <PayPalScriptProvider
         options={{
-          // @ts-expect-error - we add the global ENV variable in the root.tsx file
-          clientId: data?.ENV.PAYPAL_CLIENT_ID,
+          clientId: ENV?.PAYPAL_CLIENT_ID || "",
           components: "buttons",
           currency: "USD",
           "disable-funding": "credit,card",
         }}
       >
-        <Form method="post" className="mb-6 space-y-4">
+        <div className="mb-6 space-y-4">
           <div className="mx-auto grid max-w-md grid-cols-2 gap-4">
             {PRESET_AMOUNTS.map((preset) => {
               const isSelected = selectedAmount === preset.value;
@@ -204,9 +182,8 @@ export default function DonatePage() {
                       donorEmail: details.payer?.email_address ?? null,
                     };
 
-                    fetcher.submit(donationInfo, { method: "post" });
-                    window.location.href =
-                      "/fundraisers/mulch/donate/thank-you";
+                    await createDonation({ data: donationInfo });
+                    navigate({ to: "/fundraisers/mulch/donate/thank-you" });
                   } else {
                     console.log("donation not captured", details);
                   }
@@ -217,7 +194,7 @@ export default function DonatePage() {
               </p>
             </div>
           )}
-        </Form>
+        </div>
       </PayPalScriptProvider>
 
       <p className="mt-4 text-sm text-gray-600">
@@ -229,3 +206,4 @@ export default function DonatePage() {
     </div>
   );
 }
+

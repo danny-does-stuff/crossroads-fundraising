@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/Button";
 import { HeroImage } from "~/components/HeroImage";
 import {
@@ -5,10 +6,13 @@ import {
   MULCH_DELIVERY_DATE_2,
   CONTACT_EMAIL,
 } from "~/constants";
-
 import { useOptionalUser } from "~/utils";
 
-export default function Index() {
+export const Route = createFileRoute("/")({
+  component: IndexPage,
+});
+
+function IndexPage() {
   const user = useOptionalUser();
 
   return (

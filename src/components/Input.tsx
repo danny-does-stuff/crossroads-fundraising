@@ -8,15 +8,16 @@ export const Input = React.forwardRef(function Input(
     id,
     label,
     error,
-    type,
+    type = "text",
     wrapperClass,
     ...props
   }: {
-    id: string;
+    id?: string;
     label: string;
-    error: string | null | undefined;
-    type: string;
+    error?: string | null | undefined;
+    type?: string;
     wrapperClass?: string;
+    name?: string;
     [key: string]: any;
   },
   ref: React.Ref<HTMLInputElement> | React.Ref<HTMLTextAreaElement>
@@ -31,7 +32,7 @@ export const Input = React.forwardRef(function Input(
       <div className="mt-1">
         <Component
           id={id}
-          name={id}
+          name={props.name || id}
           type={type}
           aria-invalid={error ? true : undefined}
           aria-describedby={`${id}-error`}

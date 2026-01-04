@@ -1,87 +1,106 @@
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import {
-  Form,
-  isRouteErrorResponse,
-  useFetcher,
-  useLoaderData,
-  useRouteError,
-} from "@remix-run/react";
-import { useRef } from "react";
+  createFileRoute,
+  ErrorComponent,
+  useRouter,
+} from "@tanstack/react-router";
+import { createServerFn, useServerFn } from "@tanstack/react-start";
+import { useRef, useState } from "react";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 import { CONTACT_EMAIL } from "~/constants";
 
 import { updateOrderById, getOrder } from "~/models/mulchOrder.server";
-import { useMatchesData } from "~/utils";
+import { useEnv } from "~/utils";
 import { useMulchPrepContent } from "../orders";
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
-  // TODO: use a short lived session to verify that the user is the one who created the order
-  invariant(params.orderId, "orderId not found");
+// Server function to load order data
+const loadOrder = createServerFn()
+  .inputValidator((data: { orderId: string }) => data)
+  .handler(async ({ data }) => {
+    const order = await getOrder({ id: data.orderId });
+    if (!order) {
+      throw new Error("Order not found");
+    }
+    return { order };
+  });
 
-  const order = await getOrder({ id: params.orderId });
-  if (!order) {
-    throw new Response("Not Found", { status: 404 });
-  }
-  return json({ order });
-}
+const updateOrderSchema = z.union([
+  z.object({
+    orderId: z.string(),
+    paypalOrderId: z.string(),
+    paypalPayerId: z.string().nullable(),
+    paypalPaymentSource: z.string(),
+    status: z.literal("PAID"),
+  }),
+  z.object({
+    orderId: z.string(),
+    status: z.literal("CANCELLED"),
+  }),
+]);
 
-export async function action({ request, params }: ActionFunctionArgs) {
-  invariant(params.orderId, "orderId not found");
-
-  const body = await request.formData();
-  const orderUpdateInfo = z
-    .union([
-      z.object({
-        paypalOrderId: z.string(),
-        paypalPayerId: z.string(),
-        paypalPaymentSource: z.string(),
-        status: z.literal("PAID"),
-      }),
-      z.object({ status: z.literal("CANCELLED") }),
-    ])
-    .safeParse({
-      paypalOrderId: body.get("paypalOrderId"),
-      paypalPayerId: body.get("paypalPayerId"),
-      paypalPaymentSource: body.get("paypalPaymentSource"),
-      status: body.get("status"),
-    });
-
-  if (!orderUpdateInfo.success) {
-    throw json({ errors: orderUpdateInfo.error.format() }, { status: 400 });
-  }
-
-  const order = await updateOrderById(params.orderId, orderUpdateInfo.data);
-
-  return json({ order });
-}
+// Server function to update order
+const updateOrderFn = createServerFn()
+  .inputValidator((data: unknown) => updateOrderSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { orderId, ...updateData } = data;
+    const order = await updateOrderById(orderId, updateData);
+    return { order };
+  });
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 });
 
-export default function OrderDetailsPage() {
+export const Route = createFileRoute("/fundraisers/mulch/orders/$orderId")({
+  component: OrderDetailsPage,
+  loader: async ({ params }) => {
+    invariant(params.orderId, "orderId not found");
+    return loadOrder({ data: { orderId: params.orderId } });
+  },
+  errorComponent: OrderErrorBoundary,
+});
+
+function OrderDetailsPage() {
   const updateData = useRef<{
     paypalOrderId: string;
     paypalPaymentSource: string;
   }>();
-  const { order } = useLoaderData<typeof loader>();
+  const { order: initialOrder } = Route.useLoaderData();
+  const [order, setOrder] = useState(initialOrder);
+  const params = Route.useParams();
+  const router = useRouter();
 
-  const fetcher = useFetcher();
-  const data = useMatchesData("root");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const updateOrder = useServerFn(updateOrderFn);
 
+  const ENV = useEnv();
   const mulchPrepContent = useMulchPrepContent();
 
   const total = order.pricePerUnit * order.quantity;
 
+  async function handleCancelOrder() {
+    setIsSubmitting(true);
+    try {
+      const result = await updateOrder({
+        data: {
+          orderId: params.orderId,
+          status: "CANCELLED",
+        },
+      });
+      if (result.order) {
+        setOrder(result.order);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <PayPalScriptProvider
       options={{
-        // @ts-expect-error - we add the global ENV variable in the root.tsx file
-        clientId: data?.ENV.PAYPAL_CLIENT_ID,
+        clientId: ENV?.PAYPAL_CLIENT_ID || "",
         components: "buttons",
         currency: "USD",
         "disable-funding": "credit,card",
@@ -111,7 +130,7 @@ export default function OrderDetailsPage() {
           <>
             <div className="max-w-xs">
               <PayPalButtons
-                disabled={fetcher.state === "submitting"}
+                disabled={isSubmitting}
                 createOrder={async ({ paymentSource }, actions) => {
                   const orderId = await actions.order.create({
                     intent: "CAPTURE",
@@ -175,19 +194,22 @@ export default function OrderDetailsPage() {
                     details.id === updateData.current?.paypalOrderId
                   ) {
                     console.log("approval is valid", details);
-                    const update: {
-                      paypalOrderId: string;
-                      paypalPaymentSource: string;
-                      status: "PAID";
-                      paypalPayerId?: string;
-                    } = {
-                      ...updateData.current,
-                      status: "PAID",
-                    };
-                    if (details.payer?.payer_id) {
-                      update.paypalPayerId = details.payer.payer_id;
+                    setIsSubmitting(true);
+                    try {
+                      const result = await updateOrder({
+                        data: {
+                          orderId: params.orderId,
+                          ...updateData.current,
+                          status: "PAID",
+                          paypalPayerId: details.payer?.payer_id ?? null,
+                        },
+                      });
+                      if (result.order) {
+                        setOrder(result.order);
+                      }
+                    } finally {
+                      setIsSubmitting(false);
                     }
-                    fetcher.submit(update, { method: "put" });
                   } else {
                     console.log("payment not captured", {
                       detailsId: details?.id,
@@ -208,15 +230,14 @@ export default function OrderDetailsPage() {
             </p>
             <hr className="my-4" />
             <div className="mb-4">{mulchPrepContent}</div>
-            <Form method="put">
-              <input type="hidden" name="status" value="CANCELLED" />
-              <button
-                type="submit"
-                className="rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"
-              >
-                Cancel Order
-              </button>
-            </Form>
+            <button
+              type="button"
+              onClick={handleCancelOrder}
+              disabled={isSubmitting}
+              className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+            >
+              {isSubmitting ? "Cancelling..." : "Cancel Order"}
+            </button>
           </>
         ) : order.status === "CANCELLED" ? (
           <div className="font-bold text-red-500">Order Cancelled</div>
@@ -272,45 +293,26 @@ export default function OrderDetailsPage() {
   );
 }
 
-export function ErrorBoundary() {
-  const error = useRouteError();
-
+function OrderErrorBoundary({ error }: { error: Error }) {
   console.error(error);
 
-  if (isRouteErrorResponse(error)) {
-    return (
-      <div
-        className="relative mb-3 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
-        role="alert"
-      >
-        {error.status === 404 ? (
-          "Order not found."
-        ) : error.status === 400 && error.data ? (
-          <>
-            There was an error processing your order:
-            {Object.keys(error.data.errors).map((errorKey) =>
-              errorKey === "_errors" ? null : (
-                <div key={errorKey}>
-                  <b>{errorKey}:</b> {error.data.errors[errorKey]._errors[0]}
-                </div>
-              )
-            )}
-          </>
-        ) : (
-          `An unexpected error occurred: ${error.status}`
-        )}
-        <br />
-        <br />
-        If you believe you paid for this order, please contact us at{" "}
-        {CONTACT_EMAIL}
-      </div>
-    );
-  }
+  const isNotFound = error.message === "Order not found";
 
   return (
-    <div>
-      An unexpected error occurred:{" "}
-      {error instanceof Error ? error.message : String(error)}
+    <div
+      className="relative mb-3 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
+      role="alert"
+    >
+      {isNotFound ? (
+        "Order not found."
+      ) : (
+        <>An unexpected error occurred: {error.message}</>
+      )}
+      <br />
+      <br />
+      If you believe you paid for this order, please contact us at{" "}
+      {CONTACT_EMAIL}
     </div>
   );
 }
+

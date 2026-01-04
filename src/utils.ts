@@ -1,6 +1,4 @@
-import { useMatches } from "@remix-run/react";
-import { useMemo } from "react";
-
+import { useRouteContext } from "@tanstack/react-router";
 import type { UserInSession } from "~/models/user.server";
 
 const DEFAULT_REDIRECT = "/";
@@ -28,45 +26,34 @@ export function safeRedirect(
 }
 
 /**
- * This base hook is used in other hooks to quickly search for specific data
- * across all loader data using useMatches.
- * @param {string} id The route id
- * @returns The router data or undefined if not found
+ * Hook to get the optional user from the router context.
+ * Uses TanStack Router's useRouteContext to access the user.
  */
-export function useMatchesData(id: string) {
-  const matchingRoutes = useMatches();
-  const route = useMemo(
-    () => matchingRoutes.find((route) => route.id === id),
-    [matchingRoutes, id]
-  );
-  return route?.data;
-}
-
-function isUser(user: any): user is UserInSession {
-  return user && typeof user === "object" && typeof user.email === "string";
-}
-
 export function useOptionalUser(): UserInSession | undefined {
-  const data = useMatchesData("root");
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("user" in data) ||
-    !isUser(data.user)
-  ) {
-    return undefined;
-  }
-  return data.user;
+  const context = useRouteContext({ from: "__root__" });
+  return context.user ?? undefined;
 }
 
+/**
+ * Hook to get the required user from the router context.
+ * Throws an error if no user is found.
+ */
 export function useUser(): UserInSession {
   const maybeUser = useOptionalUser();
   if (!maybeUser) {
     throw new Error(
-      "No user found in root loader, but user is required by useUser. If user is optional, try useOptionalUser instead."
+      "No user found in router context, but user is required by useUser. If user is optional, try useOptionalUser instead."
     );
   }
   return maybeUser;
+}
+
+/**
+ * Hook to get ENV variables from router context.
+ */
+export function useEnv() {
+  const context = useRouteContext({ from: "__root__" });
+  return context.ENV;
 }
 
 export function validateEmail(email: unknown): email is string {

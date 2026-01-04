@@ -1,8 +1,8 @@
-import { Link } from "@remix-run/react";
+import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
 /**
- * A button component
+ * A button component that can optionally act as a link
  */
 export const Button = React.forwardRef(function Button(
   {

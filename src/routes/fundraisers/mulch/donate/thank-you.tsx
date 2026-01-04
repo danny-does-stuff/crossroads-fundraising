@@ -1,10 +1,15 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
+
+export const Route = createFileRoute("/fundraisers/mulch/donate/thank-you")({
+  component: ThankYouPage,
+});
 
 /**
  * Thank you page shown after a successful donation
  */
-export default function ThankYouPage() {
+function ThankYouPage() {
   return (
     <div className="mx-auto max-w-2xl p-6 text-center">
       <h1 className="mb-4 text-2xl font-bold">Thank You for Your Donation!</h1>
@@ -25,3 +30,4 @@ export default function ThankYouPage() {
     </div>
   );
 }
+

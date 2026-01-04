@@ -1,18 +1,15 @@
-import { useMemo } from "react";
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import {
-  typedjson,
-  useTypedLoaderData,
-  redirect,
-  useTypedFetcher,
-} from "remix-typedjson";
+import { useMemo, useState } from "react";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createServerFn, useServerFn } from "@tanstack/react-start";
+import { useTable, useGlobalFilter, useSortBy } from "react-table";
+import type { MulchOrder } from "@prisma/client";
+import { z } from "zod";
+
 import {
   type CompleteOrder,
   getAllOrdersForYear,
 } from "~/models/mulchOrder.server";
 import { requireUser } from "~/session.server";
-import { useTable, useGlobalFilter, useSortBy } from "react-table";
-import type { MulchOrder } from "@prisma/client";
 import { prisma } from "~/db.server";
 import {
   ReferralSource,
@@ -20,58 +17,56 @@ import {
   Neighborhood,
   CONTACT_EMAIL,
 } from "~/constants";
-import { Link } from "@remix-run/react";
 
-/**
- * Handles admin actions for updating order statuses.
- * Validates admin permissions and updates order status in the database.
- * Returns refreshed orders data to update the UI.
- *
- * @param {ActionFunctionArgs} args - Contains the request object with form data
- * @returns {Promise<Response>} JSON response with updated orders or error
- * @throws {Response} Redirects to login if user lacks admin permissions
- */
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireUser(request);
-  if (!user?.roles.some(({ role }) => role.name === "ADMIN")) {
-    return redirect("/login");
-  }
-
-  const formData = await request.formData();
-  const orderId = formData.get("orderId") as string;
-  const newStatus = formData.get("status") as string;
-
-  if (!orderId || !newStatus) {
-    return typedjson({ error: "Missing required fields" }, { status: 400 });
-  }
-
-  await prisma.mulchOrder.update({
-    where: { id: orderId },
-    data: { status: newStatus },
+// Server function to load admin data
+const loadAdminData = createServerFn()
+  .inputValidator((data: { year?: number }) => data)
+  .handler(async ({ data }) => {
+    const year = data.year || new Date().getFullYear();
+    const orders: CompleteOrder[] = await getAllOrdersForYear(year);
+    return { orders, year };
   });
 
-  // Get the current year to fetch updated orders
-  const year = new Date().getFullYear();
-  const orders = await getAllOrdersForYear(year);
+// Server function to update order status
+const updateOrderStatus = createServerFn()
+  .inputValidator((data: unknown) =>
+    z.object({ orderId: z.string(), status: z.string() }).parse(data)
+  )
+  .handler(async ({ data }) => {
+    const { orderId, status } = data;
 
-  return typedjson({ orders, success: true });
-}
+    await prisma.mulchOrder.update({
+      where: { id: orderId },
+      data: { status },
+    });
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireUser(request);
+    const year = new Date().getFullYear();
+    const orders = await getAllOrdersForYear(year);
 
+    return { orders, success: true };
+  });
+
+// Server function to check admin auth
+const checkAdminAuth = createServerFn().handler(async () => {
+  const user = await requireUser();
   if (!user || !user.roles.some(({ role }) => role.name === "ADMIN")) {
-    return redirect("/login");
+    throw redirect({ to: "/login" });
   }
+  return { user };
+});
 
-  const year =
-    Number(new URL(request.url).searchParams.get("year")) ||
-    new Date().getFullYear();
-
-  const orders: CompleteOrder[] = await getAllOrdersForYear(year);
-
-  return typedjson({ orders, year });
-}
+export const Route = createFileRoute("/admin")({
+  component: AdminPage,
+  beforeLoad: async () => {
+    await checkAdminAuth();
+  },
+  loaderDeps: ({ search }) => ({
+    year: (search as { year?: number }).year,
+  }),
+  loader: async ({ deps }) => {
+    return loadAdminData({ data: { year: deps.year } });
+  },
+});
 
 function getOrderGrossIncome(order: CompleteOrder) {
   return order.pricePerUnit * order.quantity;
@@ -82,14 +77,6 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
-/**
- * Calculates the total gross income from orders.
- * Includes orders with status PAID or FULFILLED.
- *
- * @param {CompleteOrder[]} orders - Array of orders to calculate total from
- * @param {boolean} [onlyPaidOrFulfilled=true] - When true, only includes PAID or FULFILLED orders
- * @returns {number} Total gross income
- */
 function getTotalGrossIncome(
   orders: CompleteOrder[],
   onlyPaidOrFulfilled: boolean = true
@@ -106,13 +93,6 @@ function getTotalGrossIncome(
   );
 }
 
-/**
- * Formats the referral source for display, using the source details if "Other" was selected
- *
- * @param {string | null} referralSource - The referral source type
- * @param {string | null} referralSourceDetails - Additional details for "Other" source
- * @returns {string} Formatted referral source for display
- */
 function formatReferralSource(
   referralSource: string | null,
   referralSourceDetails: string | null
@@ -127,11 +107,6 @@ function formatReferralSource(
     : "";
 }
 
-/**
- * Generates email content for order reminders
- * @param orderId - The ID of the order
- * @returns Formatted email content string
- */
 function getEmailContent(orderId: string) {
   const orderUrl = `${
     typeof window !== "undefined" ? window.location.origin : ""
@@ -151,11 +126,6 @@ Have a wonderful day!
 Crossroads Ward Youth Program`;
 }
 
-/**
- * Generates email content for order confirmations
- * @param order - The order details
- * @returns Formatted email content string
- */
 function getConfirmationEmailContent(order: CompleteOrder) {
   return `Hello ${order.customer.name},
 
@@ -179,38 +149,48 @@ Thanks again for supporting our youth—your purchase makes a difference!
 Crossroads Ward Youth Program`;
 }
 
-export default function Admin() {
-  const { orders, year } = useTypedLoaderData<typeof loader>();
+function AdminPage() {
+  const { orders: initialOrders, year } = Route.useLoaderData();
+  const [orders, setOrders] = useState(initialOrders);
 
   const paidOrders = orders.filter(
     (o) => o.status === "PAID" || o.status === "FULFILLED"
   );
 
-  // Calculate neighborhood stats
   const neighborhoodStats = useMemo(() => {
-    const statsMap = orders.reduce((acc, order) => {
-      if (order.status !== "PAID" && order.status !== "FULFILLED") {
+    const statsMap = orders.reduce(
+      (acc, order) => {
+        if (order.status !== "PAID" && order.status !== "FULFILLED") {
+          return acc;
+        }
+
+        if (!acc[order.neighborhood]) {
+          acc[order.neighborhood] = {
+            totalOrders: 0,
+            totalBags: 0,
+            totalRevenue: 0,
+            spreadBags: 0,
+          };
+        }
+        acc[order.neighborhood].totalOrders += 1;
+        acc[order.neighborhood].totalBags += order.quantity;
+        acc[order.neighborhood].totalRevenue += getOrderGrossIncome(order);
+        if (order.orderType === "SPREAD") {
+          acc[order.neighborhood].spreadBags += order.quantity;
+        }
         return acc;
-      }
+      },
+      {} as Record<
+        string,
+        {
+          totalOrders: number;
+          totalBags: number;
+          totalRevenue: number;
+          spreadBags: number;
+        }
+      >
+    );
 
-      if (!acc[order.neighborhood]) {
-        acc[order.neighborhood] = {
-          totalOrders: 0,
-          totalBags: 0,
-          totalRevenue: 0,
-          spreadBags: 0,
-        };
-      }
-      acc[order.neighborhood].totalOrders += 1;
-      acc[order.neighborhood].totalBags += order.quantity;
-      acc[order.neighborhood].totalRevenue += getOrderGrossIncome(order);
-      if (order.orderType === "SPREAD") {
-        acc[order.neighborhood].spreadBags += order.quantity;
-      }
-      return acc;
-    }, {} as Record<string, { totalOrders: number; totalBags: number; totalRevenue: number; spreadBags: number }>);
-
-    // Ensure all neighborhoods from constants are included
     return Object.values(Neighborhood).map((neighborhood) => ({
       neighborhood,
       totalOrders: statsMap[neighborhood]?.totalOrders || 0,
@@ -299,7 +279,7 @@ export default function Admin() {
           Download CSV
         </button>
       </div>
-      <OrdersTable orders={orders} />
+      <OrdersTable orders={orders} onOrdersUpdate={setOrders} />
     </div>
   );
 }
@@ -318,10 +298,13 @@ function RoundedBorder({
   );
 }
 
-// A react component that takes an array of CompleteOrder and renders a table using react-table.
-// The columns should be sortable and filterable.
-// The table should be paginated.
-export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
+function OrdersTable({
+  orders,
+  onOrdersUpdate,
+}: {
+  orders: CompleteOrder[];
+  onOrdersUpdate: (orders: CompleteOrder[]) => void;
+}) {
   const columns = useMemo(
     () => [
       {
@@ -329,7 +312,8 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
         accessor: "id",
         Cell: ({ value }: { value: string }) => (
           <Link
-            to={`/fundraisers/mulch/orders/${value}`}
+            to="/fundraisers/mulch/orders/$orderId"
+            params={{ orderId: value }}
             className="text-blue-600 hover:text-blue-800 hover:underline"
           >
             View
@@ -339,7 +323,8 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
       {
         Header: "Date",
         accessor: "createdAt",
-        Cell: ({ value }: { value: Date }) => value.toLocaleDateString(),
+        Cell: ({ value }: { value: Date }) =>
+          new Date(value).toLocaleDateString(),
       },
       {
         Header: "Address",
@@ -366,7 +351,9 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
       {
         Header: "Status",
         accessor: "status",
-        Cell: StatusCell,
+        Cell: (props: any) => (
+          <StatusCell {...props} onOrdersUpdate={onOrdersUpdate} />
+        ),
       },
       {
         Header: "Total",
@@ -402,7 +389,7 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
         accessor: "note",
       },
     ],
-    []
+    [onOrdersUpdate]
   );
 
   const data = useMemo(() => orders, [orders]);
@@ -423,12 +410,11 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
       <table {...getTableProps()} className="">
         <thead className="sticky top-0 bg-gray-300">
           {headerGroups.map((headerGroup) => (
-            // eslint-disable-next-line react/jsx-key
-            <tr {...headerGroup.getHeaderGroupProps()} className="">
+            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
               {headerGroup.headers.map((column) => (
-                // eslint-disable-next-line react/jsx-key
                 <th
                   {...column.getHeaderProps(column.getSortByToggleProps())}
+                  key={column.id}
                   className="border px-4 py-2"
                 >
                   {column.render("Header")}
@@ -445,15 +431,17 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
           ))}
         </thead>
         <tbody {...getTableBodyProps()}>
-          {rows.map((row, i) => {
+          {rows.map((row) => {
             prepareRow(row);
             return (
-              // eslint-disable-next-line react/jsx-key
-              <tr {...row.getRowProps()}>
+              <tr {...row.getRowProps()} key={row.id}>
                 {row.cells.map((cell) => {
                   return (
-                    // eslint-disable-next-line react/jsx-key
-                    <td {...cell.getCellProps()} className="border px-4 py-2">
+                    <td
+                      {...cell.getCellProps()}
+                      key={cell.column.id}
+                      className="border px-4 py-2"
+                    >
                       {cell.render("Cell")}
                     </td>
                   );
@@ -467,44 +455,51 @@ export function OrdersTable({ orders }: { orders: CompleteOrder[] }) {
   );
 }
 
-/**
- * Status cell component for the orders table.
- * Uses Remix Form for proper revalidation of page data after status changes.
- *
- * @param {Object} props
- * @param {string} props.value - The current status of the order
- * @param {Object} props.row - The row data from react-table
- * @param {CompleteOrder} props.row.original - The original order data
- */
 function StatusCell({
   value,
   row,
+  onOrdersUpdate,
 }: {
   value: string;
   row: { original: CompleteOrder };
+  onOrdersUpdate: (orders: CompleteOrder[]) => void;
 }) {
-  const fetcher = useTypedFetcher();
-  const isUpdating = fetcher.state !== "idle";
+  const [isUpdating, setIsUpdating] = useState(false);
   const order = row.original;
+  const updateStatus = useServerFn(updateOrderStatus);
+
+  async function handleStatusChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    setIsUpdating(true);
+    try {
+      const result = await updateStatus({
+        data: {
+          orderId: order.id,
+          status: e.target.value,
+        },
+      });
+      if (result.orders) {
+        onOrdersUpdate(result.orders);
+      }
+    } finally {
+      setIsUpdating(false);
+    }
+  }
 
   return (
     <div className="flex items-center gap-2">
-      <fetcher.Form method="post">
-        <input type="hidden" name="orderId" value={order.id} />
-        <select
-          name="status"
-          defaultValue={value}
-          onChange={(e) => fetcher.submit(e.target.form)}
-          disabled={isUpdating}
-          className="rounded bg-transparent px-2 py-1 text-sm hover:bg-gray-50 focus:ring-1 focus:ring-gray-300"
-        >
-          <option value="PENDING">PENDING</option>
-          <option value="PAID">PAID</option>
-          <option value="FULFILLED">FULFILLED</option>
-          <option value="CANCELLED">CANCELLED</option>
-          <option value="REFUNDED">REFUNDED</option>
-        </select>
-      </fetcher.Form>
+      <select
+        name="status"
+        defaultValue={value}
+        onChange={handleStatusChange}
+        disabled={isUpdating}
+        className="rounded bg-transparent px-2 py-1 text-sm hover:bg-gray-50 focus:ring-1 focus:ring-gray-300"
+      >
+        <option value="PENDING">PENDING</option>
+        <option value="PAID">PAID</option>
+        <option value="FULFILLED">FULFILLED</option>
+        <option value="CANCELLED">CANCELLED</option>
+        <option value="REFUNDED">REFUNDED</option>
+      </select>
       {value === "PENDING" && (
         <a
           href={`mailto:${
@@ -535,10 +530,6 @@ function StatusCell({
   );
 }
 
-/**
- * Downloads order data as a CSV file
- * @param {CompleteOrder[]} orders - Array of orders to include in CSV
- */
 function downloadOrdersCsv(orders: CompleteOrder[]) {
   const headers = [
     "Date",
