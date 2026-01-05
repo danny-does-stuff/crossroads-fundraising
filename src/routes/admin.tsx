@@ -1,7 +1,14 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
-import { useTable, useGlobalFilter, useSortBy } from "react-table";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table";
 import type { MulchOrder } from "@prisma/client";
 import { z } from "zod";
 
@@ -305,79 +312,92 @@ function OrdersTable({
   orders: CompleteOrder[];
   onOrdersUpdate: (orders: CompleteOrder[]) => void;
 }) {
-  const columns = useMemo(
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const columns = useMemo<ColumnDef<CompleteOrder>[]>(
     () => [
       {
-        Header: "View",
-        accessor: "id",
-        Cell: ({ value }: { value: string }) => (
-          <Link
-            to="/fundraisers/mulch/orders/$orderId"
-            params={{ orderId: value }}
-            className="text-blue-600 hover:text-blue-800 hover:underline"
-          >
-            View
-          </Link>
-        ),
-      },
-      {
-        Header: "Date",
-        accessor: "createdAt",
-        Cell: ({ value }: { value: Date }) =>
-          new Date(value).toLocaleDateString(),
-      },
-      {
-        Header: "Address",
-        accessor: "streetAddress",
-      },
-      {
-        Header: "Neighborhood",
-        accessor: "neighborhood",
-      },
-      {
-        Header: "Quantity",
-        accessor: "quantity",
-      },
-      {
-        Header: "Spread",
-        accessor: "orderType",
-        Cell: ({ value }: { value: MulchOrder["orderType"] }) =>
-          value === "SPREAD" ? "Yes" : "No",
-      },
-      {
-        Header: "Color",
-        accessor: "color",
-      },
-      {
-        Header: "Status",
-        accessor: "status",
-        Cell: (props: StatusCellProps) => (
-          <StatusCell {...props} onOrdersUpdate={onOrdersUpdate} />
-        ),
-      },
-      {
-        Header: "Total",
-        Cell: ({ row }: { row: { original: CompleteOrder } }) => {
-          const { original } = row;
-          return currencyFormatter.format(getOrderGrossIncome(original));
+        header: "View",
+        accessorKey: "id",
+        cell: ({ getValue }) => {
+          const id = getValue<string>();
+          return (
+            <Link
+              to="/fundraisers/mulch/orders/$orderId"
+              params={{ orderId: id }}
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              View
+            </Link>
+          );
         },
       },
       {
-        Header: "Customer",
-        accessor: "customer",
-        Cell: ({ value }: { value: CompleteOrder["customer"] }) => {
+        header: "Date",
+        accessorKey: "createdAt",
+        cell: ({ getValue }) => {
+          const date = getValue<Date>();
+          return new Date(date).toLocaleDateString();
+        },
+      },
+      {
+        header: "Address",
+        accessorKey: "streetAddress",
+      },
+      {
+        header: "Neighborhood",
+        accessorKey: "neighborhood",
+      },
+      {
+        header: "Quantity",
+        accessorKey: "quantity",
+      },
+      {
+        header: "Spread",
+        accessorKey: "orderType",
+        cell: ({ getValue }) => {
+          const orderType = getValue<MulchOrder["orderType"]>();
+          return orderType === "SPREAD" ? "Yes" : "No";
+        },
+      },
+      {
+        header: "Color",
+        accessorKey: "color",
+      },
+      {
+        header: "Status",
+        accessorKey: "status",
+        cell: ({ getValue, row }) => (
+          <StatusCell
+            value={getValue<string>()}
+            row={row}
+            onOrdersUpdate={onOrdersUpdate}
+          />
+        ),
+      },
+      {
+        header: "Total",
+        cell: ({ row }) => {
+          return currencyFormatter.format(getOrderGrossIncome(row.original));
+        },
+      },
+      {
+        header: "Customer",
+        accessorKey: "customer",
+        cell: ({ getValue }) => {
+          const customer = getValue<CompleteOrder["customer"]>();
           return (
             <>
-              {value.email}
+              {customer.email}
               <br />
-              {value.phone}
+              {customer.phone}
             </>
           );
         },
       },
       {
-        Header: "Source",
-        Cell: ({ row }: { row: { original: CompleteOrder } }) => {
+        header: "Source",
+        cell: ({ row }) => {
           return formatReferralSource(
             row.original.referralSource,
             row.original.referralSourceDetails
@@ -385,8 +405,8 @@ function OrdersTable({
         },
       },
       {
-        Header: "Note",
-        accessor: "note",
+        header: "Note",
+        accessorKey: "note",
       },
     ],
     [onOrdersUpdate]
@@ -394,61 +414,66 @@ function OrdersTable({
 
   const data = useMemo(() => orders, [orders]);
 
-  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
-    useTable(
-      {
-        // @ts-expect-error - there's something weird with the type around "customer"
-        columns,
-        data,
-      },
-      useGlobalFilter,
-      useSortBy
-    );
+  // eslint-disable-next-line react-hooks/incompatible-library -- functions returned from react-table are not memoized
+  const table = useReactTable({
+    columns,
+    data,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+  });
 
   return (
     <div className="relative max-h-[95vh] overflow-x-auto rounded shadow-inner">
-      <table {...getTableProps()} className="">
+      <table className="">
         <thead className="sticky top-0 bg-gray-300">
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-              {headerGroup.headers.map((column) => (
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
                 <th
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
-                  key={column.id}
+                  key={header.id}
+                  colSpan={header.colSpan}
                   className="border px-4 py-2"
                 >
-                  {column.render("Header")}
-                  <span>
-                    {column.isSorted
-                      ? column.isSortedDesc
-                        ? " 🔽"
-                        : " 🔼"
-                      : ""}
-                  </span>
+                  {header.isPlaceholder ? null : (
+                    <div
+                      {...{
+                        className: header.column.getCanSort()
+                          ? "cursor-pointer select-none"
+                          : "",
+                        onClick: header.column.getToggleSortingHandler(),
+                      }}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      <span>
+                        {{
+                          asc: " 🔼",
+                          desc: " 🔽",
+                        }[header.column.getIsSorted() as string] ?? ""}
+                      </span>
+                    </div>
+                  )}
                 </th>
               ))}
             </tr>
           ))}
         </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row) => {
-            prepareRow(row);
-            return (
-              <tr {...row.getRowProps()} key={row.id}>
-                {row.cells.map((cell) => {
-                  return (
-                    <td
-                      {...cell.getCellProps()}
-                      key={cell.column.id}
-                      className="border px-4 py-2"
-                    >
-                      {cell.render("Cell")}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="border px-4 py-2">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
