@@ -5,10 +5,9 @@ import {
   createRootRouteWithContext,
   HeadContent,
   Scripts,
-  ScrollRestoration,
 } from "@tanstack/react-router";
 
-import appCss from "../styles/tailwind.css?url";
+import appCss from "../styles/app.css?url";
 import type { UserInSession } from "~/models/user.server";
 
 export interface RouterContext {
@@ -54,7 +53,6 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       </head>
       <body className="h-full">
         {children}
-        <ScrollRestoration />
         <script
           dangerouslySetInnerHTML={{
             __html: `window.ENV = ${JSON.stringify(ENV)}`,

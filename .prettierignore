@@ -1,7 +1,4 @@
 node_modules
 
-/build
-/public/build
+/dist
 .env
-
-/app/styles/tailwind.css

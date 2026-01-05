@@ -17,7 +17,6 @@ node_modules
 /prisma/data.db-journal
 
 /src/styles/tailwind.css
-/src/routeTree.gen.ts
 
 # tests
 /coverage
