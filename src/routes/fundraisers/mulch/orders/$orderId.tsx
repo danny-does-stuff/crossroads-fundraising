@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import invariant from "tiny-invariant";
-import { z } from "zod";
+import z from "zod";
 import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
 
 import { updateOrderById, getOrder } from "~/models/mulchOrder.server";
-import { createOrderCheckoutSession } from "~/services/stripe/checkout.server";
+import {
+  createOrderCheckoutSession,
+  verifyCheckoutSessionPayment,
+} from "~/services/stripe/checkout.server";
 import { useMulchPrepContent } from "../orders";
 
 // Server function to load order data
@@ -27,7 +30,7 @@ const cancelOrderSchema = z.object({
 
 // Server function to cancel order
 const cancelOrderFn = createServerFn()
-  .inputValidator((data: unknown) => cancelOrderSchema.parse(data))
+  .inputValidator(cancelOrderSchema)
   .handler(async ({ data }) => {
     await updateOrderById(data.orderId, {
       status: "CANCELLED",
@@ -39,12 +42,12 @@ const cancelOrderFn = createServerFn()
 
 const createCheckoutSchema = z.object({
   orderId: z.string(),
-  returnUrl: z.string().url(),
+  returnUrl: z.url(),
 });
 
 // Server function to create Stripe Checkout session for order
 const createOrderCheckoutFn = createServerFn()
-  .inputValidator((data: unknown) => createCheckoutSchema.parse(data))
+  .inputValidator(createCheckoutSchema)
   .handler(async ({ data }) => {
     const order = await getOrder({ id: data.orderId });
     if (!order) {
@@ -55,6 +58,7 @@ const createOrderCheckoutFn = createServerFn()
       throw new Error("Order is not pending payment");
     }
 
+    // Use {CHECKOUT_SESSION_ID} placeholder - Stripe will replace with actual session ID
     const session = await createOrderCheckoutSession({
       orderId: order.id,
       quantity: order.quantity,
@@ -62,11 +66,60 @@ const createOrderCheckoutFn = createServerFn()
       color: order.color,
       orderType: order.orderType,
       customerEmail: order.customer.email,
-      successUrl: `${data.returnUrl}/fundraisers/mulch/orders/${order.id}?payment=success`,
-      cancelUrl: `${data.returnUrl}/fundraisers/mulch/orders/${order.id}?payment=cancelled`,
+      successUrl: `${data.returnUrl}/fundraisers/mulch/orders/${order.id}?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${data.returnUrl}/fundraisers/mulch/orders/${order.id}`,
     });
 
     return { checkoutUrl: session.url };
+  });
+
+const verifyPaymentSchema = z.object({
+  sessionId: z.string(),
+  orderId: z.string(),
+});
+
+// Server function to verify payment and update order if needed
+const verifyPaymentFn = createServerFn()
+  .inputValidator(verifyPaymentSchema)
+  .handler(async ({ data }) => {
+    // First check if order is already paid
+    const existingOrder = await getOrder({ id: data.orderId });
+    if (!existingOrder) {
+      return { success: false, error: "Order not found" };
+    }
+
+    if (existingOrder.status === "PAID") {
+      return { success: true, order: existingOrder };
+    }
+
+    // Verify the session with Stripe
+    const session = await verifyCheckoutSessionPayment(data.sessionId);
+    if (!session) {
+      return { success: false, error: "Payment not verified" };
+    }
+
+    // Verify the session is for this order
+    if (session.metadata?.orderId !== data.orderId) {
+      return { success: false, error: "Session does not match order" };
+    }
+
+    // Update the order with Stripe payment details
+    await updateOrderById(data.orderId, {
+      status: "PAID",
+      stripeSessionId: session.id,
+      stripePaymentIntentId:
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id ?? null,
+      stripeCustomerId:
+        typeof session.customer === "string"
+          ? session.customer
+          : session.customer?.id ?? null,
+    });
+
+    // Return the updated order
+    const order = await getOrder({ id: data.orderId });
+    return { success: true, order };
   });
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -74,8 +127,14 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
+// Search params schema for payment verification
+const searchParamsSchema = z.object({
+  session_id: z.string().optional(),
+});
+
 export const Route = createFileRoute("/fundraisers/mulch/orders/$orderId")({
   component: OrderDetailsPage,
+  validateSearch: searchParamsSchema,
   loader: async ({ params }) => {
     invariant(params.orderId, "orderId not found");
     return loadOrder({ data: { orderId: params.orderId } });
@@ -87,16 +146,49 @@ function OrderDetailsPage() {
   const { order: initialOrder } = Route.useLoaderData();
   const [order, setOrder] = useState(initialOrder);
   const params = Route.useParams();
+  const searchParams = Route.useSearch();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const cancelOrder = useServerFn(cancelOrderFn);
   const createOrderCheckout = useServerFn(createOrderCheckoutFn);
+  const verifyPayment = useServerFn(verifyPaymentFn);
 
   const mulchPrepContent = useMulchPrepContent();
 
   const total = order.pricePerUnit * order.quantity;
+
+  // Verify payment when returning from Stripe with session_id
+  useEffect(() => {
+    async function verifyPaymentOnLoad() {
+      if (searchParams.session_id && order.status === "PENDING") {
+        setIsVerifying(true);
+        try {
+          const result = await verifyPayment({
+            data: {
+              sessionId: searchParams.session_id,
+              orderId: params.orderId,
+            },
+          });
+          if (result.success && result.order) {
+            setOrder(result.order);
+          } else if (result.error) {
+            console.error("Payment verification failed:", result.error);
+            // Don't show error to user - webhook will handle it
+          }
+        } catch (err) {
+          console.error("Payment verification error:", err);
+        } finally {
+          setIsVerifying(false);
+        }
+      }
+    }
+
+    verifyPaymentOnLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleCancelOrder() {
     setIsSubmitting(true);
@@ -142,6 +234,10 @@ function OrderDetailsPage() {
     }
   }
 
+  // Show verifying state when returning from Stripe
+  const showVerifying =
+    isVerifying || (searchParams.session_id && order.status === "PENDING");
+
   return (
     <div>
       <h3 className="text-2xl font-bold">Mulch Order</h3>
@@ -164,7 +260,19 @@ function OrderDetailsPage() {
         </h4>
       </div>
 
-      {order.status === "PENDING" ? (
+      {showVerifying ? (
+        <div className="rounded border border-blue-200 bg-blue-50 p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+            <p className="font-medium text-blue-700">
+              Verifying your payment...
+            </p>
+          </div>
+          <p className="mt-2 text-sm text-blue-600">
+            Please wait while we confirm your payment with Stripe.
+          </p>
+        </div>
+      ) : order.status === "PENDING" ? (
         <>
           <div className="max-w-xs space-y-4">
             <Button

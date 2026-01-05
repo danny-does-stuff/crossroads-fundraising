@@ -10,7 +10,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import type { MulchOrder } from "@prisma/client";
-import { z } from "zod";
+import z from "zod";
 
 import {
   type CompleteOrder,
@@ -36,9 +36,7 @@ const loadAdminData = createServerFn()
 
 // Server function to update order status
 const updateOrderStatus = createServerFn()
-  .inputValidator((data: unknown) =>
-    z.object({ orderId: z.string(), status: z.string() }).parse(data)
-  )
+  .inputValidator(z.object({ orderId: z.string(), status: z.string() }))
   .handler(async ({ data }) => {
     const { orderId, status } = data;
 
@@ -374,6 +372,37 @@ function OrdersTable({
             onOrdersUpdate={onOrdersUpdate}
           />
         ),
+      },
+      {
+        header: "Payment",
+        cell: ({ row }) => {
+          const stripeSessionId = row.original.stripeSessionId;
+          const paypalOrderId = row.original.paypalOrderId;
+
+          if (stripeSessionId) {
+            return (
+              <div className="whitespace-nowrap">
+                <div className="font-medium">Stripe</div>
+                <div className="text-xs text-gray-700">
+                  {stripeSessionId.slice(0, 18)}…
+                </div>
+              </div>
+            );
+          }
+
+          if (paypalOrderId) {
+            return (
+              <div className="whitespace-nowrap">
+                <div className="font-medium">PayPal</div>
+                <div className="text-xs text-gray-700">
+                  {paypalOrderId.slice(0, 18)}…
+                </div>
+              </div>
+            );
+          }
+
+          return <span className="text-gray-400">—</span>;
+        },
       },
       {
         header: "Total",

@@ -35,6 +35,9 @@ export async function createDonationCheckoutSession({
   return stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
+    // Ensure a Stripe Customer is created so we can persist `stripeCustomerId`
+    // even for "guest" checkouts.
+    customer_creation: "always",
     line_items: [
       {
         price_data: {
@@ -82,6 +85,8 @@ export async function createOrderCheckoutSession({
   return stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
+    // Ensure a Stripe Customer is created so we can persist `stripeCustomerId`.
+    customer_creation: "always",
     line_items: [
       {
         price_data: {
@@ -114,5 +119,24 @@ export async function getCheckoutSession(
   return stripe.checkout.sessions.retrieve(sessionId, {
     expand: ["customer_details", "payment_intent"],
   });
+}
+
+/**
+ * Verifies a checkout session payment status.
+ * Returns the session if payment is complete, null otherwise.
+ */
+export async function verifyCheckoutSessionPayment(
+  sessionId: string
+): Promise<Stripe.Checkout.Session | null> {
+  try {
+    const session = await getCheckoutSession(sessionId);
+    if (session.payment_status === "paid") {
+      return session;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error verifying checkout session:", error);
+    return null;
+  }
 }
 

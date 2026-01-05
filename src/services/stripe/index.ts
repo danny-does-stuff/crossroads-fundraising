@@ -4,6 +4,7 @@ export {
   createDonationCheckoutSession,
   createOrderCheckoutSession,
   getCheckoutSession,
+  verifyCheckoutSessionPayment,
   type DonationCheckoutParams,
   type OrderCheckoutParams,
 } from "./checkout.server";

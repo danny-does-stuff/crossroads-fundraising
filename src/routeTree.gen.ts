@@ -14,6 +14,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe-webhook'
+import { Route as ApiHealthcheckRouteImport } from './routes/api/healthcheck'
 import { Route as FundraisersMulchOrdersRouteImport } from './routes/fundraisers/mulch/orders'
 import { Route as FundraisersMulchDonateRouteImport } from './routes/fundraisers/mulch/donate'
 import { Route as FundraisersMulchDonateIndexRouteImport } from './routes/fundraisers/mulch/donate/index'
@@ -44,6 +46,16 @@ const AdminRoute = AdminRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe-webhook',
+  path: '/api/stripe-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthcheckRoute = ApiHealthcheckRouteImport.update({
+  id: '/api/healthcheck',
+  path: '/api/healthcheck',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FundraisersMulchOrdersRoute = FundraisersMulchOrdersRouteImport.update({
@@ -87,6 +99,8 @@ export interface FileRoutesByFullPath {
   '/join': typeof JoinRoute
   '/login': typeof LoginRoute
   '/logout': typeof LogoutRoute
+  '/api/healthcheck': typeof ApiHealthcheckRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
   '/fundraisers/mulch/donate': typeof FundraisersMulchDonateRouteWithChildren
   '/fundraisers/mulch/orders': typeof FundraisersMulchOrdersRouteWithChildren
   '/fundraisers/mulch/donate/thank-you': typeof FundraisersMulchDonateThankYouRoute
@@ -100,6 +114,8 @@ export interface FileRoutesByTo {
   '/join': typeof JoinRoute
   '/login': typeof LoginRoute
   '/logout': typeof LogoutRoute
+  '/api/healthcheck': typeof ApiHealthcheckRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
   '/fundraisers/mulch/orders': typeof FundraisersMulchOrdersRouteWithChildren
   '/fundraisers/mulch/donate/thank-you': typeof FundraisersMulchDonateThankYouRoute
   '/fundraisers/mulch/orders/$orderId': typeof FundraisersMulchOrdersOrderIdRoute
@@ -113,6 +129,8 @@ export interface FileRoutesById {
   '/join': typeof JoinRoute
   '/login': typeof LoginRoute
   '/logout': typeof LogoutRoute
+  '/api/healthcheck': typeof ApiHealthcheckRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
   '/fundraisers/mulch/donate': typeof FundraisersMulchDonateRouteWithChildren
   '/fundraisers/mulch/orders': typeof FundraisersMulchOrdersRouteWithChildren
   '/fundraisers/mulch/donate/thank-you': typeof FundraisersMulchDonateThankYouRoute
@@ -128,6 +146,8 @@ export interface FileRouteTypes {
     | '/join'
     | '/login'
     | '/logout'
+    | '/api/healthcheck'
+    | '/api/stripe-webhook'
     | '/fundraisers/mulch/donate'
     | '/fundraisers/mulch/orders'
     | '/fundraisers/mulch/donate/thank-you'
@@ -141,6 +161,8 @@ export interface FileRouteTypes {
     | '/join'
     | '/login'
     | '/logout'
+    | '/api/healthcheck'
+    | '/api/stripe-webhook'
     | '/fundraisers/mulch/orders'
     | '/fundraisers/mulch/donate/thank-you'
     | '/fundraisers/mulch/orders/$orderId'
@@ -153,6 +175,8 @@ export interface FileRouteTypes {
     | '/join'
     | '/login'
     | '/logout'
+    | '/api/healthcheck'
+    | '/api/stripe-webhook'
     | '/fundraisers/mulch/donate'
     | '/fundraisers/mulch/orders'
     | '/fundraisers/mulch/donate/thank-you'
@@ -167,6 +191,8 @@ export interface RootRouteChildren {
   JoinRoute: typeof JoinRoute
   LoginRoute: typeof LoginRoute
   LogoutRoute: typeof LogoutRoute
+  ApiHealthcheckRoute: typeof ApiHealthcheckRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   FundraisersMulchDonateRoute: typeof FundraisersMulchDonateRouteWithChildren
   FundraisersMulchOrdersRoute: typeof FundraisersMulchOrdersRouteWithChildren
 }
@@ -206,6 +232,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe-webhook': {
+      id: '/api/stripe-webhook'
+      path: '/api/stripe-webhook'
+      fullPath: '/api/stripe-webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/healthcheck': {
+      id: '/api/healthcheck'
+      path: '/api/healthcheck'
+      fullPath: '/api/healthcheck'
+      preLoaderRoute: typeof ApiHealthcheckRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fundraisers/mulch/orders': {
@@ -291,6 +331,8 @@ const rootRouteChildren: RootRouteChildren = {
   JoinRoute: JoinRoute,
   LoginRoute: LoginRoute,
   LogoutRoute: LogoutRoute,
+  ApiHealthcheckRoute: ApiHealthcheckRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   FundraisersMulchDonateRoute: FundraisersMulchDonateRouteWithChildren,
   FundraisersMulchOrdersRoute: FundraisersMulchOrdersRouteWithChildren,
 }

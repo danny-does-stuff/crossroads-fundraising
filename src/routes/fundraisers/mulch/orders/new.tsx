@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import * as React from "react";
-import { z } from "zod";
+import z from "zod";
 
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
@@ -28,40 +28,45 @@ const NEIGHBORHOODS: Neighborhood[] = Object.values(Neighborhood).sort();
 
 type Color = (typeof COLORS)[number]["value"];
 
-const orderSchema = z.object({
-  quantity: z.string().regex(/^\d+$/).transform(Number),
-  color: z.enum(COLORS.map((c) => c.value) as [Color, ...Color[]]),
-  shouldSpread: z.boolean(),
-  note: z.string().trim(),
-  neighborhood: z.enum(NEIGHBORHOODS as [Neighborhood, ...Neighborhood[]]),
-  street: z.string().trim().min(1, "Street address is required"),
-  name: z.string().trim().min(1, "Name is required"),
-  email: z.string().trim().email("Valid email is required"),
-  phone: z.string().trim().min(10, "Phone must be at least 10 digits"),
-  referralSource: z.nativeEnum(ReferralSource),
-  referralSourceDetails: z.string().trim().nullable(),
-});
+const orderSchema = z
+  .object({
+    quantity: z.string().regex(/^\d+$/).transform(Number),
+    color: z.enum(COLORS.map((c) => c.value) as [Color, ...Color[]]),
+    shouldSpread: z.boolean(),
+    note: z.string().trim(),
+    neighborhood: z.enum(NEIGHBORHOODS as [Neighborhood, ...Neighborhood[]]),
+    street: z.string().trim().min(1, "Street address is required"),
+    name: z.string().trim().min(1, "Name is required"),
+    email: z
+      .string()
+      .trim()
+      .pipe(z.email({ error: "Valid email is required" })),
+    phone: z.string().trim().min(10, "Phone must be at least 10 digits"),
+    referralSource: z.enum(ReferralSource),
+    referralSourceDetails: z.string().trim().nullable(),
+  })
+  .refine(
+    (order) =>
+      order.referralSource !== ReferralSource.Other ||
+      order.referralSourceDetails,
+    {
+      path: ["referralSourceDetails"],
+      message: "Please specify how you heard about us",
+    }
+  );
 
 // Server function to create order
 const createOrderFn = createServerFn()
-  .inputValidator((data: unknown) => orderSchema.parse(data))
+  .inputValidator((data) => {
+    const result = orderSchema.safeParse(data);
+    if (!result.success) {
+      throw z.flattenError(result.error);
+    }
+    return result.data;
+  })
   .handler(async ({ data }) => {
     if (!ACCEPTING_MULCH_ORDERS) {
       throw redirect({ to: "/fundraisers/mulch/orders" });
-    }
-
-    // Additional validation for referralSourceDetails when Other is selected
-    if (
-      data.referralSource === ReferralSource.Other &&
-      !data.referralSourceDetails
-    ) {
-      return {
-        errors: {
-          referralSourceDetails: {
-            _errors: ["Please specify how you heard about us"],
-          },
-        },
-      };
     }
 
     const { shouldSpread, quantity, color, note, neighborhood, street } = data;
@@ -99,9 +104,10 @@ export const Route = createFileRoute("/fundraisers/mulch/orders/new")({
 });
 
 function NewOrderPage() {
-  const [actionData, setActionData] = React.useState<{
-    errors?: Record<string, { _errors: string[] }>;
-  } | null>(null);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<
+    string,
+    string
+  > | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const quantityRef = React.useRef<HTMLInputElement>(null);
@@ -125,28 +131,28 @@ function NewOrderPage() {
   const createOrderAction = useServerFn(createOrderFn);
 
   React.useEffect(() => {
-    if (!actionData || !("errors" in actionData)) {
+    if (!fieldErrors) {
       return;
     }
-    if (actionData.errors?.quantity) {
+    if (fieldErrors["quantity"]) {
       quantityRef.current?.focus();
-    } else if (actionData.errors?.color) {
+    } else if (fieldErrors["color"]) {
       colorRef.current?.focus();
-    } else if (actionData.errors?.neighborhood) {
+    } else if (fieldErrors["neighborhood"]) {
       neighborhoodRef.current?.focus();
-    } else if (actionData.errors?.street) {
+    } else if (fieldErrors["street"]) {
       streetRef.current?.focus();
-    } else if (actionData.errors?.name) {
+    } else if (fieldErrors["name"]) {
       nameRef.current?.focus();
-    } else if (actionData.errors?.email) {
+    } else if (fieldErrors["email"]) {
       emailRef.current?.focus();
-    } else if (actionData.errors?.phone) {
+    } else if (fieldErrors["phone"]) {
       phoneRef.current?.focus();
     }
-  }, [actionData]);
+  }, [fieldErrors]);
 
   function getErrorForField(field: string) {
-    return actionData?.errors?.[field]?._errors[0];
+    return fieldErrors?.[field];
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -156,7 +162,7 @@ function NewOrderPage() {
     const formData = new FormData(event.currentTarget);
 
     try {
-      const result = await createOrderAction({
+      await createOrderAction({
         data: {
           quantity: formData.get("quantity") as string,
           color: formData.get("color") as Color,
@@ -172,18 +178,19 @@ function NewOrderPage() {
             (formData.get("referralSourceDetails") as string) || null,
         },
       });
-      if (result?.errors) {
-        setActionData(result);
-      }
     } catch (error) {
-      // Redirect errors are expected and handled by TanStack Router
       if (
-        error instanceof Response ||
-        (error && typeof error === "object" && "to" in error)
+        error &&
+        typeof error === "object" &&
+        "fieldErrors" in error &&
+        typeof error.fieldErrors === "object" &&
+        error.fieldErrors
       ) {
-        throw error;
+        // Cast is ok because we are very confident this is the error we're expecting at this point
+        setFieldErrors(error.fieldErrors as Record<string, string>);
+      } else {
+        console.error("Unexpected error:", error);
       }
-      console.error("Order creation error:", error);
     } finally {
       setIsSubmitting(false);
     }

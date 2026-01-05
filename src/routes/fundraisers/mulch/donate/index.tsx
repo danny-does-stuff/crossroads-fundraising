@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { z } from "zod";
+import z from "zod";
 import { Input } from "~/components/Input";
 import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
@@ -16,22 +16,23 @@ const PRESET_AMOUNTS = [
 
 const createCheckoutSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
-  donorEmail: z.string().email().nullable(),
+  donorEmail: z.email().nullable(),
   donorGivenName: z.string().nullable(),
   donorSurname: z.string().nullable(),
-  returnUrl: z.string().url(),
+  returnUrl: z.url(),
 });
 
 // Server function to create Stripe Checkout session
 const createCheckoutSessionFn = createServerFn()
-  .inputValidator((data: unknown) => createCheckoutSchema.parse(data))
+  .inputValidator(createCheckoutSchema)
   .handler(async ({ data }) => {
+    // Use {CHECKOUT_SESSION_ID} placeholder - Stripe will replace with actual session ID
     const session = await createDonationCheckoutSession({
       amount: data.amount,
       donorEmail: data.donorEmail,
       donorGivenName: data.donorGivenName,
       donorSurname: data.donorSurname,
-      successUrl: `${data.returnUrl}/fundraisers/mulch/donate/thank-you`,
+      successUrl: `${data.returnUrl}/fundraisers/mulch/donate/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${data.returnUrl}/fundraisers/mulch/donate`,
     });
 

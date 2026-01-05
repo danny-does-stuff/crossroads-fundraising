@@ -1,7 +1,7 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import * as React from "react";
-import { z } from "zod";
+import z from "zod";
 
 import { createUserSession, getUserId } from "~/session.server";
 import { verifyLogin } from "~/models/user.server";
@@ -20,15 +20,13 @@ const checkAuth = createServerFn().handler(async () => {
 
 // Server function to handle login
 const loginFn = createServerFn()
-  .inputValidator((data: unknown) =>
-    z
-      .object({
-        email: z.string(),
-        password: z.string(),
-        redirectTo: z.string().optional(),
-        remember: z.boolean().optional(),
-      })
-      .parse(data)
+  .inputValidator(
+    z.object({
+      email: z.string(),
+      password: z.string(),
+      redirectTo: z.string().optional(),
+      remember: z.boolean().optional(),
+    })
   )
   .handler(async ({ data }) => {
     const { email, password, redirectTo, remember } = data;
