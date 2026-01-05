@@ -1,7 +1,4 @@
-import {
-  createFileRoute,
-  ErrorComponent,
-} from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import invariant from "tiny-invariant";
@@ -32,9 +29,11 @@ const cancelOrderSchema = z.object({
 const cancelOrderFn = createServerFn()
   .inputValidator((data: unknown) => cancelOrderSchema.parse(data))
   .handler(async ({ data }) => {
-    const order = await updateOrderById(data.orderId, {
+    await updateOrderById(data.orderId, {
       status: "CANCELLED",
     });
+    // Fetch the updated order with the same shape as the loader
+    const order = await getOrder({ id: data.orderId });
     return { order };
   });
 
@@ -181,9 +180,7 @@ function OrderDetailsPage() {
             </p>
           </div>
 
-          {error && (
-            <p className="mt-2 text-red-500">{error}</p>
-          )}
+          {error && <p className="mt-2 text-red-500">{error}</p>}
 
           <hr className="my-4" />
           <div className="mb-4">{mulchPrepContent}</div>
@@ -201,8 +198,8 @@ function OrderDetailsPage() {
       ) : (
         <>
           <div className="font-bold text-green-500">
-            Paid!! Thank you for your business. We will reach out to you
-            through email to schedule the delivery{" "}
+            Paid!! Thank you for your business. We will reach out to you through
+            email to schedule the delivery{" "}
             {order.orderType === "SPREAD" ? "and spreading " : ""}service.
           </div>
           <div className="mt-4 space-y-4">
@@ -220,8 +217,8 @@ function OrderDetailsPage() {
                   {CONTACT_EMAIL}
                 </a>{" "}
                 before making any claims with your credit card company. We are
-                committed to your satisfaction and will work with you to
-                resolve any issues.
+                committed to your satisfaction and will work with you to resolve
+                any issues.
               </p>
             </div>
 

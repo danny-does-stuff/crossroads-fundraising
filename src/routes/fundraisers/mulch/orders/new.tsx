@@ -83,7 +83,10 @@ const createOrderFn = createServerFn()
       },
     });
 
-    throw redirect({ to: `/fundraisers/mulch/orders/${order.id}` });
+    throw redirect({
+      to: `/fundraisers/mulch/orders/$orderId`,
+      params: { orderId: order.id },
+    });
   });
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -174,7 +177,10 @@ function NewOrderPage() {
       }
     } catch (error) {
       // Redirect errors are expected and handled by TanStack Router
-      if (error instanceof Response || (error as any)?.to) {
+      if (
+        error instanceof Response ||
+        (error && typeof error === "object" && "to" in error)
+      ) {
         throw error;
       }
       console.error("Order creation error:", error);
@@ -201,7 +207,11 @@ function NewOrderPage() {
           width: "100%",
         }}
       >
-        <Select id="color" label="Mulch Color" error={getErrorForField("color")}>
+        <Select
+          id="color"
+          label="Mulch Color"
+          error={getErrorForField("color")}
+        >
           <option value="">Select a color</option>
           {COLORS.map((color) => (
             <option key={color.value} value={color.value}>
@@ -333,8 +343,8 @@ function MulchCalculator() {
       <hr className="my-2" />
       <h3 className="text-xl font-medium">How many bags do I need?</h3>
       <p>
-        Texas can be hot. It is recommended to spread mulch to a depth of 4".
-        One bag at 4 inch thickness covers 6 square feet.
+        Texas can be hot. It is recommended to spread mulch to a depth of
+        4&quot;. One bag at 4 inch thickness covers 6 square feet.
       </p>
       <div className="flex gap-2">
         <Input
@@ -368,4 +378,3 @@ function MulchCalculator() {
     </div>
   );
 }
-

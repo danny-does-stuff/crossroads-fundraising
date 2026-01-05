@@ -70,20 +70,26 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [{ title: "Login" }],
   }),
+  validateSearch: (search): { redirectTo?: string } => {
+    return {
+      redirectTo:
+        typeof search.redirectTo === "string" ? search.redirectTo : undefined,
+    };
+  },
 });
 
 function LoginPage() {
-  const searchParams = Route.useSearch() as { redirectTo?: string };
+  const searchParams = Route.useSearch();
   const redirectTo = searchParams.redirectTo;
-  
+
   const [actionData, setActionData] = React.useState<{
     errors: { email: string | null; password: string | null } | null;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  
+
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
-  
+
   const login = useServerFn(loginFn);
 
   React.useEffect(() => {
@@ -163,7 +169,7 @@ function LoginPage() {
               </label>
             </div>
             <div className="text-center text-sm text-gray-500">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 className="text-blue-500 underline"
                 to="/join"

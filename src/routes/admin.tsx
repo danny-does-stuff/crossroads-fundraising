@@ -157,7 +157,7 @@ function AdminPage() {
     (o) => o.status === "PAID" || o.status === "FULFILLED"
   );
 
-  const neighborhoodStats = useMemo(() => {
+  const neighborhoodStats = (() => {
     const statsMap = orders.reduce(
       (acc, order) => {
         if (order.status !== "PAID" && order.status !== "FULFILLED") {
@@ -198,7 +198,7 @@ function AdminPage() {
       totalRevenue: statsMap[neighborhood]?.totalRevenue || 0,
       spreadBags: statsMap[neighborhood]?.spreadBags || 0,
     }));
-  }, [orders]);
+  })();
 
   return (
     <div className="p-6">
@@ -351,7 +351,7 @@ function OrdersTable({
       {
         Header: "Status",
         accessor: "status",
-        Cell: (props: any) => (
+        Cell: (props: StatusCellProps) => (
           <StatusCell {...props} onOrdersUpdate={onOrdersUpdate} />
         ),
       },
@@ -397,7 +397,7 @@ function OrdersTable({
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable(
       {
-        // @ts-ignore - there's something weird with the type around "customer"
+        // @ts-expect-error - there's something weird with the type around "customer"
         columns,
         data,
       },
@@ -455,15 +455,13 @@ function OrdersTable({
   );
 }
 
-function StatusCell({
-  value,
-  row,
-  onOrdersUpdate,
-}: {
+type StatusCellProps = {
   value: string;
   row: { original: CompleteOrder };
   onOrdersUpdate: (orders: CompleteOrder[]) => void;
-}) {
+};
+
+function StatusCell({ value, row, onOrdersUpdate }: StatusCellProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const order = row.original;
   const updateStatus = useServerFn(updateOrderStatus);

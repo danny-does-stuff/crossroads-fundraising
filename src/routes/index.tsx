@@ -33,9 +33,10 @@ function IndexPage() {
         </p>
 
         <p className="mb-4">
-          We're offering high-quality mulch with optional spreading services to
-          refresh your garden and improve its health. Our youth are committed to
-          providing exceptional service and ensuring your yard looks its best.
+          We&apos;re offering high-quality mulch with optional spreading
+          services to refresh your garden and improve its health. Our youth are
+          committed to providing exceptional service and ensuring your yard
+          looks its best.
         </p>
 
         <p className="mb-4 font-medium">
@@ -55,12 +56,12 @@ function IndexPage() {
 
         <p className="mb-4">
           Delivery Dates: {MULCH_DELIVERY_DATE_1} or {MULCH_DELIVERY_DATE_2}{" "}
-          (you'll receive a confirmation email 5 days prior to delivery with
-          instructions).
+          (you&apos;ll receive a confirmation email 5 days prior to delivery
+          with instructions).
         </p>
 
         <p className="mb-4">
-          Let's create beautiful gardens while empowering local youth!
+          Let&apos;s create beautiful gardens while empowering local youth!
         </p>
 
         <p className="mb-4">

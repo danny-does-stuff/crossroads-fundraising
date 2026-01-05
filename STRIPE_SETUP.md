@@ -46,23 +46,26 @@ Webhooks are how Stripe notifies your app when payments are completed. You need 
 ### Option A: Using Stripe CLI (Recommended for Local Development)
 
 1. **Install Stripe CLI:**
+
    ```bash
    # macOS
    brew install stripe/stripe-cli/stripe
-   
+
    # Or download from: https://stripe.com/docs/stripe-cli
    ```
 
 2. **Login to Stripe CLI:**
+
    ```bash
    stripe login
    ```
 
 3. **Forward webhooks to your local server:**
+
    ```bash
    stripe listen --forward-to localhost:3000/api/stripe-webhook
    ```
-   
+
    This will output a webhook signing secret that starts with `whsec_...`. Copy this to your `.env` file as `STRIPE_WEBHOOK_SECRET`.
 
 4. **Keep the CLI running** in a separate terminal while testing
@@ -90,32 +93,38 @@ The router context automatically reads `STRIPE_PUBLISHABLE_KEY` from your enviro
 Stripe provides test card numbers you can use:
 
 **Successful Payment:**
+
 - Card: `4242 4242 4242 4242`
 - Expiry: Any future date (e.g., `12/34`)
 - CVC: Any 3 digits (e.g., `123`)
 - ZIP: Any 5 digits (e.g., `12345`)
 
 **Declined Payment:**
+
 - Card: `4000 0000 0000 0002`
 - Use same expiry/CVC/ZIP as above
 
 **Requires Authentication (3D Secure):**
+
 - Card: `4000 0025 0000 3155`
 - Use same expiry/CVC/ZIP as above
 
 ### Testing Steps
 
 1. **Start your development server:**
+
    ```bash
    npm run dev
    ```
 
 2. **Start Stripe CLI webhook forwarding** (in another terminal):
+
    ```bash
    stripe listen --forward-to localhost:3000/api/stripe-webhook
    ```
 
 3. **Test Donation Flow:**
+
    - Navigate to `/fundraisers/mulch/donate`
    - Select an amount or enter a custom amount
    - Click "Donate $X.XX"
@@ -126,6 +135,7 @@ Stripe provides test card numbers you can use:
    - Check your database - a donation record should be created with Stripe fields populated
 
 4. **Test Order Payment Flow:**
+
    - Create a new mulch order at `/fundraisers/mulch/orders/new`
    - Fill out the form and submit
    - You'll be redirected to the order details page
@@ -141,11 +151,13 @@ Stripe provides test card numbers you can use:
 ## 7. Monitor Webhook Events
 
 ### In Stripe Dashboard:
+
 - Go to **Developers** → **Events** to see all webhook events
 - Click on an event to see details and payload
 - Check for any failed deliveries
 
 ### In Your App:
+
 - Check your server logs for webhook processing
 - Verify database records are created/updated correctly
 - The webhook handler logs errors to console
@@ -153,21 +165,28 @@ Stripe provides test card numbers you can use:
 ## 8. Common Issues and Solutions
 
 ### Issue: "STRIPE_SECRET_KEY environment variable is required"
+
 **Solution:** Make sure your `.env` file has `STRIPE_SECRET_KEY` set
 
 ### Issue: Webhook signature verification fails
-**Solution:** 
+
+**Solution:**
+
 - Make sure `STRIPE_WEBHOOK_SECRET` matches the secret from Stripe CLI or Dashboard
 - If using Stripe CLI, restart it and update your `.env` with the new secret
 
 ### Issue: Payment completes but database isn't updated
+
 **Solution:**
+
 - Check that webhooks are being received (check Stripe CLI or Dashboard)
 - Check server logs for webhook processing errors
 - Verify the webhook endpoint is accessible at `/api/stripe-webhook`
 
 ### Issue: Redirect URLs are incorrect
+
 **Solution:**
+
 - Check that `returnUrl` in checkout session creation uses the correct domain
 - For local testing, use `http://localhost:3000` (or your dev port)
 - For production, use your actual domain
@@ -175,11 +194,13 @@ Stripe provides test card numbers you can use:
 ## 9. Going to Production
 
 1. **Switch to Live Mode:**
+
    - Update `.env` with live keys (`pk_live_...` and `sk_live_...`)
    - Set up webhook endpoint in Stripe Dashboard pointing to your production URL
    - Update `STRIPE_WEBHOOK_SECRET` with the production webhook secret
 
 2. **Test in Production:**
+
    - Use a real card with a small amount first
    - Verify webhooks are received
    - Check database records
@@ -196,4 +217,3 @@ Stripe provides test card numbers you can use:
 - [Stripe Webhooks Guide](https://stripe.com/docs/webhooks)
 - [Stripe Testing Guide](https://stripe.com/docs/testing)
 - [Stripe CLI Documentation](https://stripe.com/docs/stripe-cli)
-

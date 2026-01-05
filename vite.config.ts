@@ -1,3 +1,5 @@
+/// <reference types="vitest/config" />
+
 import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -13,7 +15,15 @@ export default defineConfig({
     }),
     tanstackStart(),
     // react's vite plugin must come after start's vite plugin
-    viteReact(),
+    viteReact({
+      babel: {
+        plugins: ["babel-plugin-react-compiler"],
+      },
+    }),
   ],
+  test: {
+    globals: true,
+    environment: "happy-dom",
+    setupFiles: ["./test/setup-test-env.ts"],
+  },
 });
-

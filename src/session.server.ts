@@ -3,6 +3,7 @@ import { getRequest, setCookie, getCookie } from "@tanstack/react-start/server";
 import invariant from "tiny-invariant";
 
 import type { User } from "~/models/user.server";
+import type { UserInSession } from "~/models/user.server";
 import { getUserById } from "~/models/user.server";
 
 invariant(process.env.SESSION_SECRET, "SESSION_SECRET must be set");
@@ -26,12 +27,14 @@ function decodeSession(value: string): { userId?: number } | null {
 export async function getUserId(): Promise<User["id"] | undefined> {
   const cookieValue = getCookie(SESSION_KEY);
   if (!cookieValue) return undefined;
-  
+
   const session = decodeSession(cookieValue);
   return session?.userId;
 }
 
-export async function getUser(request?: Request): Promise<User | null> {
+export async function getUser(
+  _request?: Request
+): Promise<UserInSession | null> {
   const userId = await getUserId();
   if (userId === undefined) return null;
 
@@ -43,16 +46,17 @@ export async function getUser(request?: Request): Promise<User | null> {
   return null;
 }
 
-export async function requireUserId(
-  request?: Request,
-  redirectTo?: string
-) {
+export async function requireUserId(request?: Request, redirectTo?: string) {
   const userId = await getUserId();
   if (!userId) {
     const req = getRequest();
     const pathname = redirectTo || new URL(req.url).pathname;
-    const searchParams = new URLSearchParams([["redirectTo", pathname]]);
-    throw redirect({ to: `/login?${searchParams}` });
+    throw redirect({
+      to: `/login`,
+      search: {
+        redirectTo: pathname,
+      },
+    });
   }
   return userId;
 }
@@ -77,7 +81,7 @@ export async function createUserSession({
   redirectTo: string;
 }) {
   const sessionValue = encodeSession(userId);
-  
+
   setCookie(SESSION_KEY, sessionValue, {
     httpOnly: true,
     path: "/",
@@ -97,6 +101,6 @@ export async function logout() {
     secure: process.env.NODE_ENV === "production",
     maxAge: 0,
   });
-  
+
   throw redirect({ to: "/" });
 }
