@@ -39,11 +39,6 @@ function IndexPage() {
           looks its best.
         </p>
 
-        <p className="mb-4 font-medium">
-          Early Bird Special: Take advantage of reduced spreading fees! Prices
-          will increase after February 22nd, so order early to lock in savings.
-        </p>
-
         <h3 className="mb-3 text-lg font-medium">How It Works:</h3>
         <ul className="mb-4 ml-6 list-disc">
           <li>Use our mulch calculator to determine your needs.</li>
