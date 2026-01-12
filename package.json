@@ -21,7 +21,6 @@
   "prettier": {},
   "eslintIgnore": [
     "/node_modules",
-    "/dist",
     "/.vinxi",
     "/.output"
   ],

@@ -1,7 +1,6 @@
 node_modules
 
 # TanStack Start / Vite build output
-/dist
 /.vinxi
 /.output
 
