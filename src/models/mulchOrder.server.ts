@@ -1,8 +1,11 @@
-import type { Customer, MulchOrder as Order } from "@prisma/client";
+import type {
+  Customer,
+  MulchOrder as Order,
+} from "../../prisma/generated/prisma/client";
 
 import { prisma } from "~/db.server";
 
-export type { MulchOrder as Order } from "@prisma/client";
+export type { Order };
 
 export function getOrder({ id }: Pick<Order, "id">) {
   return prisma.mulchOrder.findFirst({

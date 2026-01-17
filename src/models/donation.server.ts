@@ -1,4 +1,4 @@
-import type { Donation } from "@prisma/client";
+import type { Donation } from "../../prisma/generated/prisma/client";
 import { prisma } from "~/db.server";
 
 type DonationPaymentFields =

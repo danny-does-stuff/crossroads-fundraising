@@ -9,7 +9,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import type { MulchOrder } from "@prisma/client";
+import type { MulchOrder } from "../../prisma/generated/prisma/client";
 import z from "zod";
 
 import {

@@ -3,7 +3,7 @@
 // npx tsx --require tsconfig-paths/register ./cypress/support/delete-user.ts username@example.com
 // and that user will get deleted
 
-import { Prisma } from '@prisma/client'
+import { Prisma } from "../../prisma/generated/prisma/client";
 import { installGlobals } from "@remix-run/node";
 
 import { prisma } from "~/db.server";

@@ -1,9 +1,13 @@
-import type { Password, Role, User } from "@prisma/client";
+import type {
+  Password,
+  Role,
+  User,
+} from "../../prisma/generated/prisma/client";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "~/db.server";
 
-export type { User } from "@prisma/client";
+export type { User };
 
 export type UserInSession = Pick<User, 'id' | 'email'> & {roles: Array<{role: Role}>}
 
@@ -59,8 +63,8 @@ export async function verifyLogin(
       roles: {
         select: {
           role: true,
-        }
-      }
+        },
+      },
     },
   });
 
