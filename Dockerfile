@@ -20,8 +20,9 @@ FROM base AS production-deps
 
 WORKDIR /myapp
 
+COPY --from=deps /myapp/node_modules /myapp/node_modules
 ADD package.json package-lock.json .npmrc ./
-RUN npm install --production
+RUN npm prune --production
 
 # Build the app
 FROM base AS build
