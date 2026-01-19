@@ -55,6 +55,7 @@ COPY --from=build /myapp/prisma/generated /myapp/prisma/generated
 COPY --from=build /myapp/.output /myapp/.output
 COPY --from=build /myapp/public /myapp/public
 COPY --from=build /myapp/package.json /myapp/package.json
+COPY --from=build /myapp/prisma.config.ts /myapp/prisma.config.ts
 COPY --from=build /myapp/start.sh /myapp/start.sh
 COPY --from=build /myapp/prisma /myapp/prisma
 
