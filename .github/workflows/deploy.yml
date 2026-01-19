@@ -54,6 +54,12 @@ jobs:
         with:
           useLockFile: false
 
+      - name: 🏄 Copy test env vars
+        run: cp .env.example .env
+
+      - name: 🔄 Generate Prisma Client
+        run: npx prisma generate
+
       - name: 🔎 Type check
         run: npm run typecheck --if-present
 
@@ -76,6 +82,12 @@ jobs:
         uses: bahmutov/npm-install@v1
         with:
           useLockFile: false
+
+      - name: 🏄 Copy test env vars
+        run: cp .env.example .env
+
+      - name: 🔄 Generate Prisma Client
+        run: npx prisma generate
 
       - name: ⚡ Run vitest
         run: npm run test -- --coverage
