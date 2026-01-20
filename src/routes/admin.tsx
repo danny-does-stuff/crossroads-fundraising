@@ -65,8 +65,15 @@ export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
     await checkAdminAuth();
   },
+  validateSearch: (search): { year?: number } => {
+    const searchYear = search.year ? Number(search.year) : undefined;
+    if (searchYear && isNaN(searchYear)) {
+      throw redirect({ to: "/admin", search: { year: undefined } });
+    }
+    return { year: searchYear };
+  },
   loaderDeps: ({ search }) => ({
-    year: (search as { year?: number }).year,
+    year: search.year,
   }),
   loader: async ({ deps }) => {
     return loadAdminData({ data: { year: deps.year } });
