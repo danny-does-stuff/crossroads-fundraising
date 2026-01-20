@@ -3,7 +3,6 @@ import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import z from "zod";
 import { Input } from "~/components/Input";
-import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
 import { createDonationCheckoutSession } from "~/services/stripe/checkout.server";
 
@@ -44,6 +43,7 @@ export const Route = createFileRoute("/fundraisers/mulch/donate/")({
 });
 
 function DonatePage() {
+  const { wardConfig } = Route.useRouteContext();
   const [amount, setAmount] = useState("");
   const [selectedAmount, setSelectedAmount] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -170,8 +170,11 @@ function DonatePage() {
 
       <p className="mt-4 text-sm text-gray-600">
         If you have any questions about donations, please contact us at{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`} className="text-blue-500 underline">
-          {CONTACT_EMAIL}
+        <a
+          href={`mailto:${wardConfig.contactEmail}`}
+          className="text-blue-500 underline"
+        >
+          {wardConfig.contactEmail}
         </a>
       </p>
     </div>

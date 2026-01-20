@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { stripe } from "./stripe.server";
+import { wardConfig } from "~/config";
 
 export interface DonationCheckoutParams {
   amount: number;
@@ -44,7 +45,7 @@ export async function createDonationCheckoutSession({
           currency: "usd",
           unit_amount: Math.round(amount * 100), // Convert to cents
           product_data: {
-            name: "Crossroads Youth Fundraiser Donation",
+            name: `${wardConfig.name} Youth Fundraiser Donation`,
             description: "Thank you for supporting our youth program!",
           },
         },
@@ -139,4 +140,3 @@ export async function verifyCheckoutSessionPayment(
     return null;
   }
 }
-

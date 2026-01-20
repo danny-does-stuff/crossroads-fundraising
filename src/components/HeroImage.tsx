@@ -1,6 +1,6 @@
 export function HeroImage({
   src = "/assets/youth_with_mulch_bags.png",
-  alt = "Crossroads Youth Prepared to Spread Mulch",
+  alt = "Youth Prepared to Spread Mulch",
 }: {
   src?: string;
   alt?: string;

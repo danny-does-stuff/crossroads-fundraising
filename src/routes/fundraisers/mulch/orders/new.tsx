@@ -7,24 +7,14 @@ import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import { Select } from "~/components/Select";
 import { createOrder } from "~/models/mulchOrder.server";
-import {
-  ACCEPTING_MULCH_ORDERS,
-  Neighborhood,
-  REFERRAL_SOURCE_LABELS,
-  ReferralSource,
-} from "~/constants";
+import { REFERRAL_SOURCE_LABELS, ReferralSource } from "~/constants";
+import { wardConfig } from "~/config";
 import { useMulchPrepContent } from "../orders";
-
-const SPREAD_PRICE_DIFFERENCE = 1;
-const DELIVER_PRICE = 7;
-const SPREAD_PRICE = DELIVER_PRICE + SPREAD_PRICE_DIFFERENCE;
 
 const COLORS = [
   { label: "Black", value: "BLACK" },
   { label: "Brown", value: "BROWN" },
 ];
-
-const NEIGHBORHOODS: Neighborhood[] = Object.values(Neighborhood).sort();
 
 type Color = (typeof COLORS)[number]["value"];
 
@@ -34,7 +24,7 @@ const orderSchema = z
     color: z.enum(COLORS.map((c) => c.value) as [Color, ...Color[]]),
     shouldSpread: z.boolean(),
     note: z.string().trim(),
-    neighborhood: z.enum(NEIGHBORHOODS as [Neighborhood, ...Neighborhood[]]),
+    neighborhood: z.enum(wardConfig.neighborhoods),
     street: z.string().trim().min(1, "Street address is required"),
     name: z.string().trim().min(1, "Name is required"),
     email: z
@@ -65,11 +55,15 @@ const createOrderFn = createServerFn()
     return result.data;
   })
   .handler(async ({ data }) => {
-    if (!ACCEPTING_MULCH_ORDERS) {
+    if (!wardConfig.acceptingMulchOrders) {
       throw redirect({ to: "/fundraisers/mulch/orders" });
     }
 
     const { shouldSpread, quantity, color, note, neighborhood, street } = data;
+
+    const pricePerUnit = shouldSpread
+      ? wardConfig.mulchPriceSpread
+      : wardConfig.mulchPriceDelivery;
 
     const order = await createOrder({
       quantity,
@@ -78,7 +72,7 @@ const createOrderFn = createServerFn()
       neighborhood,
       streetAddress: street,
       orderType: shouldSpread ? "SPREAD" : "DELIVERY",
-      pricePerUnit: shouldSpread ? SPREAD_PRICE : DELIVER_PRICE,
+      pricePerUnit,
       referralSource: data.referralSource,
       referralSourceDetails: data.referralSourceDetails,
       customer: {
@@ -104,6 +98,8 @@ export const Route = createFileRoute("/fundraisers/mulch/orders/new")({
 });
 
 function NewOrderPage() {
+  const { wardConfig } = Route.useRouteContext();
+
   const [fieldErrors, setFieldErrors] = React.useState<Record<
     string,
     string
@@ -121,7 +117,11 @@ function NewOrderPage() {
 
   const [quantity, setQuantity] = React.useState<string>("1");
   const [shouldSpread, setShouldSpread] = React.useState(true);
-  const pricePerUnit = shouldSpread ? SPREAD_PRICE : DELIVER_PRICE;
+  const pricePerUnit = shouldSpread
+    ? wardConfig.mulchPriceSpread
+    : wardConfig.mulchPriceDelivery;
+  const spreadPriceDifference =
+    wardConfig.mulchPriceSpread - wardConfig.mulchPriceDelivery;
 
   const mulchPrepContent = useMulchPrepContent();
 
@@ -168,7 +168,7 @@ function NewOrderPage() {
           color: formData.get("color") as Color,
           shouldSpread: formData.get("shouldSpread") === "on",
           note: (formData.get("note") as string) || "",
-          neighborhood: formData.get("neighborhood") as Neighborhood,
+          neighborhood: formData.get("neighborhood"),
           street: formData.get("street") as string,
           name: formData.get("name") as string,
           email: formData.get("email") as string,
@@ -199,10 +199,11 @@ function NewOrderPage() {
   return (
     <div>
       <p className="text-lg">
-        Order now and pay {currencyFormatter.format(SPREAD_PRICE)} per bag for
+        Order now and pay{" "}
+        {currencyFormatter.format(wardConfig.mulchPriceSpread)} per bag for
         having the mulch spread in your landscaping, or{" "}
-        {currencyFormatter.format(DELIVER_PRICE)} per bag to have it delivered
-        to your driveway.
+        {currencyFormatter.format(wardConfig.mulchPriceDelivery)} per bag to
+        have it delivered to your driveway.
       </p>
       <br />
       <form
@@ -240,7 +241,7 @@ function NewOrderPage() {
         />
         <Input
           id="shouldSpread"
-          label={`Would you like us to spread the mulch? ($${SPREAD_PRICE_DIFFERENCE}/bag)`}
+          label={`Would you like us to spread the mulch? ($${spreadPriceDifference}/bag)`}
           type="checkbox"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setShouldSpread(e.target.checked)
@@ -281,7 +282,7 @@ function NewOrderPage() {
           error={getErrorForField("neighborhood")}
         >
           <option value="">Select one</option>
-          {NEIGHBORHOODS.map((neighborhood) => (
+          {wardConfig.neighborhoods.map((neighborhood) => (
             <option key={neighborhood} value={neighborhood}>
               {neighborhood}
             </option>

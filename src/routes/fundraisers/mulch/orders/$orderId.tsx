@@ -3,7 +3,6 @@ import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import invariant from "tiny-invariant";
 import z from "zod";
-import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
 
 import { updateOrderById, getOrder } from "~/models/mulchOrder.server";
@@ -144,6 +143,7 @@ export const Route = createFileRoute("/fundraisers/mulch/orders/$orderId")({
 
 function OrderDetailsPage() {
   const { order: initialOrder } = Route.useLoaderData();
+  const { wardConfig } = Route.useRouteContext();
   const [order, setOrder] = useState(initialOrder);
   const params = Route.useParams();
   const searchParams = Route.useSearch();
@@ -319,10 +319,10 @@ function OrderDetailsPage() {
                 If you are dissatisfied with your order for any reason, please
                 contact us at{" "}
                 <a
-                  href={`mailto:${CONTACT_EMAIL}`}
+                  href={`mailto:${wardConfig.contactEmail}`}
                   className="font-semibold underline"
                 >
-                  {CONTACT_EMAIL}
+                  {wardConfig.contactEmail}
                 </a>{" "}
                 before making any claims with your credit card company. We are
                 committed to your satisfaction and will work with you to resolve
@@ -338,10 +338,10 @@ function OrderDetailsPage() {
                 {order.orderType === "SPREAD" ? "and spreading " : ""}service.
                 If you do not receive this notification, please contact us at{" "}
                 <a
-                  href={`mailto:${CONTACT_EMAIL}`}
+                  href={`mailto:${wardConfig.contactEmail}`}
                   className="font-semibold underline"
                 >
-                  {CONTACT_EMAIL}
+                  {wardConfig.contactEmail}
                 </a>{" "}
                 to verify your order status.
               </p>
@@ -356,6 +356,7 @@ function OrderDetailsPage() {
 
 function OrderErrorBoundary({ error }: { error: Error }) {
   console.error(error);
+  const { wardConfig } = Route.useRouteContext();
 
   const isNotFound = error.message === "Order not found";
 
@@ -372,7 +373,7 @@ function OrderErrorBoundary({ error }: { error: Error }) {
       <br />
       <br />
       If you believe you paid for this order, please contact us at{" "}
-      {CONTACT_EMAIL}
+      {wardConfig.contactEmail}
     </div>
   );
 }

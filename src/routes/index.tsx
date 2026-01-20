@@ -1,11 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/Button";
 import { HeroImage } from "~/components/HeroImage";
-import {
-  MULCH_DELIVERY_DATE_1,
-  MULCH_DELIVERY_DATE_2,
-  CONTACT_EMAIL,
-} from "~/constants";
 import { useOptionalUser } from "~/utils";
 
 export const Route = createFileRoute("/")({
@@ -14,22 +9,23 @@ export const Route = createFileRoute("/")({
 
 function IndexPage() {
   const user = useOptionalUser();
+  const { wardConfig } = Route.useRouteContext();
 
   return (
     <main className="relative min-h-screen bg-white">
       <HeroImage />
       <div className="mx-auto max-w-4xl p-6">
         <h1 className="mb-4 text-3xl font-bold">
-          Crossroads Youth Mulch Fundraiser
+          {wardConfig.wardName} Youth Mulch Fundraiser
         </h1>
         <h2 className="mb-6 text-xl font-medium">
           Beautify Your Yard. Support Local Youth.
         </h2>
 
         <p className="mb-4">
-          Thank you for supporting the Crossroads Ward Youth! Proceeds from this
-          fundraiser help fund impactful programs and initiatives for our youth
-          throughout the year.
+          Thank you for supporting the {wardConfig.wardName} Youth! Proceeds
+          from this fundraiser help fund impactful programs and initiatives for
+          our youth throughout the year.
         </p>
 
         <p className="mb-4">
@@ -50,9 +46,9 @@ function IndexPage() {
         </ul>
 
         <p className="mb-4">
-          Delivery Dates: {MULCH_DELIVERY_DATE_1} or {MULCH_DELIVERY_DATE_2}{" "}
-          (you&apos;ll receive a confirmation email 5 days prior to delivery
-          with instructions).
+          Delivery Dates: {wardConfig.deliveryDate1} or{" "}
+          {wardConfig.deliveryDate2} (you&apos;ll receive a confirmation email 5
+          days prior to delivery with instructions).
         </p>
 
         <p className="mb-4">
@@ -62,10 +58,10 @@ function IndexPage() {
         <p className="mb-4">
           📧 Questions? Email us at{" "}
           <a
-            href={`mailto:${CONTACT_EMAIL}`}
+            href={`mailto:${wardConfig.contactEmail}`}
             className="text-blue-600 hover:underline"
           >
-            {CONTACT_EMAIL}
+            {wardConfig.contactEmail}
           </a>
         </p>
 

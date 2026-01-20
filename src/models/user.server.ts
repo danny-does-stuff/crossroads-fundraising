@@ -9,9 +9,13 @@ import { prisma } from "~/db.server";
 
 export type { User };
 
-export type UserInSession = Pick<User, 'id' | 'email'> & {roles: Array<{role: Role}>}
+export type UserInSession = Pick<User, "id" | "email"> & {
+  roles: Array<{ role: Role }>;
+};
 
-export async function getUserById(id: User["id"]): Promise<UserInSession | null> {
+export async function getUserById(
+  id: User["id"]
+): Promise<UserInSession | null> {
   return prisma.user.findUnique({
     where: { id },
     select: {
@@ -20,9 +24,9 @@ export async function getUserById(id: User["id"]): Promise<UserInSession | null>
       roles: {
         select: {
           role: true,
-        }
+        },
       },
-    }
+    },
   });
 }
 

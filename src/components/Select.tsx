@@ -2,7 +2,8 @@ import type { HTMLProps } from "react";
 import { forwardRef } from "react";
 import { Input } from "./Input";
 
-interface SelectProps extends Omit<HTMLProps<HTMLSelectElement>, "ref" | "label"> {
+interface SelectProps
+  extends Omit<HTMLProps<HTMLSelectElement>, "ref" | "label"> {
   id: string;
   label: string;
   error: string | null | undefined;
@@ -12,15 +13,7 @@ interface SelectProps extends Omit<HTMLProps<HTMLSelectElement>, "ref" | "label"
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   function Select(
-    {
-      id,
-      label,
-      error,
-      children,
-      readOnly,
-      defaultDisplayValue,
-      ...props
-    },
+    { id, label, error, children, readOnly, defaultDisplayValue, ...props },
     _ref
   ) {
     if (readOnly) {
@@ -31,7 +24,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             label={label}
             error={error}
             readOnly={readOnly}
-            value={defaultDisplayValue || String(props.value || props.defaultValue || "")}
+            value={
+              defaultDisplayValue ||
+              String(props.value || props.defaultValue || "")
+            }
           />
           <input
             type="hidden"

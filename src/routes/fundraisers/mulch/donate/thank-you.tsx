@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import z from "zod";
-import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
 import { verifyCheckoutSessionPayment } from "~/services/stripe/checkout.server";
 import { createDonation } from "~/models/donation.server";
@@ -37,7 +36,8 @@ const verifyDonationFn = createServerFn()
           typeof session.customer === "string"
             ? session.customer
             : session.customer?.id ?? null,
-        donorEmail: session.customer_email || session.metadata?.donorEmail || null,
+        donorEmail:
+          session.customer_email || session.metadata?.donorEmail || null,
         donorGivenName:
           session.customer_details?.name?.split(" ")[0] ||
           session.metadata?.donorGivenName ||
@@ -72,6 +72,7 @@ export const Route = createFileRoute("/fundraisers/mulch/donate/thank-you")({
  * Thank you page shown after a successful donation
  */
 function ThankYouPage() {
+  const { wardConfig } = Route.useRouteContext();
   const searchParams = Route.useSearch();
   const [isVerifying, setIsVerifying] = useState(!!searchParams.session_id);
   const [verified, setVerified] = useState(false);
@@ -135,8 +136,8 @@ function ThankYouPage() {
       </p>
       <p className="mb-8">
         Please contact us at{" "}
-        <a className="text-blue-500" href={`mailto:${CONTACT_EMAIL}`}>
-          {CONTACT_EMAIL}
+        <a className="text-blue-500" href={`mailto:${wardConfig.contactEmail}`}>
+          {wardConfig.contactEmail}
         </a>{" "}
         if you have any questions.
       </p>
