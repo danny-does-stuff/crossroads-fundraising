@@ -16,12 +16,12 @@ function OrdersLayout() {
 
   const image = orderId
     ? {
-        src: "/assets/youth_jumping.png",
-        alt: "Youth Jumping for Joy",
+        src: wardConfig.orderConfirmationImage,
+        alt: wardConfig.orderConfirmationImageAlt,
       }
     : {
-        src: "/assets/youth_with_completed_mulch.png",
-        alt: "Youth with Beautifully Spread Mulch",
+        src: wardConfig.orderFormImage,
+        alt: wardConfig.orderFormImageAlt,
       };
 
   const mulchPrepContent = (

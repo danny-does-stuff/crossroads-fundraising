@@ -13,7 +13,7 @@ function IndexPage() {
 
   return (
     <main className="relative min-h-screen bg-white">
-      <HeroImage />
+      <HeroImage src={wardConfig.homeHeroImage} alt={wardConfig.homeHeroImageAlt} />
       <div className="mx-auto max-w-4xl p-6">
         <h1 className="mb-4 text-3xl font-bold">
           {wardConfig.wardName} Youth Mulch Fundraiser

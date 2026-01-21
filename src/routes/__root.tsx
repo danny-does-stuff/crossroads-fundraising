@@ -31,7 +31,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
           name: "description",
           content: `Welcome to the ${wardConfig.wardName} Youth Group Mulch Sale fundraiser! We are thrilled to be launching this campaign to raise funds for our group's various programs and activities.`,
         },
-        { property: "og:image", content: "/assets/mulch_wagon.jpg" },
+        {
+          property: "og:image",
+          content: wardConfig.ogImage,
+        },
       ],
       links: [{ rel: "stylesheet", href: appCss }],
     };

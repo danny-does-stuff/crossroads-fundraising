@@ -1,9 +1,9 @@
 export function HeroImage({
-  src = "/assets/youth_with_mulch_bags.png",
-  alt = "Youth Prepared to Spread Mulch",
+  src,
+  alt,
 }: {
-  src?: string;
-  alt?: string;
+  src: string;
+  alt: string;
 }) {
   return (
     <div className="mx-auto max-w-7xl sm:px-6 sm:pt-6 lg:px-8">

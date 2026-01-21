@@ -64,6 +64,33 @@ export const wardConfig = {
 
   /** Whether the site is currently accepting mulch orders */
   acceptingMulchOrders: getEnvBooleanOrDefault("ACCEPTING_MULCH_ORDERS", false),
+
+  /** Image paths - wards can customize or use shared defaults */
+  homeHeroImage: getEnvOrDefault(
+    "HOME_HERO_IMAGE",
+    "/assets/crossroads/youth_with_mulch_bags.png"
+  ),
+  homeHeroImageAlt: getEnvOrDefault(
+    "HOME_HERO_IMAGE_ALT",
+    "Youth Prepared to Spread Mulch"
+  ),
+  ogImage: getEnvOrDefault("OG_IMAGE", "/assets/crossroads/mulch_wagon.jpg"),
+  orderConfirmationImage: getEnvOrDefault(
+    "ORDER_CONFIRMATION_IMAGE",
+    "/assets/crossroads/youth_jumping.png"
+  ),
+  orderConfirmationImageAlt: getEnvOrDefault(
+    "ORDER_CONFIRMATION_IMAGE_ALT",
+    "Youth Jumping for Joy"
+  ),
+  orderFormImage: getEnvOrDefault(
+    "ORDER_FORM_IMAGE",
+    "/assets/crossroads/youth_with_completed_mulch.png"
+  ),
+  orderFormImageAlt: getEnvOrDefault(
+    "ORDER_FORM_IMAGE_ALT",
+    "Youth with Beautifully Spread Mulch"
+  ),
 } as const;
 
 /**
@@ -81,6 +108,13 @@ export function getClientConfig() {
     deliveryDate2: wardConfig.deliveryDate2,
     ordersStartDate: wardConfig.ordersStartDate,
     acceptingMulchOrders: wardConfig.acceptingMulchOrders,
+    homeHeroImage: wardConfig.homeHeroImage,
+    homeHeroImageAlt: wardConfig.homeHeroImageAlt,
+    ogImage: wardConfig.ogImage,
+    orderConfirmationImage: wardConfig.orderConfirmationImage,
+    orderConfirmationImageAlt: wardConfig.orderConfirmationImageAlt,
+    orderFormImage: wardConfig.orderFormImage,
+    orderFormImageAlt: wardConfig.orderFormImageAlt,
   };
 }
 
