@@ -11,6 +11,8 @@ export const Route = createFileRoute("/fundraisers/mulch/orders")({
 
 function OrdersLayout() {
   const { wardConfig } = Route.useRouteContext();
+  console.log('[ORDERS] OrdersLayout rendering, wardConfig.acceptingMulchOrders:', wardConfig.acceptingMulchOrders);
+  console.log('[ORDERS] Full wardConfig:', JSON.stringify(wardConfig, null, 2));
   const params = useParams({ strict: false }) as { orderId?: string };
   const orderId = params.orderId;
 

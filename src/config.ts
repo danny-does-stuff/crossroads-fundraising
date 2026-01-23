@@ -18,6 +18,13 @@ function getEnvNumberOrDefault(key: string, defaultValue: number): number {
 
 function getEnvBooleanOrDefault(key: string, defaultValue: boolean): boolean {
   const value = process.env[key];
+  console.log(`[CONFIG] getEnvBooleanOrDefault('${key}'):`, {
+    rawValue: value,
+    valueType: typeof value,
+    isDefined: value !== undefined,
+    lowercase: value?.toLowerCase(),
+    willReturn: !value ? defaultValue : value.toLowerCase() === "true",
+  });
   if (!value) return defaultValue;
   return value.toLowerCase() === "true";
 }
@@ -25,6 +32,9 @@ function getEnvBooleanOrDefault(key: string, defaultValue: boolean): boolean {
 /**
  * Ward-specific configuration loaded from environment variables.
  */
+console.log('[CONFIG] Initializing wardConfig, process.env.ACCEPTING_MULCH_ORDERS:', process.env.ACCEPTING_MULCH_ORDERS);
+console.log('[CONFIG] All MULCH/WARD env vars:', Object.keys(process.env).filter(k => k.includes('MULCH') || k.includes('WARD')));
+
 export const wardConfig = {
   /** Ward display name (e.g., "Crossroads Ward") */
   name: getEnvOrDefault("WARD_NAME", "Crossroads Ward"),
@@ -98,7 +108,8 @@ export const wardConfig = {
  * This is passed through the router context.
  */
 export function getClientConfig() {
-  return {
+  console.log('[CONFIG] getClientConfig() called, wardConfig.acceptingMulchOrders:', wardConfig.acceptingMulchOrders);
+  const clientConfig = {
     wardName: wardConfig.name,
     contactEmail: wardConfig.contactEmail,
     neighborhoods: wardConfig.neighborhoods,
@@ -116,6 +127,8 @@ export function getClientConfig() {
     orderFormImage: wardConfig.orderFormImage,
     orderFormImageAlt: wardConfig.orderFormImageAlt,
   };
+  console.log('[CONFIG] getClientConfig() returning, acceptingMulchOrders:', clientConfig.acceptingMulchOrders);
+  return clientConfig;
 }
 
 export type ClientConfig = ReturnType<typeof getClientConfig>;
