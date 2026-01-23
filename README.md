@@ -34,6 +34,7 @@ Visit http://localhost:3000
 See [wards/README.md](./wards/README.md) for detailed onboarding instructions.
 
 **Quick summary:**
+
 1. Ward creates Fly.io account and app
 2. Ward sets secrets (Stripe keys, session secret)
 3. Ward sends deploy token to admin
@@ -143,6 +144,7 @@ npx prisma studio
 ### Seed Data
 
 The database seed creates an admin user:
+
 - Email: `rachel@remix.run`
 - Password: `racheliscool`
 
@@ -155,6 +157,7 @@ cp .env.example .env
 ```
 
 Required for local development:
+
 - `DATABASE_URL` - SQLite connection string
 - `SESSION_SECRET` - Random secret for cookies
 - `STRIPE_*` - Stripe API keys (test mode for dev)
@@ -179,6 +182,7 @@ Wards can use shared images or provide their own by updating image paths in thei
 ### Pricing & Schedule
 
 Each ward can customize:
+
 - Mulch pricing (delivery vs. spreading)
 - Delivery dates
 - Order start date
@@ -189,10 +193,11 @@ Each ward can customize:
 See [wards/README.md](./wards/README.md) for complete instructions.
 
 **Admin checklist:**
+
 1. ✅ Receive ward's deploy token and config
 2. ✅ Copy `wards/crossroads` to `wards/{ward-name}`
 3. ✅ Edit `wards/{ward-name}/fly.toml`
-4. ✅ Add `FLY_TOKEN_{WARD}` to GitHub secrets
+4. ✅ Add `FLY_API_TOKEN_{WARD}` to GitHub secrets
 5. ✅ Add ward to `.github/workflows/deploy.yml` matrix
 6. ✅ Push to main
 

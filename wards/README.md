@@ -37,6 +37,7 @@ The ward needs to set up their Fly.io infrastructure and send you their deploy t
 #### 2. Create Application
 
 **Via Fly.io Dashboard (Recommended):**
+
 - Go to https://fly.io/dashboard
 - Click **"Create App"**
 - Choose a name: `{ward-name}-mulch` (e.g., `oakridge-mulch`)
@@ -44,6 +45,7 @@ The ward needs to set up their Fly.io infrastructure and send you their deploy t
 - Click **"Create App"**
 
 **Via CLI (Alternative):**
+
 ```bash
 # Install Fly CLI first: https://fly.io/docs/flyctl/install/
 fly apps create {ward-name}-mulch
@@ -52,6 +54,7 @@ fly apps create {ward-name}-mulch
 #### 3. Create Database Volume
 
 **Via Fly.io Dashboard (Recommended):**
+
 - Go to your app: `https://fly.io/apps/{ward-name}-mulch`
 - Click **"Volumes"** in the left sidebar
 - Click **"Create Volume"**
@@ -61,6 +64,7 @@ fly apps create {ward-name}-mulch
 - Click **"Create"**
 
 **Via CLI (Alternative):**
+
 ```bash
 fly volumes create data --app {ward-name}-mulch --region dfw --size 1
 ```
@@ -68,18 +72,20 @@ fly volumes create data --app {ward-name}-mulch --region dfw --size 1
 #### 4. Set Secrets
 
 **Via Fly.io Dashboard (Recommended):**
+
 - Go to your app: `https://fly.io/apps/{ward-name}-mulch`
 - Click **"Secrets"** in the left sidebar
 - Click **"New Secret"** and add each of these:
 
-| Secret Name | Value | How to Get |
-|------------|-------|------------|
-| `SESSION_SECRET` | Random 64-char hex string | Generate at https://www.random.org/strings/ or use: `openssl rand -hex 32` |
-| `STRIPE_SECRET_KEY` | `sk_live_...` or `sk_test_...` | From https://dashboard.stripe.com/apikeys |
-| `STRIPE_PUBLISHABLE_KEY` | `pk_live_...` or `pk_test_...` | From https://dashboard.stripe.com/apikeys |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | From https://dashboard.stripe.com/webhooks (create endpoint first) |
+| Secret Name              | Value                          | How to Get                                                                 |
+| ------------------------ | ------------------------------ | -------------------------------------------------------------------------- |
+| `SESSION_SECRET`         | Random 64-char hex string      | Generate at https://www.random.org/strings/ or use: `openssl rand -hex 32` |
+| `STRIPE_SECRET_KEY`      | `sk_live_...` or `sk_test_...` | From https://dashboard.stripe.com/apikeys                                  |
+| `STRIPE_PUBLISHABLE_KEY` | `pk_live_...` or `pk_test_...` | From https://dashboard.stripe.com/apikeys                                  |
+| `STRIPE_WEBHOOK_SECRET`  | `whsec_...`                    | From https://dashboard.stripe.com/webhooks (create endpoint first)         |
 
 **Via CLI (Alternative):**
+
 ```bash
 fly secrets set SESSION_SECRET=$(openssl rand -hex 32) --app {ward-name}-mulch
 fly secrets set STRIPE_SECRET_KEY="sk_live_..." --app {ward-name}-mulch
@@ -90,6 +96,7 @@ fly secrets set STRIPE_WEBHOOK_SECRET="whsec_..." --app {ward-name}-mulch
 #### 5. Generate Deploy Token
 
 **Via Fly.io Dashboard (Recommended):**
+
 - Go to https://fly.io/user/personal_access_tokens
 - Click **"Create Token"**
 - Name: `{ward-name}-mulch-deploy`
@@ -99,6 +106,7 @@ fly secrets set STRIPE_WEBHOOK_SECRET="whsec_..." --app {ward-name}-mulch
 - **Copy the token** (you won't see it again!)
 
 **Via CLI (Alternative):**
+
 ```bash
 fly tokens create deploy --app {ward-name}-mulch
 ```
@@ -165,7 +173,7 @@ Edit `wards/{ward-name}/fly.toml`:
 
 - Go to: https://github.com/{your-username}/{repo-name}/settings/secrets/actions
 - Click **"New repository secret"**
-- Name: `FLY_TOKEN_{WARD}` (uppercase ward name, e.g., `FLY_TOKEN_OAKRIDGE`)
+- Name: `FLY_API_TOKEN_{WARD}` (uppercase ward name, e.g., `FLY_API_TOKEN_OAKRIDGE`)
 - Value: Ward's deploy token (from Part 1, Step 5)
 - Click **"Add secret"**
 
@@ -176,7 +184,7 @@ Edit `.github/workflows/deploy.yml` (around line 141):
 ```yaml
 matrix:
   # Add new wards here as they onboard
-  ward: [crossroads, oakridge]  # Add new ward to this list
+  ward: [crossroads, oakridge] # Add new ward to this list
 ```
 
 And again around line 211 (same change).

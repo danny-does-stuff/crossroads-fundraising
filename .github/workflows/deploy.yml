@@ -137,7 +137,7 @@ jobs:
     strategy:
       matrix:
         # Add new wards here as they onboard
-        # Each ward needs a FLY_TOKEN_{WARD} secret (uppercase ward name)
+        # Each ward needs a FLY_API_TOKEN_{WARD} secret (uppercase ward name)
         ward: [crossroads]
       fail-fast: false
 
@@ -174,7 +174,7 @@ jobs:
         with:
           registry: registry.fly.io
           username: x
-          password: ${{ secrets[format('FLY_TOKEN_{0}', matrix.ward)] }}
+          password: ${{ secrets[format('FLY_API_TOKEN_{0}', matrix.ward)] }}
 
       - name: 🐳 Docker build
         uses: docker/build-push-action@v3
@@ -207,7 +207,7 @@ jobs:
     strategy:
       matrix:
         # Add new wards here as they onboard
-        # Each ward needs a FLY_TOKEN_{WARD} secret (uppercase ward name)
+        # Each ward needs a FLY_API_TOKEN_{WARD} secret (uppercase ward name)
         ward: [crossroads]
       fail-fast: false
 
@@ -232,7 +232,7 @@ jobs:
           # Turn off HA since we use SQLite
           args: "deploy --ha=false --config wards/${{ matrix.ward }}/fly.toml --app ${{ steps.app_name.outputs.value }}-staging --image registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}-${{ github.sha }}"
         env:
-          FLY_API_TOKEN: ${{ secrets[format('FLY_TOKEN_{0}', matrix.ward)] }}
+          FLY_API_TOKEN: ${{ secrets[format('FLY_API_TOKEN_{0}', matrix.ward)] }}
 
       - name: 🚀 Deploy Production | Ward - ${{ matrix.ward }}
         if: ${{ github.ref == 'refs/heads/main' }}
@@ -241,4 +241,4 @@ jobs:
           # Turn off HA since we use SQLite
           args: "deploy --ha=false --config wards/${{ matrix.ward }}/fly.toml --image registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}-${{ github.sha }}"
         env:
-          FLY_API_TOKEN: ${{ secrets[format('FLY_TOKEN_{0}', matrix.ward)] }}
+          FLY_API_TOKEN: ${{ secrets[format('FLY_API_TOKEN_{0}', matrix.ward)] }}
