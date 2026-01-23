@@ -148,7 +148,12 @@ ${config.wardName} Youth Program`;
 
 function getConfirmationEmailContent(
   order: CompleteOrder,
-  config: { contactEmail: string; wardName: string, deliveryDate1: string, deliveryDate2: string }
+  config: {
+    contactEmail: string;
+    wardName: string;
+    deliveryDate1: string;
+    deliveryDate2: string;
+  }
 ) {
   return `Hello ${order.customer.name},
 
@@ -157,7 +162,9 @@ Thank you for your order! We're excited to deliver your mulch and appreciate you
 Number of Bags: ${order.quantity}
 Mulch Color: ${order.color}
 Spreading Service: ${order.orderType === "SPREAD" ? "Yes" : "No"}
-Delivery ${order.orderType === "SPREAD" ? "& Spreading " : ""}Date: ${config.deliveryDate1} or ${config.deliveryDate2}
+Delivery ${order.orderType === "SPREAD" ? "& Spreading " : ""}Date: ${
+    config.deliveryDate1
+  } or ${config.deliveryDate2}
 
 You can find the complete details of your order here: ${
     typeof window !== "undefined"

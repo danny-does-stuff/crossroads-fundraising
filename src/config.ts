@@ -32,12 +32,20 @@ function getEnvBooleanOrDefault(key: string, defaultValue: boolean): boolean {
 /**
  * Ward-specific configuration loaded from environment variables.
  */
-console.log('[CONFIG] Initializing wardConfig, process.env.ACCEPTING_MULCH_ORDERS:', process.env.ACCEPTING_MULCH_ORDERS);
-console.log('[CONFIG] All MULCH/WARD env vars:', Object.keys(process.env).filter(k => k.includes('MULCH') || k.includes('WARD')));
+console.log(
+  "[CONFIG] Initializing wardConfig, process.env.ACCEPTING_MULCH_ORDERS:",
+  process.env.ACCEPTING_MULCH_ORDERS
+);
+console.log(
+  "[CONFIG] All MULCH/WARD env vars:",
+  Object.keys(process.env).filter(
+    (k) => k.includes("MULCH") || k.includes("WARD")
+  )
+);
 
 export const wardConfig = {
   /** Ward display name (e.g., "Crossroads Ward") */
-  name: getEnvOrDefault("WARD_NAME", "Crossroads Ward"),
+  wardName: getEnvOrDefault("WARD_NAME", "Crossroads Ward"),
 
   /** Contact email for inquiries */
   contactEmail: getEnvOrDefault(
@@ -103,14 +111,37 @@ export const wardConfig = {
   ),
 } as const;
 
+declare global {
+  interface Window {
+    WARD_CONFIG: typeof wardConfig;
+  }
+}
+
 /**
  * Configuration that needs to be available on the client side.
  * This is passed through the router context.
  */
 export function getClientConfig() {
-  console.log('[CONFIG] getClientConfig() called, wardConfig.acceptingMulchOrders:', wardConfig.acceptingMulchOrders);
+  console.log("[CONFIG] getClientConfig() called");
+  console.log("[CONFIG] typeof window:", typeof window);
+  console.log(
+    "[CONFIG] window.WARD_CONFIG:",
+    typeof window !== "undefined" ? window.WARD_CONFIG : "N/A (server)"
+  );
+
+  // On the client, use the serialized config from window.WARD_CONFIG if available
+  if (typeof window !== "undefined" && window.WARD_CONFIG) {
+    console.log("[CONFIG] Using window.WARD_CONFIG (client-side)");
+    return window.WARD_CONFIG;
+  }
+
+  // On the server, compute from environment variables
+  console.log(
+    "[CONFIG] Computing from wardConfig (server-side), acceptingMulchOrders:",
+    wardConfig.acceptingMulchOrders
+  );
   const clientConfig = {
-    wardName: wardConfig.name,
+    wardName: wardConfig.wardName,
     contactEmail: wardConfig.contactEmail,
     neighborhoods: wardConfig.neighborhoods,
     mulchPriceDelivery: wardConfig.mulchPriceDelivery,
@@ -127,7 +158,10 @@ export function getClientConfig() {
     orderFormImage: wardConfig.orderFormImage,
     orderFormImageAlt: wardConfig.orderFormImageAlt,
   };
-  console.log('[CONFIG] getClientConfig() returning, acceptingMulchOrders:', clientConfig.acceptingMulchOrders);
+  console.log(
+    "[CONFIG] getClientConfig() returning, acceptingMulchOrders:",
+    clientConfig.acceptingMulchOrders
+  );
   return clientConfig;
 }
 

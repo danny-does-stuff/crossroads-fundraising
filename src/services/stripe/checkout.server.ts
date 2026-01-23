@@ -45,7 +45,7 @@ export async function createDonationCheckoutSession({
           currency: "usd",
           unit_amount: Math.round(amount * 100), // Convert to cents
           product_data: {
-            name: `${wardConfig.name} Youth Fundraiser Donation`,
+            name: `${wardConfig.wardName} Youth Fundraiser Donation`,
             description: "Thank you for supporting our youth program!",
           },
         },

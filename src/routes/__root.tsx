@@ -51,7 +51,7 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
-  const { ENV } = Route.useRouteContext();
+  const { ENV, wardConfig } = Route.useRouteContext();
 
   return (
     <html lang="en" className="h-full">
@@ -62,7 +62,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         {children}
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(ENV)}`,
+            __html: `window.ENV = ${JSON.stringify(
+              ENV
+            )}; window.WARD_CONFIG = ${JSON.stringify(wardConfig)};`,
           }}
         />
         <Scripts />

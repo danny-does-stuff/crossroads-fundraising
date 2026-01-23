@@ -3,10 +3,13 @@ import { routeTree } from "./routeTree.gen";
 import { getClientConfig } from "./config";
 
 export function getRouter() {
-  console.log('[ROUTER] getRouter() called');
+  console.log("[ROUTER] getRouter() called");
   const clientConfig = getClientConfig();
-  console.log('[ROUTER] clientConfig.acceptingMulchOrders:', clientConfig.acceptingMulchOrders);
-  
+  console.log(
+    "[ROUTER] clientConfig.acceptingMulchOrders:",
+    clientConfig.acceptingMulchOrders
+  );
+
   const router = createRouter({
     routeTree,
     scrollRestoration: true,
@@ -20,6 +23,9 @@ export function getRouter() {
     },
   });
 
-  console.log('[ROUTER] Router context wardConfig.acceptingMulchOrders:', router.options.context.wardConfig.acceptingMulchOrders);
+  console.log(
+    "[ROUTER] Router context wardConfig.acceptingMulchOrders:",
+    router.options.context.wardConfig.acceptingMulchOrders
+  );
   return router;
 }
