@@ -6,6 +6,8 @@
  * The root route's beforeLoad passes this config to both server and client.
  */
 
+import { createServerFn } from "@tanstack/react-start";
+
 function getEnv(key: string): string {
   const value = process.env[key];
   if (!value) {
@@ -42,7 +44,7 @@ function getEnvBoolean(key: string): boolean {
  *
  * @returns Ward configuration object
  */
-export function getWardConfig() {
+export const getWardConfig = createServerFn().handler(() => {
   return {
     wardName: getEnv("WARD_NAME"),
     contactEmail: getEnv("WARD_CONTACT_EMAIL"),
@@ -64,6 +66,6 @@ export function getWardConfig() {
     orderFormImage: getEnv("ORDER_FORM_IMAGE"),
     orderFormImageAlt: getEnv("ORDER_FORM_IMAGE_ALT"),
   };
-}
+});
 
 export type WardConfig = ReturnType<typeof getWardConfig>;
