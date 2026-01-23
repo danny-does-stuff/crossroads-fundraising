@@ -14,6 +14,25 @@ entrypoint = "sh"
 source = "data"
 destination = "/data"
 
+# Ward-specific configuration (non-secrets)
+[env]
+WARD_NAME = "Crossroads Ward"
+WARD_CONTACT_EMAIL = "cr.youth.fundraising@gmail.com"
+WARD_NEIGHBORHOODS = "Arrowbrooke,Del Webb,Glenbrooke,Sandbrock Ranch,Savannah,Union Park,Winn Ridge"
+MULCH_PRICE_DELIVERY = "7"
+MULCH_PRICE_SPREAD = "8"
+MULCH_DELIVERY_DATE_1 = "March 14"
+MULCH_DELIVERY_DATE_2 = "March 21"
+MULCH_ORDERS_START_DATE = "February 1, 2026"
+ACCEPTING_MULCH_ORDERS = "true"
+HOME_HERO_IMAGE = "/assets/crossroads/youth_with_mulch_bags.png"
+HOME_HERO_IMAGE_ALT = "Youth Prepared to Spread Mulch"
+OG_IMAGE = "/assets/crossroads/mulch_wagon.jpg"
+ORDER_CONFIRMATION_IMAGE = "/assets/crossroads/youth_jumping.png"
+ORDER_CONFIRMATION_IMAGE_ALT = "Youth Jumping for Joy"
+ORDER_FORM_IMAGE = "/assets/crossroads/youth_with_completed_mulch.png"
+ORDER_FORM_IMAGE_ALT = "Youth with Beautifully Spread Mulch"
+
 [[services]]
 internal_port = 8_080
 processes = [ "app" ]
