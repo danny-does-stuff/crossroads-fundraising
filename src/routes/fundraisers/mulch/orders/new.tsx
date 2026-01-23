@@ -1,4 +1,4 @@
-import { createFileRoute, getRouteApi, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 import z from "zod";
@@ -10,6 +10,7 @@ import { createOrder } from "~/models/mulchOrder.server";
 import { REFERRAL_SOURCE_LABELS, ReferralSource } from "~/constants";
 import { getWardConfig } from "~/config";
 import { useMulchPrepContent } from "../orders";
+import { useWardConfig } from "~/utils";
 
 const COLORS = [
   { label: "Black", value: "BLACK" },
@@ -103,7 +104,7 @@ export const Route = createFileRoute("/fundraisers/mulch/orders/new")({
 });
 
 function NewOrderPage() {
-  const { wardConfig } = getRouteApi("__root__").useLoaderData();
+  const wardConfig = useWardConfig();
 
   const [fieldErrors, setFieldErrors] = React.useState<Record<
     string,

@@ -9,7 +9,7 @@ import {
 
 import appCss from "../styles/app.css?url";
 import type { UserInSession } from "~/models/user.server";
-import { getWardConfig, WardConfig } from "~/config";
+import { WardConfig } from "~/config";
 
 export interface RouterContext {
   user: UserInSession | null;
@@ -20,11 +20,6 @@ export interface RouterContext {
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  loader: async () => {
-    return {
-      wardConfig: await getWardConfig(),
-    };
-  },
   head: ({ matches }) => {
     const wardConfig = matches[0].context.wardConfig;
     return {

@@ -61,5 +61,5 @@ export function validateEmail(email: unknown): email is string {
 }
 
 export function useWardConfig() {
-  return getRouteApi("__root__").useLoaderData().wardConfig;
+  return getRouteApi("__root__").useRouteContext().wardConfig;
 }
