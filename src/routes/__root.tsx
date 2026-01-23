@@ -22,7 +22,7 @@ export interface RouterContext {
 export const Route = createRootRouteWithContext<RouterContext>()({
   loader: async () => {
     return {
-      wardConfig: getWardConfig(),
+      wardConfig: await getWardConfig(),
     };
   },
   head: ({ matches }) => {

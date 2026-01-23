@@ -2,7 +2,7 @@ import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { getWardConfig } from "./config";
 
-export function getRouter() {
+export async function getRouter() {
   const router = createRouter({
     routeTree,
     scrollRestoration: true,
@@ -12,7 +12,7 @@ export function getRouter() {
       ENV: {
         STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
       },
-      wardConfig: getWardConfig(),
+      wardConfig: await getWardConfig(),
     },
   });
 

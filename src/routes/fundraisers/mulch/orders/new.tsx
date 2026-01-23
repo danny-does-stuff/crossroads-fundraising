@@ -20,9 +20,9 @@ type Color = (typeof COLORS)[number]["value"];
 
 // Server function to create order
 const createOrderFn = createServerFn()
-  .inputValidator((data) => {
+  .inputValidator(async (data) => {
     // Get config at request time for validation
-    const config = getWardConfig();
+    const config = await getWardConfig();
 
     const orderSchema = z
       .object({
@@ -58,7 +58,7 @@ const createOrderFn = createServerFn()
     return result.data;
   })
   .handler(async ({ data }) => {
-    const config = getWardConfig();
+    const config = await getWardConfig();
 
     if (!config.acceptingMulchOrders) {
       throw redirect({ to: "/fundraisers/mulch/orders" });

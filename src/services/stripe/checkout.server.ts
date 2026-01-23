@@ -33,6 +33,7 @@ export async function createDonationCheckoutSession({
   successUrl,
   cancelUrl,
 }: DonationCheckoutParams): Promise<Stripe.Checkout.Session> {
+  const wardConfig = await getWardConfig();
   return stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
@@ -45,7 +46,7 @@ export async function createDonationCheckoutSession({
           currency: "usd",
           unit_amount: Math.round(amount * 100), // Convert to cents
           product_data: {
-            name: `${getWardConfig().wardName} Youth Fundraiser Donation`,
+            name: `${wardConfig.wardName} Youth Fundraiser Donation`,
             description: "Thank you for supporting our youth program!",
           },
         },

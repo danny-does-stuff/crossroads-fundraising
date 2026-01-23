@@ -68,4 +68,4 @@ export const getWardConfig = createServerFn().handler(() => {
   };
 });
 
-export type WardConfig = ReturnType<typeof getWardConfig>;
+export type WardConfig = Awaited<ReturnType<typeof getWardConfig>>;
