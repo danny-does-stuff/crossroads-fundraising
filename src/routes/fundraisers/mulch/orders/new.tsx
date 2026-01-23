@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, redirect } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 import z from "zod";
@@ -8,7 +8,7 @@ import { Input } from "~/components/Input";
 import { Select } from "~/components/Select";
 import { createOrder } from "~/models/mulchOrder.server";
 import { REFERRAL_SOURCE_LABELS, ReferralSource } from "~/constants";
-import { wardConfig } from "~/config";
+import { getWardConfig } from "~/config";
 import { useMulchPrepContent } from "../orders";
 
 const COLORS = [
@@ -18,36 +18,39 @@ const COLORS = [
 
 type Color = (typeof COLORS)[number]["value"];
 
-const orderSchema = z
-  .object({
-    quantity: z.string().regex(/^\d+$/).transform(Number),
-    color: z.enum(COLORS.map((c) => c.value) as [Color, ...Color[]]),
-    shouldSpread: z.boolean(),
-    note: z.string().trim(),
-    neighborhood: z.enum(wardConfig.neighborhoods),
-    street: z.string().trim().min(1, "Street address is required"),
-    name: z.string().trim().min(1, "Name is required"),
-    email: z
-      .string()
-      .trim()
-      .pipe(z.email({ error: "Valid email is required" })),
-    phone: z.string().trim().min(10, "Phone must be at least 10 digits"),
-    referralSource: z.enum(ReferralSource),
-    referralSourceDetails: z.string().trim().nullable(),
-  })
-  .refine(
-    (order) =>
-      order.referralSource !== ReferralSource.Other ||
-      order.referralSourceDetails,
-    {
-      path: ["referralSourceDetails"],
-      message: "Please specify how you heard about us",
-    }
-  );
-
 // Server function to create order
 const createOrderFn = createServerFn()
   .inputValidator((data) => {
+    // Get config at request time for validation
+    const config = getWardConfig();
+
+    const orderSchema = z
+      .object({
+        quantity: z.string().regex(/^\d+$/).transform(Number),
+        color: z.enum(COLORS.map((c) => c.value) as [Color, ...Color[]]),
+        shouldSpread: z.boolean(),
+        note: z.string().trim(),
+        neighborhood: z.enum(config.neighborhoods),
+        street: z.string().trim().min(1, "Street address is required"),
+        name: z.string().trim().min(1, "Name is required"),
+        email: z
+          .string()
+          .trim()
+          .pipe(z.email({ error: "Valid email is required" })),
+        phone: z.string().trim().min(10, "Phone must be at least 10 digits"),
+        referralSource: z.enum(ReferralSource),
+        referralSourceDetails: z.string().trim().nullable(),
+      })
+      .refine(
+        (order) =>
+          order.referralSource !== ReferralSource.Other ||
+          order.referralSourceDetails,
+        {
+          path: ["referralSourceDetails"],
+          message: "Please specify how you heard about us",
+        }
+      );
+
     const result = orderSchema.safeParse(data);
     if (!result.success) {
       throw z.flattenError(result.error);
@@ -55,15 +58,17 @@ const createOrderFn = createServerFn()
     return result.data;
   })
   .handler(async ({ data }) => {
-    if (!wardConfig.acceptingMulchOrders) {
+    const config = getWardConfig();
+
+    if (!config.acceptingMulchOrders) {
       throw redirect({ to: "/fundraisers/mulch/orders" });
     }
 
     const { shouldSpread, quantity, color, note, neighborhood, street } = data;
 
     const pricePerUnit = shouldSpread
-      ? wardConfig.mulchPriceSpread
-      : wardConfig.mulchPriceDelivery;
+      ? config.mulchPriceSpread
+      : config.mulchPriceDelivery;
 
     const order = await createOrder({
       quantity,
@@ -98,7 +103,7 @@ export const Route = createFileRoute("/fundraisers/mulch/orders/new")({
 });
 
 function NewOrderPage() {
-  const { wardConfig } = Route.useRouteContext();
+  const { wardConfig } = getRouteApi("__root__").useLoaderData();
 
   const [fieldErrors, setFieldErrors] = React.useState<Record<
     string,

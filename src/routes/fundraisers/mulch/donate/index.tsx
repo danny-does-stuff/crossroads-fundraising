@@ -5,6 +5,7 @@ import z from "zod";
 import { Input } from "~/components/Input";
 import { Button } from "~/components/Button";
 import { createDonationCheckoutSession } from "~/services/stripe/checkout.server";
+import { useWardConfig } from "~/utils";
 
 const PRESET_AMOUNTS = [
   { label: "$20", value: "20" },
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/fundraisers/mulch/donate/")({
 });
 
 function DonatePage() {
-  const { wardConfig } = Route.useRouteContext();
+  const wardConfig = useWardConfig();
   const [amount, setAmount] = useState("");
   const [selectedAmount, setSelectedAmount] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

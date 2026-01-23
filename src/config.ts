@@ -3,166 +3,67 @@
  * These are read from environment variables at runtime.
  *
  * For client-side access, use the router context (see __root.tsx).
+ * The root route's beforeLoad passes this config to both server and client.
  */
 
-function getEnvOrDefault(key: string, defaultValue: string): string {
-  return process.env[key] || defaultValue;
+function getEnv(key: string): string {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
 }
 
-function getEnvNumberOrDefault(key: string, defaultValue: number): number {
-  const value = process.env[key];
-  if (!value) return defaultValue;
+function getEnvNumber(key: string): number {
+  const value = getEnv(key);
   const parsed = Number(value);
-  return isNaN(parsed) ? defaultValue : parsed;
+  if (isNaN(parsed)) {
+    throw new Error(
+      `Environment variable ${key} must be a valid number, got: ${value}`
+    );
+  }
+  return parsed;
 }
 
-function getEnvBooleanOrDefault(key: string, defaultValue: boolean): boolean {
-  const value = process.env[key];
-  console.log(`[CONFIG] getEnvBooleanOrDefault('${key}'):`, {
-    rawValue: value,
-    valueType: typeof value,
-    isDefined: value !== undefined,
-    lowercase: value?.toLowerCase(),
-    willReturn: !value ? defaultValue : value.toLowerCase() === "true",
-  });
-  if (!value) return defaultValue;
-  return value.toLowerCase() === "true";
+function getEnvBoolean(key: string): boolean {
+  const value = getEnv(key);
+  const lowercase = value.toLowerCase();
+  if (lowercase !== "true" && lowercase !== "false") {
+    throw new Error(
+      `Environment variable ${key} must be 'true' or 'false', got: ${value}`
+    );
+  }
+  return lowercase === "true";
 }
 
 /**
- * Ward-specific configuration loaded from environment variables.
+ * Get ward configuration from environment variables.
+ * This function should ONLY be called on the server (in server functions or loaders).
+ *
+ * @returns Ward configuration object
  */
-console.log(
-  "[CONFIG] Initializing wardConfig, process.env.ACCEPTING_MULCH_ORDERS:",
-  process.env.ACCEPTING_MULCH_ORDERS
-);
-console.log(
-  "[CONFIG] All MULCH/WARD env vars:",
-  Object.keys(process.env).filter(
-    (k) => k.includes("MULCH") || k.includes("WARD")
-  )
-);
-
-export const wardConfig = {
-  /** Ward display name (e.g., "Crossroads Ward") */
-  wardName: getEnvOrDefault("WARD_NAME", "Crossroads Ward"),
-
-  /** Contact email for inquiries */
-  contactEmail: getEnvOrDefault(
-    "WARD_CONTACT_EMAIL",
-    "cr.youth.fundraising@gmail.com"
-  ),
-
-  /** Comma-separated list of neighborhoods served */
-  neighborhoods: getEnvOrDefault(
-    "WARD_NEIGHBORHOODS",
-    "Arrowbrooke,Del Webb,Glenbrooke,Sandbrock Ranch,Savannah,Union Park,Winn Ridge"
-  )
-    .split(",")
-    .map((n) => n.trim())
-    .filter(Boolean),
-
-  /** Price per bag for delivery only */
-  mulchPriceDelivery: getEnvNumberOrDefault("MULCH_PRICE_DELIVERY", 7),
-
-  /** Price per bag with spreading service */
-  mulchPriceSpread: getEnvNumberOrDefault("MULCH_PRICE_SPREAD", 8),
-
-  /** First delivery date (e.g., "March 14") */
-  deliveryDate1: getEnvOrDefault("MULCH_DELIVERY_DATE_1", "March 14"),
-
-  /** Second delivery date (e.g., "March 21") */
-  deliveryDate2: getEnvOrDefault("MULCH_DELIVERY_DATE_2", "March 21"),
-
-  /** When mulch orders open (e.g., "February 1, 2026") */
-  ordersStartDate: getEnvOrDefault(
-    "MULCH_ORDERS_START_DATE",
-    "February 1, 2026"
-  ),
-
-  /** Whether the site is currently accepting mulch orders */
-  acceptingMulchOrders: getEnvBooleanOrDefault("ACCEPTING_MULCH_ORDERS", false),
-
-  /** Image paths - wards can customize or use shared defaults */
-  homeHeroImage: getEnvOrDefault(
-    "HOME_HERO_IMAGE",
-    "/assets/crossroads/youth_with_mulch_bags.png"
-  ),
-  homeHeroImageAlt: getEnvOrDefault(
-    "HOME_HERO_IMAGE_ALT",
-    "Youth Prepared to Spread Mulch"
-  ),
-  ogImage: getEnvOrDefault("OG_IMAGE", "/assets/crossroads/mulch_wagon.jpg"),
-  orderConfirmationImage: getEnvOrDefault(
-    "ORDER_CONFIRMATION_IMAGE",
-    "/assets/crossroads/youth_jumping.png"
-  ),
-  orderConfirmationImageAlt: getEnvOrDefault(
-    "ORDER_CONFIRMATION_IMAGE_ALT",
-    "Youth Jumping for Joy"
-  ),
-  orderFormImage: getEnvOrDefault(
-    "ORDER_FORM_IMAGE",
-    "/assets/crossroads/youth_with_completed_mulch.png"
-  ),
-  orderFormImageAlt: getEnvOrDefault(
-    "ORDER_FORM_IMAGE_ALT",
-    "Youth with Beautifully Spread Mulch"
-  ),
-} as const;
-
-declare global {
-  interface Window {
-    WARD_CONFIG: typeof wardConfig;
-  }
-}
-
-/**
- * Configuration that needs to be available on the client side.
- * This is passed through the router context.
- */
-export function getClientConfig() {
-  console.log("[CONFIG] getClientConfig() called");
-  console.log("[CONFIG] typeof window:", typeof window);
-  console.log(
-    "[CONFIG] window.WARD_CONFIG:",
-    typeof window !== "undefined" ? window.WARD_CONFIG : "N/A (server)"
-  );
-
-  // On the client, use the serialized config from window.WARD_CONFIG if available
-  if (typeof window !== "undefined" && window.WARD_CONFIG) {
-    console.log("[CONFIG] Using window.WARD_CONFIG (client-side)");
-    return window.WARD_CONFIG;
-  }
-
-  // On the server, compute from environment variables
-  console.log(
-    "[CONFIG] Computing from wardConfig (server-side), acceptingMulchOrders:",
-    wardConfig.acceptingMulchOrders
-  );
-  const clientConfig = {
-    wardName: wardConfig.wardName,
-    contactEmail: wardConfig.contactEmail,
-    neighborhoods: wardConfig.neighborhoods,
-    mulchPriceDelivery: wardConfig.mulchPriceDelivery,
-    mulchPriceSpread: wardConfig.mulchPriceSpread,
-    deliveryDate1: wardConfig.deliveryDate1,
-    deliveryDate2: wardConfig.deliveryDate2,
-    ordersStartDate: wardConfig.ordersStartDate,
-    acceptingMulchOrders: wardConfig.acceptingMulchOrders,
-    homeHeroImage: wardConfig.homeHeroImage,
-    homeHeroImageAlt: wardConfig.homeHeroImageAlt,
-    ogImage: wardConfig.ogImage,
-    orderConfirmationImage: wardConfig.orderConfirmationImage,
-    orderConfirmationImageAlt: wardConfig.orderConfirmationImageAlt,
-    orderFormImage: wardConfig.orderFormImage,
-    orderFormImageAlt: wardConfig.orderFormImageAlt,
+export function getWardConfig() {
+  return {
+    wardName: getEnv("WARD_NAME"),
+    contactEmail: getEnv("WARD_CONTACT_EMAIL"),
+    neighborhoods: getEnv("WARD_NEIGHBORHOODS")
+      .split(",")
+      .map((n) => n.trim())
+      .filter(Boolean),
+    mulchPriceDelivery: getEnvNumber("MULCH_PRICE_DELIVERY"),
+    mulchPriceSpread: getEnvNumber("MULCH_PRICE_SPREAD"),
+    deliveryDate1: getEnv("MULCH_DELIVERY_DATE_1"),
+    deliveryDate2: getEnv("MULCH_DELIVERY_DATE_2"),
+    ordersStartDate: getEnv("MULCH_ORDERS_START_DATE"),
+    acceptingMulchOrders: getEnvBoolean("ACCEPTING_MULCH_ORDERS"),
+    homeHeroImage: getEnv("HOME_HERO_IMAGE"),
+    homeHeroImageAlt: getEnv("HOME_HERO_IMAGE_ALT"),
+    ogImage: getEnv("OG_IMAGE"),
+    orderConfirmationImage: getEnv("ORDER_CONFIRMATION_IMAGE"),
+    orderConfirmationImageAlt: getEnv("ORDER_CONFIRMATION_IMAGE_ALT"),
+    orderFormImage: getEnv("ORDER_FORM_IMAGE"),
+    orderFormImageAlt: getEnv("ORDER_FORM_IMAGE_ALT"),
   };
-  console.log(
-    "[CONFIG] getClientConfig() returning, acceptingMulchOrders:",
-    clientConfig.acceptingMulchOrders
-  );
-  return clientConfig;
 }
 
-export type ClientConfig = ReturnType<typeof getClientConfig>;
+export type WardConfig = ReturnType<typeof getWardConfig>;

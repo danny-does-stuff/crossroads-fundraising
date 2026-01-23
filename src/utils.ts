@@ -1,4 +1,4 @@
-import { useRouteContext } from "@tanstack/react-router";
+import { getRouteApi, useRouteContext } from "@tanstack/react-router";
 import type { UserInSession } from "~/models/user.server";
 
 const DEFAULT_REDIRECT = "/";
@@ -58,4 +58,8 @@ export function useEnv() {
 
 export function validateEmail(email: unknown): email is string {
   return typeof email === "string" && email.length > 3 && email.includes("@");
+}
+
+export function useWardConfig() {
+  return getRouteApi("__root__").useLoaderData().wardConfig;
 }

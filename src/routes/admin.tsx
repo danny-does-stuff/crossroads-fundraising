@@ -19,7 +19,8 @@ import {
 import { requireUser } from "~/session.server";
 import { prisma } from "~/db.server";
 import { ReferralSource, REFERRAL_SOURCE_LABELS } from "~/constants";
-import type { ClientConfig } from "~/config";
+import type { WardConfig } from "~/config";
+import { useWardConfig } from "~/utils";
 
 // Server function to load admin data
 const loadAdminData = createServerFn()
@@ -183,7 +184,7 @@ ${config.wardName} Youth Program`;
 
 function AdminPage() {
   const { orders: initialOrders, year } = Route.useLoaderData();
-  const { wardConfig } = Route.useRouteContext();
+  const wardConfig = useWardConfig();
   const [orders, setOrders] = useState(initialOrders);
 
   const paidOrders = orders.filter(
@@ -342,7 +343,7 @@ function OrdersTable({
 }: {
   orders: CompleteOrder[];
   onOrdersUpdate: (orders: CompleteOrder[]) => void;
-  wardConfig: ClientConfig;
+  wardConfig: WardConfig;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -548,7 +549,7 @@ type StatusCellProps = {
   value: string;
   row: { original: CompleteOrder };
   onOrdersUpdate: (orders: CompleteOrder[]) => void;
-  wardConfig: ClientConfig;
+  wardConfig: WardConfig;
 };
 
 function StatusCell({

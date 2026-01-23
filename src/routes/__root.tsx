@@ -9,17 +9,22 @@ import {
 
 import appCss from "../styles/app.css?url";
 import type { UserInSession } from "~/models/user.server";
-import type { ClientConfig } from "~/config";
+import { WardConfig } from "~/config";
 
 export interface RouterContext {
   user: UserInSession | null;
   ENV: {
     STRIPE_PUBLISHABLE_KEY: string | undefined;
   };
-  wardConfig: ClientConfig;
+  wardConfig: WardConfig;
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  loader: async ({ context }) => {
+    return {
+      wardConfig: context.wardConfig,
+    };
+  },
   head: ({ matches }) => {
     const wardConfig = matches[0].context.wardConfig;
     return {
@@ -51,7 +56,7 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
-  const { ENV, wardConfig } = Route.useRouteContext();
+  const { ENV } = Route.useRouteContext();
 
   return (
     <html lang="en" className="h-full">
@@ -62,9 +67,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         {children}
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(
-              ENV
-            )}; window.WARD_CONFIG = ${JSON.stringify(wardConfig)};`,
+            __html: `window.ENV = ${JSON.stringify(ENV)}`,
           }}
         />
         <Scripts />

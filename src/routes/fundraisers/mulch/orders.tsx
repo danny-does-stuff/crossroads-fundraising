@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
 import { HeroImage } from "~/components/HeroImage";
 import { createContext, useContext, type ReactNode } from "react";
+import { useWardConfig } from "~/utils";
 
 // Create context for mulch prep content
 const MulchPrepContext = createContext<ReactNode | null>(null);
@@ -10,12 +11,7 @@ export const Route = createFileRoute("/fundraisers/mulch/orders")({
 });
 
 function OrdersLayout() {
-  const { wardConfig } = Route.useRouteContext();
-  console.log(
-    "[ORDERS] OrdersLayout rendering, wardConfig.acceptingMulchOrders:",
-    wardConfig.acceptingMulchOrders
-  );
-  console.log("[ORDERS] Full wardConfig:", JSON.stringify(wardConfig, null, 2));
+  const wardConfig = useWardConfig();
   const params = useParams({ strict: false }) as { orderId?: string };
   const orderId = params.orderId;
 

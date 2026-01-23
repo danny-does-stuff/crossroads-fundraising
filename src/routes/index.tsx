@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/Button";
 import { HeroImage } from "~/components/HeroImage";
-import { useOptionalUser } from "~/utils";
+import { useOptionalUser, useWardConfig } from "~/utils";
 
 export const Route = createFileRoute("/")({
   component: IndexPage,
@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({
 
 function IndexPage() {
   const user = useOptionalUser();
-  const { wardConfig } = Route.useRouteContext();
+  const wardConfig = useWardConfig();
 
   return (
     <main className="relative min-h-screen bg-white">

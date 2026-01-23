@@ -5,6 +5,7 @@ import z from "zod";
 import { Button } from "~/components/Button";
 import { verifyCheckoutSessionPayment } from "~/services/stripe/checkout.server";
 import { createDonation } from "~/models/donation.server";
+import { useWardConfig } from "~/utils";
 
 const verifyDonationSchema = z.object({
   sessionId: z.string(),
@@ -72,7 +73,7 @@ export const Route = createFileRoute("/fundraisers/mulch/donate/thank-you")({
  * Thank you page shown after a successful donation
  */
 function ThankYouPage() {
-  const { wardConfig } = Route.useRouteContext();
+  const wardConfig = useWardConfig();
   const searchParams = Route.useSearch();
   const [isVerifying, setIsVerifying] = useState(!!searchParams.session_id);
   const [verified, setVerified] = useState(false);

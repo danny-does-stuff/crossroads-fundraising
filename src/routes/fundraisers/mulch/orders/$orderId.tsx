@@ -11,6 +11,7 @@ import {
   verifyCheckoutSessionPayment,
 } from "~/services/stripe/checkout.server";
 import { useMulchPrepContent } from "../orders";
+import { useWardConfig } from "~/utils";
 
 // Server function to load order data
 const loadOrder = createServerFn()
@@ -143,7 +144,7 @@ export const Route = createFileRoute("/fundraisers/mulch/orders/$orderId")({
 
 function OrderDetailsPage() {
   const { order: initialOrder } = Route.useLoaderData();
-  const { wardConfig } = Route.useRouteContext();
+  const wardConfig = useWardConfig();
   const [order, setOrder] = useState(initialOrder);
   const params = Route.useParams();
   const searchParams = Route.useSearch();
@@ -356,7 +357,7 @@ function OrderDetailsPage() {
 
 function OrderErrorBoundary({ error }: { error: Error }) {
   console.error(error);
-  const { wardConfig } = Route.useRouteContext();
+  const wardConfig = useWardConfig();
 
   const isNotFound = error.message === "Order not found";
 

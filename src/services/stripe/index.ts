@@ -1,7 +1,6 @@
 // Re-export all Stripe services for convenient imports
 export { stripe } from "./stripe.server";
 export {
-  createDonationCheckoutSession,
   createOrderCheckoutSession,
   getCheckoutSession,
   verifyCheckoutSessionPayment,
