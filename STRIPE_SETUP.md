@@ -124,7 +124,6 @@ Stripe provides test card numbers you can use:
    ```
 
 3. **Test Donation Flow:**
-
    - Navigate to `/fundraisers/mulch/donate`
    - Select an amount or enter a custom amount
    - Click "Donate $X.XX"
@@ -135,7 +134,6 @@ Stripe provides test card numbers you can use:
    - Check your database - a donation record should be created with Stripe fields populated
 
 4. **Test Order Payment Flow:**
-
    - Create a new mulch order at `/fundraisers/mulch/orders/new`
    - Fill out the form and submit
    - You'll be redirected to the order details page
@@ -194,13 +192,11 @@ Stripe provides test card numbers you can use:
 ## 9. Going to Production
 
 1. **Switch to Live Mode:**
-
    - Update `.env` with live keys (`pk_live_...` and `sk_live_...`)
    - Set up webhook endpoint in Stripe Dashboard pointing to your production URL
    - Update `STRIPE_WEBHOOK_SECRET` with the production webhook secret
 
 2. **Test in Production:**
-
    - Use a real card with a small amount first
    - Verify webhooks are received
    - Check database records
