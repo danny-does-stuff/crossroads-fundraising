@@ -8,322 +8,322 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as LogoutRouteImport } from "./routes/logout";
-import { Route as LoginRouteImport } from "./routes/login";
-import { Route as JoinRouteImport } from "./routes/join";
-import { Route as AdminRouteImport } from "./routes/admin";
-import { Route as IndexRouteImport } from "./routes/index";
-import { Route as ApiStripeWebhookRouteImport } from "./routes/api/stripe-webhook";
-import { Route as ApiHealthcheckRouteImport } from "./routes/api/healthcheck";
-import { Route as FundraisersMulchOrdersRouteImport } from "./routes/fundraisers/mulch/orders";
-import { Route as FundraisersMulchDonateRouteImport } from "./routes/fundraisers/mulch/donate";
-import { Route as FundraisersMulchDonateIndexRouteImport } from "./routes/fundraisers/mulch/donate/index";
-import { Route as FundraisersMulchOrdersNewRouteImport } from "./routes/fundraisers/mulch/orders/new";
-import { Route as FundraisersMulchOrdersOrderIdRouteImport } from "./routes/fundraisers/mulch/orders/$orderId";
-import { Route as FundraisersMulchDonateThankYouRouteImport } from "./routes/fundraisers/mulch/donate/thank-you";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as LogoutRouteImport } from './routes/logout'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as JoinRouteImport } from './routes/join'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe-webhook'
+import { Route as ApiHealthcheckRouteImport } from './routes/api/healthcheck'
+import { Route as FundraisersMulchOrdersRouteImport } from './routes/fundraisers/mulch/orders'
+import { Route as FundraisersMulchDonateRouteImport } from './routes/fundraisers/mulch/donate'
+import { Route as FundraisersMulchDonateIndexRouteImport } from './routes/fundraisers/mulch/donate/index'
+import { Route as FundraisersMulchOrdersNewRouteImport } from './routes/fundraisers/mulch/orders/new'
+import { Route as FundraisersMulchOrdersOrderIdRouteImport } from './routes/fundraisers/mulch/orders/$orderId'
+import { Route as FundraisersMulchDonateThankYouRouteImport } from './routes/fundraisers/mulch/donate/thank-you'
 
 const LogoutRoute = LogoutRouteImport.update({
-  id: "/logout",
-  path: "/logout",
+  id: '/logout',
+  path: '/logout',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const LoginRoute = LoginRouteImport.update({
-  id: "/login",
-  path: "/login",
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const JoinRoute = JoinRouteImport.update({
-  id: "/join",
-  path: "/join",
+  id: '/join',
+  path: '/join',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AdminRoute = AdminRouteImport.update({
-  id: "/admin",
-  path: "/admin",
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
-  id: "/api/stripe-webhook",
-  path: "/api/stripe-webhook",
+  id: '/api/stripe-webhook',
+  path: '/api/stripe-webhook',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiHealthcheckRoute = ApiHealthcheckRouteImport.update({
-  id: "/api/healthcheck",
-  path: "/api/healthcheck",
+  id: '/api/healthcheck',
+  path: '/api/healthcheck',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const FundraisersMulchOrdersRoute = FundraisersMulchOrdersRouteImport.update({
-  id: "/fundraisers/mulch/orders",
-  path: "/fundraisers/mulch/orders",
+  id: '/fundraisers/mulch/orders',
+  path: '/fundraisers/mulch/orders',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const FundraisersMulchDonateRoute = FundraisersMulchDonateRouteImport.update({
-  id: "/fundraisers/mulch/donate",
-  path: "/fundraisers/mulch/donate",
+  id: '/fundraisers/mulch/donate',
+  path: '/fundraisers/mulch/donate',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const FundraisersMulchDonateIndexRoute =
   FundraisersMulchDonateIndexRouteImport.update({
-    id: "/",
-    path: "/",
+    id: '/',
+    path: '/',
     getParentRoute: () => FundraisersMulchDonateRoute,
-  } as any);
+  } as any)
 const FundraisersMulchOrdersNewRoute =
   FundraisersMulchOrdersNewRouteImport.update({
-    id: "/new",
-    path: "/new",
+    id: '/new',
+    path: '/new',
     getParentRoute: () => FundraisersMulchOrdersRoute,
-  } as any);
+  } as any)
 const FundraisersMulchOrdersOrderIdRoute =
   FundraisersMulchOrdersOrderIdRouteImport.update({
-    id: "/$orderId",
-    path: "/$orderId",
+    id: '/$orderId',
+    path: '/$orderId',
     getParentRoute: () => FundraisersMulchOrdersRoute,
-  } as any);
+  } as any)
 const FundraisersMulchDonateThankYouRoute =
   FundraisersMulchDonateThankYouRouteImport.update({
-    id: "/thank-you",
-    path: "/thank-you",
+    id: '/thank-you',
+    path: '/thank-you',
     getParentRoute: () => FundraisersMulchDonateRoute,
-  } as any);
+  } as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/admin": typeof AdminRoute;
-  "/join": typeof JoinRoute;
-  "/login": typeof LoginRoute;
-  "/logout": typeof LogoutRoute;
-  "/api/healthcheck": typeof ApiHealthcheckRoute;
-  "/api/stripe-webhook": typeof ApiStripeWebhookRoute;
-  "/fundraisers/mulch/donate": typeof FundraisersMulchDonateRouteWithChildren;
-  "/fundraisers/mulch/orders": typeof FundraisersMulchOrdersRouteWithChildren;
-  "/fundraisers/mulch/donate/thank-you": typeof FundraisersMulchDonateThankYouRoute;
-  "/fundraisers/mulch/orders/$orderId": typeof FundraisersMulchOrdersOrderIdRoute;
-  "/fundraisers/mulch/orders/new": typeof FundraisersMulchOrdersNewRoute;
-  "/fundraisers/mulch/donate/": typeof FundraisersMulchDonateIndexRoute;
+  '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/join': typeof JoinRoute
+  '/login': typeof LoginRoute
+  '/logout': typeof LogoutRoute
+  '/api/healthcheck': typeof ApiHealthcheckRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
+  '/fundraisers/mulch/donate': typeof FundraisersMulchDonateRouteWithChildren
+  '/fundraisers/mulch/orders': typeof FundraisersMulchOrdersRouteWithChildren
+  '/fundraisers/mulch/donate/thank-you': typeof FundraisersMulchDonateThankYouRoute
+  '/fundraisers/mulch/orders/$orderId': typeof FundraisersMulchOrdersOrderIdRoute
+  '/fundraisers/mulch/orders/new': typeof FundraisersMulchOrdersNewRoute
+  '/fundraisers/mulch/donate/': typeof FundraisersMulchDonateIndexRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/admin": typeof AdminRoute;
-  "/join": typeof JoinRoute;
-  "/login": typeof LoginRoute;
-  "/logout": typeof LogoutRoute;
-  "/api/healthcheck": typeof ApiHealthcheckRoute;
-  "/api/stripe-webhook": typeof ApiStripeWebhookRoute;
-  "/fundraisers/mulch/orders": typeof FundraisersMulchOrdersRouteWithChildren;
-  "/fundraisers/mulch/donate/thank-you": typeof FundraisersMulchDonateThankYouRoute;
-  "/fundraisers/mulch/orders/$orderId": typeof FundraisersMulchOrdersOrderIdRoute;
-  "/fundraisers/mulch/orders/new": typeof FundraisersMulchOrdersNewRoute;
-  "/fundraisers/mulch/donate": typeof FundraisersMulchDonateIndexRoute;
+  '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/join': typeof JoinRoute
+  '/login': typeof LoginRoute
+  '/logout': typeof LogoutRoute
+  '/api/healthcheck': typeof ApiHealthcheckRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
+  '/fundraisers/mulch/orders': typeof FundraisersMulchOrdersRouteWithChildren
+  '/fundraisers/mulch/donate/thank-you': typeof FundraisersMulchDonateThankYouRoute
+  '/fundraisers/mulch/orders/$orderId': typeof FundraisersMulchOrdersOrderIdRoute
+  '/fundraisers/mulch/orders/new': typeof FundraisersMulchOrdersNewRoute
+  '/fundraisers/mulch/donate': typeof FundraisersMulchDonateIndexRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/admin": typeof AdminRoute;
-  "/join": typeof JoinRoute;
-  "/login": typeof LoginRoute;
-  "/logout": typeof LogoutRoute;
-  "/api/healthcheck": typeof ApiHealthcheckRoute;
-  "/api/stripe-webhook": typeof ApiStripeWebhookRoute;
-  "/fundraisers/mulch/donate": typeof FundraisersMulchDonateRouteWithChildren;
-  "/fundraisers/mulch/orders": typeof FundraisersMulchOrdersRouteWithChildren;
-  "/fundraisers/mulch/donate/thank-you": typeof FundraisersMulchDonateThankYouRoute;
-  "/fundraisers/mulch/orders/$orderId": typeof FundraisersMulchOrdersOrderIdRoute;
-  "/fundraisers/mulch/orders/new": typeof FundraisersMulchOrdersNewRoute;
-  "/fundraisers/mulch/donate/": typeof FundraisersMulchDonateIndexRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/join': typeof JoinRoute
+  '/login': typeof LoginRoute
+  '/logout': typeof LogoutRoute
+  '/api/healthcheck': typeof ApiHealthcheckRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
+  '/fundraisers/mulch/donate': typeof FundraisersMulchDonateRouteWithChildren
+  '/fundraisers/mulch/orders': typeof FundraisersMulchOrdersRouteWithChildren
+  '/fundraisers/mulch/donate/thank-you': typeof FundraisersMulchDonateThankYouRoute
+  '/fundraisers/mulch/orders/$orderId': typeof FundraisersMulchOrdersOrderIdRoute
+  '/fundraisers/mulch/orders/new': typeof FundraisersMulchOrdersNewRoute
+  '/fundraisers/mulch/donate/': typeof FundraisersMulchDonateIndexRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/admin"
-    | "/join"
-    | "/login"
-    | "/logout"
-    | "/api/healthcheck"
-    | "/api/stripe-webhook"
-    | "/fundraisers/mulch/donate"
-    | "/fundraisers/mulch/orders"
-    | "/fundraisers/mulch/donate/thank-you"
-    | "/fundraisers/mulch/orders/$orderId"
-    | "/fundraisers/mulch/orders/new"
-    | "/fundraisers/mulch/donate/";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/admin'
+    | '/join'
+    | '/login'
+    | '/logout'
+    | '/api/healthcheck'
+    | '/api/stripe-webhook'
+    | '/fundraisers/mulch/donate'
+    | '/fundraisers/mulch/orders'
+    | '/fundraisers/mulch/donate/thank-you'
+    | '/fundraisers/mulch/orders/$orderId'
+    | '/fundraisers/mulch/orders/new'
+    | '/fundraisers/mulch/donate/'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/admin"
-    | "/join"
-    | "/login"
-    | "/logout"
-    | "/api/healthcheck"
-    | "/api/stripe-webhook"
-    | "/fundraisers/mulch/orders"
-    | "/fundraisers/mulch/donate/thank-you"
-    | "/fundraisers/mulch/orders/$orderId"
-    | "/fundraisers/mulch/orders/new"
-    | "/fundraisers/mulch/donate";
+    | '/'
+    | '/admin'
+    | '/join'
+    | '/login'
+    | '/logout'
+    | '/api/healthcheck'
+    | '/api/stripe-webhook'
+    | '/fundraisers/mulch/orders'
+    | '/fundraisers/mulch/donate/thank-you'
+    | '/fundraisers/mulch/orders/$orderId'
+    | '/fundraisers/mulch/orders/new'
+    | '/fundraisers/mulch/donate'
   id:
-    | "__root__"
-    | "/"
-    | "/admin"
-    | "/join"
-    | "/login"
-    | "/logout"
-    | "/api/healthcheck"
-    | "/api/stripe-webhook"
-    | "/fundraisers/mulch/donate"
-    | "/fundraisers/mulch/orders"
-    | "/fundraisers/mulch/donate/thank-you"
-    | "/fundraisers/mulch/orders/$orderId"
-    | "/fundraisers/mulch/orders/new"
-    | "/fundraisers/mulch/donate/";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/join'
+    | '/login'
+    | '/logout'
+    | '/api/healthcheck'
+    | '/api/stripe-webhook'
+    | '/fundraisers/mulch/donate'
+    | '/fundraisers/mulch/orders'
+    | '/fundraisers/mulch/donate/thank-you'
+    | '/fundraisers/mulch/orders/$orderId'
+    | '/fundraisers/mulch/orders/new'
+    | '/fundraisers/mulch/donate/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  AdminRoute: typeof AdminRoute;
-  JoinRoute: typeof JoinRoute;
-  LoginRoute: typeof LoginRoute;
-  LogoutRoute: typeof LogoutRoute;
-  ApiHealthcheckRoute: typeof ApiHealthcheckRoute;
-  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute;
-  FundraisersMulchDonateRoute: typeof FundraisersMulchDonateRouteWithChildren;
-  FundraisersMulchOrdersRoute: typeof FundraisersMulchOrdersRouteWithChildren;
+  IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  JoinRoute: typeof JoinRoute
+  LoginRoute: typeof LoginRoute
+  LogoutRoute: typeof LogoutRoute
+  ApiHealthcheckRoute: typeof ApiHealthcheckRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
+  FundraisersMulchDonateRoute: typeof FundraisersMulchDonateRouteWithChildren
+  FundraisersMulchOrdersRoute: typeof FundraisersMulchOrdersRouteWithChildren
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/logout": {
-      id: "/logout";
-      path: "/logout";
-      fullPath: "/logout";
-      preLoaderRoute: typeof LogoutRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/login": {
-      id: "/login";
-      path: "/login";
-      fullPath: "/login";
-      preLoaderRoute: typeof LoginRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/join": {
-      id: "/join";
-      path: "/join";
-      fullPath: "/join";
-      preLoaderRoute: typeof JoinRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/admin": {
-      id: "/admin";
-      path: "/admin";
-      fullPath: "/admin";
-      preLoaderRoute: typeof AdminRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/stripe-webhook": {
-      id: "/api/stripe-webhook";
-      path: "/api/stripe-webhook";
-      fullPath: "/api/stripe-webhook";
-      preLoaderRoute: typeof ApiStripeWebhookRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/healthcheck": {
-      id: "/api/healthcheck";
-      path: "/api/healthcheck";
-      fullPath: "/api/healthcheck";
-      preLoaderRoute: typeof ApiHealthcheckRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/fundraisers/mulch/orders": {
-      id: "/fundraisers/mulch/orders";
-      path: "/fundraisers/mulch/orders";
-      fullPath: "/fundraisers/mulch/orders";
-      preLoaderRoute: typeof FundraisersMulchOrdersRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/fundraisers/mulch/donate": {
-      id: "/fundraisers/mulch/donate";
-      path: "/fundraisers/mulch/donate";
-      fullPath: "/fundraisers/mulch/donate";
-      preLoaderRoute: typeof FundraisersMulchDonateRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/fundraisers/mulch/donate/": {
-      id: "/fundraisers/mulch/donate/";
-      path: "/";
-      fullPath: "/fundraisers/mulch/donate/";
-      preLoaderRoute: typeof FundraisersMulchDonateIndexRouteImport;
-      parentRoute: typeof FundraisersMulchDonateRoute;
-    };
-    "/fundraisers/mulch/orders/new": {
-      id: "/fundraisers/mulch/orders/new";
-      path: "/new";
-      fullPath: "/fundraisers/mulch/orders/new";
-      preLoaderRoute: typeof FundraisersMulchOrdersNewRouteImport;
-      parentRoute: typeof FundraisersMulchOrdersRoute;
-    };
-    "/fundraisers/mulch/orders/$orderId": {
-      id: "/fundraisers/mulch/orders/$orderId";
-      path: "/$orderId";
-      fullPath: "/fundraisers/mulch/orders/$orderId";
-      preLoaderRoute: typeof FundraisersMulchOrdersOrderIdRouteImport;
-      parentRoute: typeof FundraisersMulchOrdersRoute;
-    };
-    "/fundraisers/mulch/donate/thank-you": {
-      id: "/fundraisers/mulch/donate/thank-you";
-      path: "/thank-you";
-      fullPath: "/fundraisers/mulch/donate/thank-you";
-      preLoaderRoute: typeof FundraisersMulchDonateThankYouRouteImport;
-      parentRoute: typeof FundraisersMulchDonateRoute;
-    };
+    '/logout': {
+      id: '/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof LogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join': {
+      id: '/join'
+      path: '/join'
+      fullPath: '/join'
+      preLoaderRoute: typeof JoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe-webhook': {
+      id: '/api/stripe-webhook'
+      path: '/api/stripe-webhook'
+      fullPath: '/api/stripe-webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/healthcheck': {
+      id: '/api/healthcheck'
+      path: '/api/healthcheck'
+      fullPath: '/api/healthcheck'
+      preLoaderRoute: typeof ApiHealthcheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fundraisers/mulch/orders': {
+      id: '/fundraisers/mulch/orders'
+      path: '/fundraisers/mulch/orders'
+      fullPath: '/fundraisers/mulch/orders'
+      preLoaderRoute: typeof FundraisersMulchOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fundraisers/mulch/donate': {
+      id: '/fundraisers/mulch/donate'
+      path: '/fundraisers/mulch/donate'
+      fullPath: '/fundraisers/mulch/donate'
+      preLoaderRoute: typeof FundraisersMulchDonateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fundraisers/mulch/donate/': {
+      id: '/fundraisers/mulch/donate/'
+      path: '/'
+      fullPath: '/fundraisers/mulch/donate/'
+      preLoaderRoute: typeof FundraisersMulchDonateIndexRouteImport
+      parentRoute: typeof FundraisersMulchDonateRoute
+    }
+    '/fundraisers/mulch/orders/new': {
+      id: '/fundraisers/mulch/orders/new'
+      path: '/new'
+      fullPath: '/fundraisers/mulch/orders/new'
+      preLoaderRoute: typeof FundraisersMulchOrdersNewRouteImport
+      parentRoute: typeof FundraisersMulchOrdersRoute
+    }
+    '/fundraisers/mulch/orders/$orderId': {
+      id: '/fundraisers/mulch/orders/$orderId'
+      path: '/$orderId'
+      fullPath: '/fundraisers/mulch/orders/$orderId'
+      preLoaderRoute: typeof FundraisersMulchOrdersOrderIdRouteImport
+      parentRoute: typeof FundraisersMulchOrdersRoute
+    }
+    '/fundraisers/mulch/donate/thank-you': {
+      id: '/fundraisers/mulch/donate/thank-you'
+      path: '/thank-you'
+      fullPath: '/fundraisers/mulch/donate/thank-you'
+      preLoaderRoute: typeof FundraisersMulchDonateThankYouRouteImport
+      parentRoute: typeof FundraisersMulchDonateRoute
+    }
   }
 }
 
 interface FundraisersMulchDonateRouteChildren {
-  FundraisersMulchDonateThankYouRoute: typeof FundraisersMulchDonateThankYouRoute;
-  FundraisersMulchDonateIndexRoute: typeof FundraisersMulchDonateIndexRoute;
+  FundraisersMulchDonateThankYouRoute: typeof FundraisersMulchDonateThankYouRoute
+  FundraisersMulchDonateIndexRoute: typeof FundraisersMulchDonateIndexRoute
 }
 
 const FundraisersMulchDonateRouteChildren: FundraisersMulchDonateRouteChildren =
   {
     FundraisersMulchDonateThankYouRoute: FundraisersMulchDonateThankYouRoute,
     FundraisersMulchDonateIndexRoute: FundraisersMulchDonateIndexRoute,
-  };
+  }
 
 const FundraisersMulchDonateRouteWithChildren =
   FundraisersMulchDonateRoute._addFileChildren(
     FundraisersMulchDonateRouteChildren,
-  );
+  )
 
 interface FundraisersMulchOrdersRouteChildren {
-  FundraisersMulchOrdersOrderIdRoute: typeof FundraisersMulchOrdersOrderIdRoute;
-  FundraisersMulchOrdersNewRoute: typeof FundraisersMulchOrdersNewRoute;
+  FundraisersMulchOrdersOrderIdRoute: typeof FundraisersMulchOrdersOrderIdRoute
+  FundraisersMulchOrdersNewRoute: typeof FundraisersMulchOrdersNewRoute
 }
 
 const FundraisersMulchOrdersRouteChildren: FundraisersMulchOrdersRouteChildren =
   {
     FundraisersMulchOrdersOrderIdRoute: FundraisersMulchOrdersOrderIdRoute,
     FundraisersMulchOrdersNewRoute: FundraisersMulchOrdersNewRoute,
-  };
+  }
 
 const FundraisersMulchOrdersRouteWithChildren =
   FundraisersMulchOrdersRoute._addFileChildren(
     FundraisersMulchOrdersRouteChildren,
-  );
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -335,16 +335,16 @@ const rootRouteChildren: RootRouteChildren = {
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   FundraisersMulchDonateRoute: FundraisersMulchDonateRouteWithChildren,
   FundraisersMulchOrdersRoute: FundraisersMulchOrdersRouteWithChildren,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from "./router.tsx";
-import type { createStart } from "@tanstack/react-start";
-declare module "@tanstack/react-start" {
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
   }
 }
