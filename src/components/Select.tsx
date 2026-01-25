@@ -2,8 +2,10 @@ import type { HTMLProps } from "react";
 import { forwardRef } from "react";
 import { Input } from "./Input";
 
-interface SelectProps
-  extends Omit<HTMLProps<HTMLSelectElement>, "ref" | "label"> {
+interface SelectProps extends Omit<
+  HTMLProps<HTMLSelectElement>,
+  "ref" | "label"
+> {
   id: string;
   label: string;
   error: string | null | undefined;

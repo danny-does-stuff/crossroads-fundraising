@@ -37,11 +37,11 @@ export async function handleCheckoutCompleted(
       stripePaymentIntentId:
         typeof session.payment_intent === "string"
           ? session.payment_intent
-          : session.payment_intent?.id ?? null,
+          : (session.payment_intent?.id ?? null),
       stripeCustomerId:
         typeof session.customer === "string"
           ? session.customer
-          : session.customer?.id ?? null,
+          : (session.customer?.id ?? null),
       donorEmail: session.customer_email || donorEmail || null,
       donorGivenName:
         session.customer_details?.name?.split(" ")[0] || donorGivenName || null,
@@ -58,11 +58,11 @@ export async function handleCheckoutCompleted(
       stripePaymentIntentId:
         typeof session.payment_intent === "string"
           ? session.payment_intent
-          : session.payment_intent?.id ?? null,
+          : (session.payment_intent?.id ?? null),
       stripeCustomerId:
         typeof session.customer === "string"
           ? session.customer
-          : session.customer?.id ?? null,
+          : (session.customer?.id ?? null),
     });
   } else {
     console.warn("Unknown checkout session type:", type);

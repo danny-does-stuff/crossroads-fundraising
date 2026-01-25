@@ -1,7 +1,1 @@
-node_modules
-.output
-prisma/generated
-coverage
-src/routeTree.gen.ts
-
-.env
+package-lock.json

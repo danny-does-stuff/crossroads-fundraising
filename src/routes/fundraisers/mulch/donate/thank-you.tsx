@@ -32,11 +32,11 @@ const verifyDonationFn = createServerFn()
         stripePaymentIntentId:
           typeof session.payment_intent === "string"
             ? session.payment_intent
-            : session.payment_intent?.id ?? null,
+            : (session.payment_intent?.id ?? null),
         stripeCustomerId:
           typeof session.customer === "string"
             ? session.customer
-            : session.customer?.id ?? null,
+            : (session.customer?.id ?? null),
         donorEmail:
           session.customer_email || session.metadata?.donorEmail || null,
         donorGivenName:
