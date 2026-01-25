@@ -1,12 +1,25 @@
 node_modules
 
+# TanStack Start / Vite build output
+/.vinxi
+/.output
+
+# Legacy Remix build output (can be removed)
 /build
 /public/build
+
 .env
 
 /cypress/screenshots
 /cypress/videos
 /prisma/data.db
 /prisma/data.db-journal
+/prisma/generated
 
-/app/styles/tailwind.css
+/src/styles/tailwind.css
+
+# tests
+/coverage
+
+# AI agents
+/.claude

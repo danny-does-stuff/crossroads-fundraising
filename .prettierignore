@@ -1,7 +1,2 @@
-node_modules
-
-/build
-/public/build
-.env
-
-/app/styles/tailwind.css
+package-lock.json
+src/routeTree.gen.ts

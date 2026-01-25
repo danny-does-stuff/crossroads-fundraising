@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       /**
@@ -49,7 +50,7 @@ function login({
 } = {}) {
   cy.then(() => ({ email })).as("user");
   cy.exec(
-    `npx tsx --require tsconfig-paths/register ./cypress/support/create-user.ts "${email}"`
+    `npx tsx --require tsconfig-paths/register ./cypress/support/create-user.ts "${email}"`,
   ).then(({ stdout }) => {
     const cookieValue = stdout
       .replace(/.*<cookie>(?<cookieValue>.*)<\/cookie>.*/s, "$<cookieValue>")
@@ -75,7 +76,7 @@ function cleanupUser({ email }: { email?: string } = {}) {
 
 function deleteUsersByEmail(email: string) {
   cy.exec(
-    `npx tsx --require tsconfig-paths/register ./cypress/support/delete-user.ts "${email}"`
+    `npx tsx --require tsconfig-paths/register ./cypress/support/delete-user.ts "${email}"`,
   );
   cy.clearCookie("__session");
 }
