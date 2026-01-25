@@ -25,7 +25,7 @@ const joinFn = createServerFn()
       email: z.string(),
       password: z.string(),
       redirectTo: z.string().optional(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const { email, password, redirectTo } = data;

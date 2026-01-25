@@ -43,7 +43,7 @@ type OrderPaymentUpdateFields = Partial<
 
 export function updateOrderById(
   orderId: Order["id"],
-  order: OrderPaymentUpdateFields
+  order: OrderPaymentUpdateFields,
 ): Promise<Order> {
   return prisma.mulchOrder.update({
     where: { id: orderId },
@@ -57,7 +57,7 @@ export function updateOrderById(
  */
 export function updateOrderByStripeSession(
   stripeSessionId: string,
-  order: Omit<OrderPaymentUpdateFields, "stripeSessionId">
+  order: Omit<OrderPaymentUpdateFields, "stripeSessionId">,
 ): Promise<Order> {
   return prisma.mulchOrder.update({
     where: { stripeSessionId },
@@ -121,9 +121,9 @@ export async function createOrder({
     data: {
       ...order,
       customer: {
-        ...(existingCustomer
-          ? { connect: { id: existingCustomer.id } }
-          : { create: customer }),
+        ...(existingCustomer ?
+          { connect: { id: existingCustomer.id } }
+        : { create: customer }),
       },
     },
   });

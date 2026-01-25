@@ -14,7 +14,7 @@ export type UserInSession = Pick<User, "id" | "email"> & {
 };
 
 export async function getUserById(
-  id: User["id"]
+  id: User["id"],
 ): Promise<UserInSession | null> {
   return prisma.user.findUnique({
     where: { id },
@@ -58,7 +58,7 @@ export async function deleteUsersByEmail(email: User["email"]) {
 
 export async function verifyLogin(
   email: User["email"],
-  password: Password["hash"]
+  password: Password["hash"],
 ) {
   const userWithPassword = await prisma.user.findUnique({
     where: { email },
@@ -78,7 +78,7 @@ export async function verifyLogin(
 
   const isValid = await bcrypt.compare(
     password,
-    userWithPassword.password.hash
+    userWithPassword.password.hash,
   );
 
   if (!isValid) {

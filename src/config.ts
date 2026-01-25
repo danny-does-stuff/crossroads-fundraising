@@ -21,7 +21,7 @@ function getEnvNumber(key: string): number {
   const parsed = Number(value);
   if (isNaN(parsed)) {
     throw new Error(
-      `Environment variable ${key} must be a valid number, got: ${value}`
+      `Environment variable ${key} must be a valid number, got: ${value}`,
     );
   }
   return parsed;
@@ -32,7 +32,7 @@ function getEnvBoolean(key: string): boolean {
   const lowercase = value.toLowerCase();
   if (lowercase !== "true" && lowercase !== "false") {
     throw new Error(
-      `Environment variable ${key} must be 'true' or 'false', got: ${value}`
+      `Environment variable ${key} must be 'true' or 'false', got: ${value}`,
     );
   }
   return lowercase === "true";

@@ -154,9 +154,9 @@ function DonatePage() {
               disabled={isSubmitting}
               className="w-full py-4 text-lg"
             >
-              {isSubmitting
-                ? "Redirecting to checkout..."
-                : `Donate $${numericAmount.toFixed(2)}`}
+              {isSubmitting ?
+                "Redirecting to checkout..."
+              : `Donate $${numericAmount.toFixed(2)}`}
             </Button>
             <p className="mt-2 text-center text-sm text-gray-500">
               You&apos;ll be redirected to Stripe&apos;s secure checkout

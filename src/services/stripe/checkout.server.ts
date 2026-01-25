@@ -80,9 +80,9 @@ export async function createOrderCheckoutSession({
 }: OrderCheckoutParams): Promise<Stripe.Checkout.Session> {
   const colorLabel = color[0] + color.slice(1).toLowerCase();
   const serviceDescription =
-    orderType === "SPREAD"
-      ? "plus mulch spreading service"
-      : "delivered to your house, no spreading service";
+    orderType === "SPREAD" ?
+      "plus mulch spreading service"
+    : "delivered to your house, no spreading service";
 
   return stripe.checkout.sessions.create({
     mode: "payment",
@@ -116,7 +116,7 @@ export async function createOrderCheckoutSession({
  * Retrieves a Stripe Checkout session by ID.
  */
 export async function getCheckoutSession(
-  sessionId: string
+  sessionId: string,
 ): Promise<Stripe.Checkout.Session> {
   return stripe.checkout.sessions.retrieve(sessionId, {
     expand: ["customer_details", "payment_intent"],
@@ -128,7 +128,7 @@ export async function getCheckoutSession(
  * Returns the session if payment is complete, null otherwise.
  */
 export async function verifyCheckoutSessionPayment(
-  sessionId: string
+  sessionId: string,
 ): Promise<Stripe.Checkout.Session | null> {
   try {
     const session = await getCheckoutSession(sessionId);

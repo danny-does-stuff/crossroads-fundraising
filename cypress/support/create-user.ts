@@ -44,7 +44,7 @@ async function createAndLogin(email: string) {
 <cookie>
   ${parsedCookie.__session}
 </cookie>
-  `.trim()
+  `.trim(),
   );
 }
 

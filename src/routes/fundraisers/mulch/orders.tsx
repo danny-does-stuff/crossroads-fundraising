@@ -15,8 +15,9 @@ function OrdersLayout() {
   const params = useParams({ strict: false }) as { orderId?: string };
   const orderId = params.orderId;
 
-  const image = orderId
-    ? {
+  const image =
+    orderId ?
+      {
         src: wardConfig.orderConfirmationImage,
         alt: wardConfig.orderConfirmationImageAlt,
       }
@@ -82,7 +83,7 @@ function OrdersLayout() {
           month: "long",
           day: "numeric",
           year: "numeric",
-        }
+        },
       );
 
       return (
@@ -132,13 +133,11 @@ function OrdersLayout() {
       <HeroImage {...image} />
 
       <div className="p-6 pt-4">
-        {wardConfig.acceptingMulchOrders ? (
+        {wardConfig.acceptingMulchOrders ?
           <MulchPrepContext.Provider value={mulchPrepContent}>
             <Outlet />
           </MulchPrepContext.Provider>
-        ) : (
-          getPlaceholderMessage()
-        )}
+        : getPlaceholderMessage()}
       </div>
     </main>
   );

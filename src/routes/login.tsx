@@ -26,7 +26,7 @@ const loginFn = createServerFn()
       password: z.string(),
       redirectTo: z.string().optional(),
       remember: z.boolean().optional(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const { email, password, redirectTo, remember } = data;

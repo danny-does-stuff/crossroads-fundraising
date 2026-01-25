@@ -8,7 +8,7 @@ import { updateOrderById } from "~/models/mulchOrder.server";
  */
 export function constructWebhookEvent(
   rawBody: string,
-  signature: string
+  signature: string,
 ): Stripe.Event {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -24,7 +24,7 @@ export function constructWebhookEvent(
  * This is the source of truth for payment completion.
  */
 export async function handleCheckoutCompleted(
-  session: Stripe.Checkout.Session
+  session: Stripe.Checkout.Session,
 ): Promise<void> {
   const { type, orderId, donorEmail, donorGivenName, donorSurname } =
     session.metadata ?? {};
@@ -35,13 +35,13 @@ export async function handleCheckoutCompleted(
       amount: (session.amount_total ?? 0) / 100,
       stripeSessionId: session.id,
       stripePaymentIntentId:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : (session.payment_intent?.id ?? null),
+        typeof session.payment_intent === "string" ?
+          session.payment_intent
+        : (session.payment_intent?.id ?? null),
       stripeCustomerId:
-        typeof session.customer === "string"
-          ? session.customer
-          : (session.customer?.id ?? null),
+        typeof session.customer === "string" ?
+          session.customer
+        : (session.customer?.id ?? null),
       donorEmail: session.customer_email || donorEmail || null,
       donorGivenName:
         session.customer_details?.name?.split(" ")[0] || donorGivenName || null,
@@ -56,13 +56,13 @@ export async function handleCheckoutCompleted(
       status: "PAID",
       stripeSessionId: session.id,
       stripePaymentIntentId:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : (session.payment_intent?.id ?? null),
+        typeof session.payment_intent === "string" ?
+          session.payment_intent
+        : (session.payment_intent?.id ?? null),
       stripeCustomerId:
-        typeof session.customer === "string"
-          ? session.customer
-          : (session.customer?.id ?? null),
+        typeof session.customer === "string" ?
+          session.customer
+        : (session.customer?.id ?? null),
     });
   } else {
     console.warn("Unknown checkout session type:", type);

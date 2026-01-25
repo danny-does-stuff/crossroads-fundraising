@@ -49,7 +49,7 @@ const createOrderFn = createServerFn()
         {
           path: ["referralSourceDetails"],
           message: "Please specify how you heard about us",
-        }
+        },
       );
 
     const result = orderSchema.safeParse(data);
@@ -67,9 +67,8 @@ const createOrderFn = createServerFn()
 
     const { shouldSpread, quantity, color, note, neighborhood, street } = data;
 
-    const pricePerUnit = shouldSpread
-      ? config.mulchPriceSpread
-      : config.mulchPriceDelivery;
+    const pricePerUnit =
+      shouldSpread ? config.mulchPriceSpread : config.mulchPriceDelivery;
 
     const order = await createOrder({
       quantity,
@@ -123,9 +122,8 @@ function NewOrderPage() {
 
   const [quantity, setQuantity] = React.useState<string>("1");
   const [shouldSpread, setShouldSpread] = React.useState(true);
-  const pricePerUnit = shouldSpread
-    ? wardConfig.mulchPriceSpread
-    : wardConfig.mulchPriceDelivery;
+  const pricePerUnit =
+    shouldSpread ? wardConfig.mulchPriceSpread : wardConfig.mulchPriceDelivery;
   const spreadPriceDifference =
     wardConfig.mulchPriceSpread - wardConfig.mulchPriceDelivery;
 
