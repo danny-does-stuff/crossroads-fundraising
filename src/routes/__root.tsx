@@ -9,19 +9,15 @@ import {
 
 import appCss from "../styles/app.css?url";
 import type { UserInSession } from "~/models/user.server";
-import { WardConfig } from "~/config";
+import { getWardConfig } from "~/config";
 
 export interface RouterContext {
   user: UserInSession | null;
-  ENV: {
-    STRIPE_PUBLISHABLE_KEY: string | undefined;
-  };
-  wardConfig: WardConfig;
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  head: ({ matches }) => {
-    const wardConfig = matches[0].context.wardConfig;
+  head: async () => {
+    const wardConfig = await getWardConfig();
     return {
       meta: [
         { charSet: "utf-8" },
@@ -39,7 +35,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       links: [{ rel: "stylesheet", href: appCss }],
     };
   },
+  loader: async () => {
+    const wardConfig = await getWardConfig();
+    return { wardConfig };
+  },
   component: RootComponent,
+  notFoundComponent: () => <div>Not Found</div>,
 });
 
 function RootComponent() {
@@ -51,8 +52,6 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
-  const { ENV } = Route.useRouteContext();
-
   return (
     <html lang="en" className="h-full">
       <head>
@@ -60,11 +59,6 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       </head>
       <body className="h-full">
         {children}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(ENV)}`,
-          }}
-        />
         <Scripts />
       </body>
     </html>

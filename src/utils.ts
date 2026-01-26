@@ -48,18 +48,10 @@ export function useUser(): UserInSession {
   return maybeUser;
 }
 
-/**
- * Hook to get ENV variables from router context.
- */
-export function useEnv() {
-  const context = useRouteContext({ from: "__root__" });
-  return context.ENV;
-}
-
 export function validateEmail(email: unknown): email is string {
   return typeof email === "string" && email.length > 3 && email.includes("@");
 }
 
 export function useWardConfig() {
-  return getRouteApi("__root__").useRouteContext().wardConfig;
+  return getRouteApi("__root__").useLoaderData().wardConfig;
 }

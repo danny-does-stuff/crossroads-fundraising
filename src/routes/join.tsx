@@ -15,7 +15,6 @@ const checkAuth = createServerFn().handler(async () => {
   if (userId) {
     throw redirect({ to: "/" });
   }
-  return {};
 });
 
 // Server function to handle registration
