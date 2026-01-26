@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
 import { HeroImage } from "~/components/HeroImage";
-import { ACCEPTING_MULCH_ORDERS, MULCH_ORDERS_START_DATE } from "~/constants";
 import { createContext, useContext, type ReactNode } from "react";
+import { useWardConfig } from "~/utils";
 
 // Create context for mulch prep content
 const MulchPrepContext = createContext<ReactNode | null>(null);
@@ -11,17 +11,19 @@ export const Route = createFileRoute("/fundraisers/mulch/orders")({
 });
 
 function OrdersLayout() {
+  const wardConfig = useWardConfig();
   const params = useParams({ strict: false }) as { orderId?: string };
   const orderId = params.orderId;
 
-  const image = orderId
-    ? {
-        src: "/assets/youth_jumping.png",
-        alt: "Crossroads Youth Jumping for Joy",
+  const image =
+    orderId ?
+      {
+        src: wardConfig.orderConfirmationImage,
+        alt: wardConfig.orderConfirmationImageAlt,
       }
     : {
-        src: "/assets/youth_with_completed_mulch.png",
-        alt: "Crossroads Youth with Beautifully Spread Mulch",
+        src: wardConfig.orderFormImage,
+        alt: wardConfig.orderFormImageAlt,
       };
 
   const mulchPrepContent = (
@@ -63,7 +65,7 @@ function OrdersLayout() {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth(); // 0-11, where 0 is January
-    const startDate = new Date(MULCH_ORDERS_START_DATE);
+    const startDate = new Date(wardConfig.ordersStartDate);
     let startYear = startDate.getFullYear();
 
     // If the start date is in a past year and we're in the spring period (Jan-Mar),
@@ -81,7 +83,7 @@ function OrdersLayout() {
           month: "long",
           day: "numeric",
           year: "numeric",
-        }
+        },
       );
 
       return (
@@ -103,7 +105,7 @@ function OrdersLayout() {
           <h2 className="text-2xl font-medium">Mulch Orders Starting Soon!</h2>
           <p>
             Mulch orders for {startYear} will be starting soon. Check back on{" "}
-            {MULCH_ORDERS_START_DATE} to place your order!
+            {wardConfig.ordersStartDate} to place your order!
           </p>
           <p>We look forward to serving you again this year.</p>
         </div>
@@ -131,13 +133,11 @@ function OrdersLayout() {
       <HeroImage {...image} />
 
       <div className="p-6 pt-4">
-        {ACCEPTING_MULCH_ORDERS ? (
+        {wardConfig.acceptingMulchOrders ?
           <MulchPrepContext.Provider value={mulchPrepContent}>
             <Outlet />
           </MulchPrepContext.Provider>
-        ) : (
-          getPlaceholderMessage()
-        )}
+        : getPlaceholderMessage()}
       </div>
     </main>
   );

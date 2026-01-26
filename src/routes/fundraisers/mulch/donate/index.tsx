@@ -3,9 +3,9 @@ import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import z from "zod";
 import { Input } from "~/components/Input";
-import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
 import { createDonationCheckoutSession } from "~/services/stripe/checkout.server";
+import { useWardConfig } from "~/utils";
 
 const PRESET_AMOUNTS = [
   { label: "$20", value: "20" },
@@ -44,6 +44,7 @@ export const Route = createFileRoute("/fundraisers/mulch/donate/")({
 });
 
 function DonatePage() {
+  const wardConfig = useWardConfig();
   const [amount, setAmount] = useState("");
   const [selectedAmount, setSelectedAmount] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -153,9 +154,9 @@ function DonatePage() {
               disabled={isSubmitting}
               className="w-full py-4 text-lg"
             >
-              {isSubmitting
-                ? "Redirecting to checkout..."
-                : `Donate $${numericAmount.toFixed(2)}`}
+              {isSubmitting ?
+                "Redirecting to checkout..."
+              : `Donate $${numericAmount.toFixed(2)}`}
             </Button>
             <p className="mt-2 text-center text-sm text-gray-500">
               You&apos;ll be redirected to Stripe&apos;s secure checkout
@@ -170,8 +171,11 @@ function DonatePage() {
 
       <p className="mt-4 text-sm text-gray-600">
         If you have any questions about donations, please contact us at{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`} className="text-blue-500 underline">
-          {CONTACT_EMAIL}
+        <a
+          href={`mailto:${wardConfig.contactEmail}`}
+          className="text-blue-500 underline"
+        >
+          {wardConfig.contactEmail}
         </a>
       </p>
     </div>

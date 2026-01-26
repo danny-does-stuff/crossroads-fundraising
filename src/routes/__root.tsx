@@ -9,30 +9,38 @@ import {
 
 import appCss from "../styles/app.css?url";
 import type { UserInSession } from "~/models/user.server";
+import { getWardConfig } from "~/config";
 
 export interface RouterContext {
   user: UserInSession | null;
-  ENV: {
-    STRIPE_PUBLISHABLE_KEY: string | undefined;
-  };
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Crossroads Youth Mulch Fundraiser" },
-      {
-        name: "description",
-        content:
-          "Welcome to the Crossroads Youth Group Mulch Sale fundraiser! We are thrilled to be launching this campaign to raise funds for our group's various programs and activities.",
-      },
-      { property: "og:image", content: "/assets/mulch_wagon.jpg" },
-    ],
-    links: [{ rel: "stylesheet", href: appCss }],
-  }),
+  head: async () => {
+    const wardConfig = await getWardConfig();
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: `${wardConfig.wardName} Youth Mulch Fundraiser` },
+        {
+          name: "description",
+          content: `Welcome to the ${wardConfig.wardName} Youth Group Mulch Sale fundraiser! We are thrilled to be launching this campaign to raise funds for our group's various programs and activities.`,
+        },
+        {
+          property: "og:image",
+          content: wardConfig.ogImage,
+        },
+      ],
+      links: [{ rel: "stylesheet", href: appCss }],
+    };
+  },
+  loader: async () => {
+    const wardConfig = await getWardConfig();
+    return { wardConfig };
+  },
   component: RootComponent,
+  notFoundComponent: () => <div>Not Found</div>,
 });
 
 function RootComponent() {
@@ -44,8 +52,6 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
-  const { ENV } = Route.useRouteContext();
-
   return (
     <html lang="en" className="h-full">
       <head>
@@ -53,11 +59,6 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       </head>
       <body className="h-full">
         {children}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(ENV)}`,
-          }}
-        />
         <Scripts />
       </body>
     </html>

@@ -18,12 +18,9 @@ import {
 } from "~/models/mulchOrder.server";
 import { requireUser } from "~/session.server";
 import { prisma } from "~/db.server";
-import {
-  ReferralSource,
-  REFERRAL_SOURCE_LABELS,
-  Neighborhood,
-  CONTACT_EMAIL,
-} from "~/constants";
+import { ReferralSource, REFERRAL_SOURCE_LABELS } from "~/constants";
+import type { WardConfig } from "~/config";
+import { useWardConfig } from "~/utils";
 
 // Server function to load admin data
 const loadAdminData = createServerFn()
@@ -91,54 +88,76 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 
 function getTotalGrossIncome(
   orders: CompleteOrder[],
-  onlyPaidOrFulfilled: boolean = true
+  onlyPaidOrFulfilled: boolean = true,
 ) {
   return orders.reduce(
     (total, order) =>
       total +
-      (!onlyPaidOrFulfilled ||
-      order.status === "PAID" ||
-      order.status === "FULFILLED"
-        ? getOrderGrossIncome(order)
-        : 0),
-    0
+      ((
+        !onlyPaidOrFulfilled ||
+        order.status === "PAID" ||
+        order.status === "FULFILLED"
+      ) ?
+        getOrderGrossIncome(order)
+      : 0),
+    0,
   );
 }
 
 function formatReferralSource(
   referralSource: string | null,
-  referralSourceDetails: string | null
+  referralSourceDetails: string | null,
 ): string {
   if (referralSource === ReferralSource.Other) {
     return (
       referralSourceDetails || REFERRAL_SOURCE_LABELS[ReferralSource.Other]
     );
   }
-  return referralSource
-    ? REFERRAL_SOURCE_LABELS[referralSource as ReferralSource]
+  return referralSource ?
+      REFERRAL_SOURCE_LABELS[referralSource as ReferralSource]
     : "";
 }
 
-function getEmailContent(orderId: string) {
+function getEmailContent(
+  orderId: string,
+  config: {
+    contactEmail: string;
+    wardName: string;
+    deliveryDate1: string;
+    deliveryDate2: string;
+    mulchPriceDelivery: number;
+    mulchPriceSpread: number;
+  },
+) {
   const orderUrl = `${
     typeof window !== "undefined" ? window.location.origin : ""
   }/fundraisers/mulch/orders/${orderId}`;
+
+  const spreadPriceDiff = config.mulchPriceSpread - config.mulchPriceDelivery;
 
   return `Hello!
 
 We noticed you started your mulch order but didn't get a chance to finish—there's still time, but orders are closing soon!
 
-Secure your high-quality mulch for $7 a bag, with optional spreading for just $1 more. The delivery and spreading service will be done by our hardworking youth on March 16 or March 23. Your purchase directly supports youth summer camps and service opportunities for our youth!
+Secure your high-quality mulch for $${config.mulchPriceDelivery} a bag, with optional spreading for just $${spreadPriceDiff} more. The delivery and spreading service will be done by our hardworking youth on ${config.deliveryDate1} or ${config.deliveryDate2}. Your purchase directly supports youth summer camps and service opportunities for our youth!
 
 Click here to complete your order: ${orderUrl}
 
-Thank you for your support! If you have any questions, feel free to reach out at ${CONTACT_EMAIL}.
+Thank you for your support! If you have any questions, feel free to reach out at ${config.contactEmail}.
 
 Have a wonderful day!
-Crossroads Ward Youth Program`;
+${config.wardName} Youth Program`;
 }
 
-function getConfirmationEmailContent(order: CompleteOrder) {
+function getConfirmationEmailContent(
+  order: CompleteOrder,
+  config: {
+    contactEmail: string;
+    wardName: string;
+    deliveryDate1: string;
+    deliveryDate2: string;
+  },
+) {
   return `Hello ${order.customer.name},
 
 Thank you for your order! We're excited to deliver your mulch and appreciate your support of our youth fundraiser. Below are the details of your order:
@@ -146,27 +165,32 @@ Thank you for your order! We're excited to deliver your mulch and appreciate you
 Number of Bags: ${order.quantity}
 Mulch Color: ${order.color}
 Spreading Service: ${order.orderType === "SPREAD" ? "Yes" : "No"}
-Delivery ${order.orderType === "SPREAD" ? "& Spreading " : ""}Date: March DATE
+Delivery ${order.orderType === "SPREAD" ? "& Spreading " : ""}Date: ${
+    config.deliveryDate1
+  } or ${config.deliveryDate2}
 
 You can find the complete details of your order here: ${
-    typeof window !== "undefined"
-      ? `${window.location.origin}/fundraisers/mulch/orders/${order.id}`
-      : ""
+    typeof window !== "undefined" ?
+      `${window.location.origin}/fundraisers/mulch/orders/${order.id}`
+    : ""
   }
 
-If you have any questions, please reply to this email or contact us at ${CONTACT_EMAIL}.
+If you have any questions, please reply to this email or contact us at ${
+    config.contactEmail
+  }.
 
 Thanks again for supporting our youth—your purchase makes a difference!
 
-Crossroads Ward Youth Program`;
+${config.wardName} Youth Program`;
 }
 
 function AdminPage() {
   const { orders: initialOrders, year } = Route.useLoaderData();
+  const wardConfig = useWardConfig();
   const [orders, setOrders] = useState(initialOrders);
 
   const paidOrders = orders.filter(
-    (o) => o.status === "PAID" || o.status === "FULFILLED"
+    (o) => o.status === "PAID" || o.status === "FULFILLED",
   );
 
   const neighborhoodStats = (() => {
@@ -200,10 +224,10 @@ function AdminPage() {
           totalRevenue: number;
           spreadBags: number;
         }
-      >
+      >,
     );
 
-    return Object.values(Neighborhood).map((neighborhood) => ({
+    return wardConfig.neighborhoods.map((neighborhood) => ({
       neighborhood,
       totalOrders: statsMap[neighborhood]?.totalOrders || 0,
       totalBags: statsMap[neighborhood]?.totalBags || 0,
@@ -235,16 +259,16 @@ function AdminPage() {
             {paidOrders.reduce(
               (total, order) =>
                 total + (order.orderType === "SPREAD" ? order.quantity : 0),
-              0
+              0,
             )}
           </span>
           <hr />
           Avg. Order:
           <span>
             {currencyFormatter.format(
-              paidOrders.length
-                ? getTotalGrossIncome(paidOrders) / paidOrders.length
-                : 0
+              paidOrders.length ?
+                getTotalGrossIncome(paidOrders) / paidOrders.length
+              : 0,
             )}
           </span>
         </RoundedBorder>
@@ -291,7 +315,11 @@ function AdminPage() {
           Download CSV
         </button>
       </div>
-      <OrdersTable orders={orders} onOrdersUpdate={setOrders} />
+      <OrdersTable
+        orders={orders}
+        onOrdersUpdate={setOrders}
+        wardConfig={wardConfig}
+      />
     </div>
   );
 }
@@ -313,9 +341,11 @@ function RoundedBorder({
 function OrdersTable({
   orders,
   onOrdersUpdate,
+  wardConfig,
 }: {
   orders: CompleteOrder[];
   onOrdersUpdate: (orders: CompleteOrder[]) => void;
+  wardConfig: WardConfig;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -377,6 +407,7 @@ function OrdersTable({
             value={getValue<string>()}
             row={row}
             onOrdersUpdate={onOrdersUpdate}
+            wardConfig={wardConfig}
           />
         ),
       },
@@ -436,7 +467,7 @@ function OrdersTable({
         cell: ({ row }) => {
           return formatReferralSource(
             row.original.referralSource,
-            row.original.referralSourceDetails
+            row.original.referralSourceDetails,
           );
         },
       },
@@ -445,7 +476,7 @@ function OrdersTable({
         accessorKey: "note",
       },
     ],
-    [onOrdersUpdate]
+    [onOrdersUpdate, wardConfig],
   );
 
   const data = useMemo(() => orders, [orders]);
@@ -477,15 +508,16 @@ function OrdersTable({
                   {header.isPlaceholder ? null : (
                     <div
                       {...{
-                        className: header.column.getCanSort()
-                          ? "cursor-pointer select-none"
+                        className:
+                          header.column.getCanSort() ?
+                            "cursor-pointer select-none"
                           : "",
                         onClick: header.column.getToggleSortingHandler(),
                       }}
                     >
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                       <span>
                         {{
@@ -520,9 +552,15 @@ type StatusCellProps = {
   value: string;
   row: { original: CompleteOrder };
   onOrdersUpdate: (orders: CompleteOrder[]) => void;
+  wardConfig: WardConfig;
 };
 
-function StatusCell({ value, row, onOrdersUpdate }: StatusCellProps) {
+function StatusCell({
+  value,
+  row,
+  onOrdersUpdate,
+  wardConfig,
+}: StatusCellProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const order = row.original;
   const updateStatus = useServerFn(updateOrderStatus);
@@ -564,7 +602,7 @@ function StatusCell({ value, row, onOrdersUpdate }: StatusCellProps) {
           href={`mailto:${
             order.customer?.email
           }?subject=Complete Your Mulch Order&body=${encodeURIComponent(
-            getEmailContent(order.id)
+            getEmailContent(order.id, wardConfig),
           )}`}
           title="Send reminder email"
           className="rounded p-1 hover:bg-gray-200"
@@ -577,7 +615,7 @@ function StatusCell({ value, row, onOrdersUpdate }: StatusCellProps) {
           href={`mailto:${
             order.customer?.email
           }?subject=Your Mulch Order Confirmation – Thank You!&body=${encodeURIComponent(
-            getConfirmationEmailContent(order)
+            getConfirmationEmailContent(order, wardConfig),
           )}`}
           title="Send confirmation email"
           className="rounded p-1 hover:bg-gray-200"
@@ -619,9 +657,9 @@ function downloadOrdersCsv(orders: CompleteOrder[]) {
     order.customer.phone,
     formatReferralSource(order.referralSource, order.referralSourceDetails),
     order.note || "",
-    typeof window !== "undefined"
-      ? `${window.location.origin}/fundraisers/mulch/orders/${order.id}`
-      : "",
+    typeof window !== "undefined" ?
+      `${window.location.origin}/fundraisers/mulch/orders/${order.id}`
+    : "",
   ]);
 
   const csvContent = [
@@ -637,7 +675,7 @@ function downloadOrdersCsv(orders: CompleteOrder[]) {
     `mulch-orders-${
       new URL(window.location.href).searchParams.get("year") ||
       new Date().getFullYear()
-    }.csv`
+    }.csv`,
   );
   document.body.appendChild(link);
   link.click();

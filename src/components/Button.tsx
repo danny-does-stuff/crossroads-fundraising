@@ -14,7 +14,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(
     { children, linkTo, className, variant = "primary", ...props },
-    ref
+    ref,
   ) {
     const baseClasses = "rounded py-2 px-4";
     const variantClasses = {
@@ -39,5 +39,5 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {children}
       </button>
     );
-  }
+  },
 );

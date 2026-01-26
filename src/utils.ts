@@ -1,4 +1,4 @@
-import { useRouteContext } from "@tanstack/react-router";
+import { getRouteApi, useRouteContext } from "@tanstack/react-router";
 import type { UserInSession } from "~/models/user.server";
 
 const DEFAULT_REDIRECT = "/";
@@ -12,7 +12,7 @@ const DEFAULT_REDIRECT = "/";
  */
 export function safeRedirect(
   to: string | null | undefined,
-  defaultRedirect: string = DEFAULT_REDIRECT
+  defaultRedirect: string = DEFAULT_REDIRECT,
 ) {
   if (!to || typeof to !== "string") {
     return defaultRedirect;
@@ -42,20 +42,16 @@ export function useUser(): UserInSession {
   const maybeUser = useOptionalUser();
   if (!maybeUser) {
     throw new Error(
-      "No user found in router context, but user is required by useUser. If user is optional, try useOptionalUser instead."
+      "No user found in router context, but user is required by useUser. If user is optional, try useOptionalUser instead.",
     );
   }
   return maybeUser;
 }
 
-/**
- * Hook to get ENV variables from router context.
- */
-export function useEnv() {
-  const context = useRouteContext({ from: "__root__" });
-  return context.ENV;
-}
-
 export function validateEmail(email: unknown): email is string {
   return typeof email === "string" && email.length > 3 && email.includes("@");
+}
+
+export function useWardConfig() {
+  return getRouteApi("__root__").useLoaderData().wardConfig;
 }

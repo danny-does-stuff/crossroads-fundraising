@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import z from "zod";
-import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
 import { verifyCheckoutSessionPayment } from "~/services/stripe/checkout.server";
 import { createDonation } from "~/models/donation.server";
+import { useWardConfig } from "~/utils";
 
 const verifyDonationSchema = z.object({
   sessionId: z.string(),
@@ -30,13 +30,13 @@ const verifyDonationFn = createServerFn()
         amount: (session.amount_total ?? 0) / 100,
         stripeSessionId: session.id,
         stripePaymentIntentId:
-          typeof session.payment_intent === "string"
-            ? session.payment_intent
-            : (session.payment_intent?.id ?? null),
+          typeof session.payment_intent === "string" ?
+            session.payment_intent
+          : (session.payment_intent?.id ?? null),
         stripeCustomerId:
-          typeof session.customer === "string"
-            ? session.customer
-            : (session.customer?.id ?? null),
+          typeof session.customer === "string" ?
+            session.customer
+          : (session.customer?.id ?? null),
         donorEmail:
           session.customer_email || session.metadata?.donorEmail || null,
         donorGivenName:
@@ -73,6 +73,7 @@ export const Route = createFileRoute("/fundraisers/mulch/donate/thank-you")({
  * Thank you page shown after a successful donation
  */
 function ThankYouPage() {
+  const wardConfig = useWardConfig();
   const searchParams = Route.useSearch();
   const [isVerifying, setIsVerifying] = useState(!!searchParams.session_id);
   const [verified, setVerified] = useState(false);
@@ -136,8 +137,8 @@ function ThankYouPage() {
       </p>
       <p className="mb-8">
         Please contact us at{" "}
-        <a className="text-blue-500" href={`mailto:${CONTACT_EMAIL}`}>
-          {CONTACT_EMAIL}
+        <a className="text-blue-500" href={`mailto:${wardConfig.contactEmail}`}>
+          {wardConfig.contactEmail}
         </a>{" "}
         if you have any questions.
       </p>

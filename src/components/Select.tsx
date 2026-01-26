@@ -16,7 +16,7 @@ interface SelectProps extends Omit<
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   function Select(
     { id, label, error, children, readOnly, defaultDisplayValue, ...props },
-    _ref
+    _ref,
   ) {
     if (readOnly) {
       return (
@@ -64,5 +64,5 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         </div>
       </div>
     );
-  }
+  },
 );

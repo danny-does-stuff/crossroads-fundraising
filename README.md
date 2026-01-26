@@ -1,179 +1,241 @@
-# Remix Indie Stack
+# Multi-Ward Mulch Fundraising Platform
 
-![The Remix Indie Stack](https://repository-images.githubusercontent.com/465928257/a241fa49-bd4d-485a-a2a5-5cb8e4ee0abf)
+A scalable web application for LDS ward youth mulch fundraisers. Single codebase supporting multiple wards with isolated deployments.
 
-Learn more about [Remix Stacks](https://remix.run/stacks).
+## 🎯 Overview
+
+This platform enables multiple LDS wards to run their own mulch fundraising campaigns using a shared codebase. Each ward gets:
+
+- **Isolated deployment** with their own Fly.io app
+- **Separate database** (SQLite in Fly volume)
+- **Custom configuration** (ward name, pricing, neighborhoods, images)
+- **Own Stripe account** for payment processing
+- **Automated deployments** via GitHub Actions
+
+## 🚀 Quick Start
+
+### For Developers
+
+```bash
+# Install dependencies
+npm install
+
+# Set up database
+npm run setup
+
+# Start development server
+npm run dev
+```
+
+Visit http://localhost:3000
+
+### For New Wards
+
+See [wards/README.md](./wards/README.md) for detailed onboarding instructions.
+
+**Quick summary:**
+
+1. Ward creates Fly.io account and app
+2. Ward sets secrets (Stripe keys, session secret)
+3. Ward sends deploy token to admin
+4. Admin adds ward config and GitHub secret
+5. Push to main → automatic deployment
+
+## 📁 Project Structure
 
 ```
-npx create-remix@latest --template remix-run/indie-stack
+wards/
+  crossroads/        # Each ward has its own folder
+    fly.toml         # Fly config + ward-specific env vars
+  oakridge/
+    fly.toml
+  README.md          # Ward onboarding guide
+
+src/
+  config.ts          # Reads ward config from env vars
+  routes/            # TanStack React Router routes
+  services/          # Stripe, database services
+  components/        # Reusable React components
+
+.github/workflows/
+  deploy.yml         # Multi-ward CI/CD pipeline
 ```
 
-## What's in the stack
+## 🛠️ Tech Stack
 
-- [Fly app deployment](https://fly.io) with [Docker](https://www.docker.com/)
-- Production-ready [SQLite Database](https://sqlite.org)
-- Healthcheck endpoint for [Fly backups region fallbacks](https://fly.io/docs/reference/configuration/#services-http_checks)
-- [GitHub Actions](https://github.com/features/actions) for deploy on merge to production and staging environments
-- Email/Password Authentication with [cookie-based sessions](https://remix.run/docs/en/v1/api/remix#createcookiesessionstorage)
-- Database ORM with [Prisma](https://prisma.io)
-- Styling with [Tailwind](https://tailwindcss.com/)
-- End-to-end testing with [Cypress](https://cypress.io)
-- Local third party request mocking with [MSW](https://mswjs.io)
-- Unit testing with [Vitest](https://vitest.dev) and [Testing Library](https://testing-library.com)
-- Code formatting with [Prettier](https://prettier.io)
-- Linting with [ESLint](https://eslint.org)
-- Static Types with [TypeScript](https://typescriptlang.org)
+- **Framework:** [TanStack React Start](https://tanstack.com/start) (React 19)
+- **Deployment:** [Fly.io](https://fly.io) with Docker
+- **Database:** SQLite with [Prisma](https://prisma.io)
+- **Payments:** [Stripe](https://stripe.com)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com)
+- **Testing:** Vitest, Cypress, Testing Library
+- **CI/CD:** GitHub Actions
 
-Not a fan of bits of the stack? Fork it, change it, and use `npx create-remix --template your/repo`! Make it your own.
+## 🔧 Configuration
 
-## Quickstart
+Each ward's configuration is stored in `wards/{ward-name}/fly.toml`:
 
-Click this button to create a [Gitpod](https://gitpod.io) workspace with the project set up and Fly pre-installed
+```toml
+[env]
+WARD_NAME = "Ward Name"
+WARD_CONTACT_EMAIL = "email@example.com"
+WARD_NEIGHBORHOODS = "Neighborhood1,Neighborhood2,Neighborhood3"
+MULCH_PRICE_DELIVERY = "7"
+MULCH_PRICE_SPREAD = "8"
+MULCH_DELIVERY_DATE_1 = "March 14"
+MULCH_DELIVERY_DATE_2 = "March 21"
+MULCH_ORDERS_START_DATE = "February 1, 2026"
+ACCEPTING_MULCH_ORDERS = "true"
+# ... image paths ...
+```
 
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/danny-does-stuff/crossroads-fundraising)
+Secrets (Stripe keys, session secret) are set via Fly.io dashboard, **not** in fly.toml.
 
-## Development
+## 🚢 Deployment
 
-- This step only applies if you've opted out of having the CLI install dependencies for you:
+**Automatic deployment on push to `main`:**
 
-  ```sh
-  npx remix init
-  ```
+1. GitHub Actions runs tests (lint, typecheck, vitest, cypress)
+2. Builds Docker image for each ward
+3. Pushes to ward's Fly.io registry
+4. Deploys to ward's Fly.io app
 
-- Initial setup: _If you just generated this project, this step has been done for you._
+**Manual deployment:**
 
-  ```sh
-  npm run setup
-  ```
+```bash
+# Deploy specific ward
+fly deploy --config wards/crossroads/fly.toml
+```
 
-- Start dev server:
+## 🧪 Testing
 
-  ```sh
-  npm run dev
-  ```
+```bash
+# Run all tests
+npm test
 
-This starts your app in development mode, rebuilding assets on file changes.
+# Unit tests
+npm run test:unit
 
-The database seed script creates a new user with some data you can use to get started:
+# E2E tests
+npm run test:e2e
+
+# Type checking
+npm run typecheck
+
+# Linting
+npm run lint
+```
+
+## 📚 Development
+
+### Database
+
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Run migrations
+npx prisma migrate dev
+
+# Open Prisma Studio
+npx prisma studio
+```
+
+### Seed Data
+
+The database seed creates an admin user:
 
 - Email: `rachel@remix.run`
 - Password: `racheliscool`
 
-### Relevant code:
+### Environment Variables
 
-This is a pretty simple note-taking app, but it's a good example of how you can build a full stack app with Prisma and Remix. The main functionality is creating users, logging in and out, and creating and deleting notes.
+Copy `.env.example` to `.env`:
 
-- creating users, and logging in and out [./app/models/user.server.ts](./app/models/user.server.ts)
-- user sessions, and verifying them [./app/session.server.ts](./app/session.server.ts)
-- creating, and deleting notes [./app/models/note.server.ts](./app/models/note.server.ts)
-
-## Deployment
-
-This Remix Stack comes with two GitHub Actions that handle automatically deploying your app to production and staging environments.
-
-Prior to your first deployment, you'll need to do a few things:
-
-- [Install Fly](https://fly.io/docs/getting-started/installing-flyctl/)
-
-- Sign up and log in to Fly
-
-  ```sh
-  fly auth signup
-  ```
-
-  > **Note:** If you have more than one Fly account, ensure that you are signed into the same account in the Fly CLI as you are in the browser. In your terminal, run `fly auth whoami` and ensure the email matches the Fly account signed into the browser.
-
-- Create two apps on Fly, one for staging and one for production:
-
-  ```sh
-  fly apps create crossroads-fundraising-6bcf
-  fly apps create crossroads-fundraising-6bcf-staging
-  ```
-
-  > **Note:** Make sure this name matches the `app` set in your `fly.toml` file. Otherwise, you will not be able to deploy.
-  - Initialize Git.
-
-  ```sh
-  git init
-  ```
-
-- Create a new [GitHub Repository](https://repo.new), and then add it as the remote for your project. **Do not push your app yet!**
-
-  ```sh
-  git remote add origin <ORIGIN_URL>
-  ```
-
-- Add a `FLY_API_TOKEN` to your GitHub repo. To do this, go to your user settings on Fly and create a new [token](https://web.fly.io/user/personal_access_tokens/new), then add it to [your repo secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) with the name `FLY_API_TOKEN`.
-
-- Add a `SESSION_SECRET` to your fly app secrets, to do this you can run the following commands:
-
-  ```sh
-  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) --app crossroads-fundraising-6bcf
-  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) --app crossroads-fundraising-6bcf-staging
-  ```
-
-  If you don't have openssl installed, you can also use [1password](https://1password.com/password-generator/) to generate a random secret, just replace `$(openssl rand -hex 32)` with the generated secret.
-
-- Create a persistent volume for the sqlite database for both your staging and production environments. Run the following:
-
-  ```sh
-  fly volumes create data --size 1 --app crossroads-fundraising-6bcf
-  fly volumes create data --size 1 --app crossroads-fundraising-6bcf-staging
-  ```
-
-Now that everything is set up you can commit and push your changes to your repo. Every commit to your `main` branch will trigger a deployment to your production environment, and every commit to your `dev` branch will trigger a deployment to your staging environment.
-
-### Connecting to your database
-
-The sqlite database lives at `/data/sqlite.db` in your deployed application. You can connect to the live database by running `fly ssh console -C database-cli`.
-
-### Getting Help with Deployment
-
-If you run into any issues deploying to Fly, make sure you've followed all of the steps above and if you have, then post as many details about your deployment (including your app name) to [the Fly support community](https://community.fly.io). They're normally pretty responsive over there and hopefully can help resolve any of your deployment issues and questions.
-
-## GitHub Actions
-
-We use GitHub Actions for continuous integration and deployment. Anything that gets into the `main` branch will be deployed to production after running tests/build/etc. Anything in the `dev` branch will be deployed to staging.
-
-## Testing
-
-### Cypress
-
-We use Cypress for our End-to-End tests in this project. You'll find those in the `cypress` directory. As you make changes, add to an existing file or create a new file in the `cypress/e2e` directory to test your changes.
-
-We use [`@testing-library/cypress`](https://testing-library.com/cypress) for selecting elements on the page semantically.
-
-To run these tests in development, run `npm run test:e2e:dev` which will start the dev server for the app as well as the Cypress client. Make sure the database is running in docker as described above.
-
-We have a utility for testing authenticated features without having to go through the login flow:
-
-```ts
-cy.login();
-// you are now logged in as a new user
+```bash
+cp .env.example .env
 ```
 
-We also have a utility to auto-delete the user at the end of your test. Just make sure to add this in each test file:
+Required for local development:
 
-```ts
-afterEach(() => {
-  cy.cleanupUser();
-});
+- `DATABASE_URL` - SQLite connection string
+- `SESSION_SECRET` - Random secret for cookies
+- `STRIPE_*` - Stripe API keys (test mode for dev)
+
+## 🎨 Customization
+
+### Images
+
+Images are stored in `public/assets/`:
+
+```
+public/assets/
+  crossroads/           # Ward-specific images
+    youth_with_mulch_bags.png
+    youth_jumping.png
+    mulch_wagon.jpg
+  shared/               # Shared images (optional)
 ```
 
-That way, we can keep your local db clean and keep your tests isolated from one another.
+Wards can use shared images or provide their own by updating image paths in their `fly.toml`.
 
-### Vitest
+### Pricing & Schedule
 
-For lower level tests of utilities and individual components, we use `vitest`. We have DOM-specific assertion helpers via [`@testing-library/jest-dom`](https://testing-library.com/jest-dom).
+Each ward can customize:
 
-### Type Checking
+- Mulch pricing (delivery vs. spreading)
+- Delivery dates
+- Order start date
+- Enable/disable ordering
 
-This project uses TypeScript. It's recommended to get TypeScript set up for your editor to get a really great in-editor experience with type checking and auto-complete. To run type checking across the whole project, run `npm run typecheck`.
+## 🤝 Adding a New Ward
 
-### Linting
+See [wards/README.md](./wards/README.md) for complete instructions.
 
-This project uses ESLint for linting. That is configured in `.eslintrc.js`.
+**Admin checklist:**
 
-### Formatting
+1. ✅ Receive ward's deploy token and config
+2. ✅ Copy `wards/crossroads` to `wards/{ward-name}`
+3. ✅ Edit `wards/{ward-name}/fly.toml`
+4. ✅ Add `FLY_API_TOKEN_{WARD}` to GitHub secrets
+5. ✅ Add ward to `.github/workflows/deploy.yml` matrix
+6. ✅ Push to main
 
-We use [Prettier](https://prettier.io/) for auto-formatting in this project. It's recommended to install an editor plugin (like the [VSCode Prettier plugin](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)) to get auto-formatting on save. There's also a `npm run format` script you can run to format all files in the project.
+## 🐛 Troubleshooting
+
+### Deployment Issues
+
+- Check GitHub Actions: https://github.com/{user}/{repo}/actions
+- View Fly.io logs: `fly logs --app {ward-name}-mulch`
+- Verify secrets are set: `fly secrets list --app {ward-name}-mulch`
+
+### Database Issues
+
+```bash
+# Connect to production database
+fly ssh console --app {ward-name}-mulch -C database-cli
+
+# View database schema
+npx prisma studio --schema prisma/schema.prisma
+```
+
+### Stripe Integration
+
+- Test mode keys for development
+- Production keys set via Fly.io secrets
+- Webhook endpoint: `https://{ward-name}-mulch.fly.dev/api/stripe/webhook`
+
+## 📖 Documentation
+
+- [Ward Onboarding Guide](./wards/README.md)
+- [TanStack React Start Docs](https://tanstack.com/start/latest)
+- [Fly.io Docs](https://fly.io/docs/)
+- [Prisma Docs](https://www.prisma.io/docs/)
+
+## 📝 License
+
+MIT
+
+## 🙏 Acknowledgments
+
+Built with ❤️ for LDS ward youth fundraising programs.

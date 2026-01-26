@@ -3,7 +3,6 @@ import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import invariant from "tiny-invariant";
 import z from "zod";
-import { CONTACT_EMAIL } from "~/constants";
 import { Button } from "~/components/Button";
 
 import { updateOrderById, getOrder } from "~/models/mulchOrder.server";
@@ -12,6 +11,7 @@ import {
   verifyCheckoutSessionPayment,
 } from "~/services/stripe/checkout.server";
 import { useMulchPrepContent } from "../orders";
+import { useWardConfig } from "~/utils";
 
 // Server function to load order data
 const loadOrder = createServerFn()
@@ -108,13 +108,13 @@ const verifyPaymentFn = createServerFn()
       status: "PAID",
       stripeSessionId: session.id,
       stripePaymentIntentId:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : (session.payment_intent?.id ?? null),
+        typeof session.payment_intent === "string" ?
+          session.payment_intent
+        : (session.payment_intent?.id ?? null),
       stripeCustomerId:
-        typeof session.customer === "string"
-          ? session.customer
-          : (session.customer?.id ?? null),
+        typeof session.customer === "string" ?
+          session.customer
+        : (session.customer?.id ?? null),
     });
 
     // Return the updated order
@@ -144,6 +144,7 @@ export const Route = createFileRoute("/fundraisers/mulch/orders/$orderId")({
 
 function OrderDetailsPage() {
   const { order: initialOrder } = Route.useLoaderData();
+  const wardConfig = useWardConfig();
   const [order, setOrder] = useState(initialOrder);
   const params = Route.useParams();
   const searchParams = Route.useSearch();
@@ -260,7 +261,7 @@ function OrderDetailsPage() {
         </h4>
       </div>
 
-      {showVerifying ? (
+      {showVerifying ?
         <div className="rounded border border-blue-200 bg-blue-50 p-4">
           <div className="flex items-center gap-3">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
@@ -272,7 +273,7 @@ function OrderDetailsPage() {
             Please wait while we confirm your payment with Stripe.
           </p>
         </div>
-      ) : order.status === "PENDING" ? (
+      : order.status === "PENDING" ?
         <>
           <div className="max-w-xs space-y-4">
             <Button
@@ -301,10 +302,9 @@ function OrderDetailsPage() {
             {isSubmitting ? "Cancelling..." : "Cancel Order"}
           </button>
         </>
-      ) : order.status === "CANCELLED" ? (
+      : order.status === "CANCELLED" ?
         <div className="font-bold text-red-500">Order Cancelled</div>
-      ) : (
-        <>
+      : <>
           <div className="font-bold text-green-500">
             Paid!! Thank you for your business. We will reach out to you through
             email to schedule the delivery{" "}
@@ -319,10 +319,10 @@ function OrderDetailsPage() {
                 If you are dissatisfied with your order for any reason, please
                 contact us at{" "}
                 <a
-                  href={`mailto:${CONTACT_EMAIL}`}
+                  href={`mailto:${wardConfig.contactEmail}`}
                   className="font-semibold underline"
                 >
-                  {CONTACT_EMAIL}
+                  {wardConfig.contactEmail}
                 </a>{" "}
                 before making any claims with your credit card company. We are
                 committed to your satisfaction and will work with you to resolve
@@ -338,10 +338,10 @@ function OrderDetailsPage() {
                 {order.orderType === "SPREAD" ? "and spreading " : ""}service.
                 If you do not receive this notification, please contact us at{" "}
                 <a
-                  href={`mailto:${CONTACT_EMAIL}`}
+                  href={`mailto:${wardConfig.contactEmail}`}
                   className="font-semibold underline"
                 >
-                  {CONTACT_EMAIL}
+                  {wardConfig.contactEmail}
                 </a>{" "}
                 to verify your order status.
               </p>
@@ -349,13 +349,14 @@ function OrderDetailsPage() {
           </div>
           <div className="mt-4">{mulchPrepContent}</div>
         </>
-      )}
+      }
     </div>
   );
 }
 
 function OrderErrorBoundary({ error }: { error: Error }) {
   console.error(error);
+  const wardConfig = useWardConfig();
 
   const isNotFound = error.message === "Order not found";
 
@@ -364,15 +365,13 @@ function OrderErrorBoundary({ error }: { error: Error }) {
       className="relative mb-3 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
       role="alert"
     >
-      {isNotFound ? (
+      {isNotFound ?
         "Order not found."
-      ) : (
-        <>An unexpected error occurred: {error.message}</>
-      )}
+      : <>An unexpected error occurred: {error.message}</>}
       <br />
       <br />
       If you believe you paid for this order, please contact us at{" "}
-      {CONTACT_EMAIL}
+      {wardConfig.contactEmail}
     </div>
   );
 }

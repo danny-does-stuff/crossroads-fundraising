@@ -15,7 +15,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   function Input(
     { id, label, error, type = "text", wrapperClass, ...props },
-    ref
+    ref,
   ) {
     const isTextarea = type === "textarea";
 
@@ -25,7 +25,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {label}
         </label>
         <div className="mt-1">
-          {isTextarea ? (
+          {isTextarea ?
             <textarea
               id={id}
               name={props.name || id}
@@ -36,8 +36,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               ref={ref}
               {...props}
             />
-          ) : (
-            <input
+          : <input
               id={id}
               name={props.name || id}
               type={type}
@@ -47,7 +46,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               ref={ref}
               {...props}
             />
-          )}
+          }
           {error && (
             <div className="pt-1 text-red-700" id={`${id}-error`}>
               {error}
@@ -56,5 +55,5 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </div>
       </div>
     );
-  }
+  },
 );

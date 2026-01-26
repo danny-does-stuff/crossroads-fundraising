@@ -33,7 +33,7 @@ export async function getUserId(): Promise<User["id"] | undefined> {
 }
 
 export async function getUser(
-  _request?: Request
+  _request?: Request,
 ): Promise<UserInSession | null> {
   const userId = await getUserId();
   if (userId === undefined) return null;
