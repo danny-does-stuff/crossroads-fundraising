@@ -31,15 +31,16 @@ Visit http://localhost:3000
 
 ### For New Wards
 
-See [wards/README.md](./wards/README.md) for detailed onboarding instructions.
+See [`WARD_STRIPE_SETUP.md`](./WARD_STRIPE_SETUP.md) for ward-facing instructions (non-technical friendly).
 
 **Quick summary:**
 
-1. Ward creates Fly.io account and app
-2. Ward sets secrets (Stripe keys, session secret)
-3. Ward sends deploy token to admin
-4. Admin adds ward config and GitHub secret
-5. Push to main → automatic deployment
+1. Ward creates Stripe account and gets API keys
+2. Ward fills out simple info form (pricing, dates, neighborhoods)
+3. Admin runs deployment script (5 minutes)
+4. Admin commits config and pushes → automatic deployment
+
+**Admin:** See [`ADMIN_SETUP_GUIDE.md`](./ADMIN_SETUP_GUIDE.md) for complete deployment instructions.
 
 ## 📁 Project Structure
 
@@ -190,16 +191,31 @@ Each ward can customize:
 
 ## 🤝 Adding a New Ward
 
-See [wards/README.md](./wards/README.md) for complete instructions.
+The platform admin manages all ward deployments on a single Fly.io account. Wards only need to set up Stripe and provide basic information.
 
-**Admin checklist:**
+**Admin process:**
 
-1. ✅ Receive ward's deploy token and config
-2. ✅ Copy `wards/crossroads` to `wards/{ward-name}`
-3. ✅ Edit `wards/{ward-name}/fly.toml`
-4. ✅ Add `FLY_API_TOKEN_{WARD}` to GitHub secrets
-5. ✅ Add ward to `.github/workflows/deploy.yml` matrix
-6. ✅ Push to main
+```bash
+# 1. Get ward info (send them WARD_STRIPE_SETUP.md)
+# 2. Run deployment script
+./scripts/deploy-new-ward.sh oakridge
+
+# 3. Edit ward config
+vim wards/oakridge/fly.toml  # Update [env] section
+
+# 4. Add to GitHub Actions matrix
+vim .github/workflows/deploy.yml  # Add 'oakridge' to matrix
+
+# 5. Commit and deploy
+git add wards/oakridge/ .github/workflows/deploy.yml
+git commit -m "Add oakridge ward"
+git push origin main
+```
+
+**Complete guides:**
+- 📘 **Ward-facing:** [`WARD_STRIPE_SETUP.md`](./WARD_STRIPE_SETUP.md) (simple, non-technical)
+- 📙 **Admin guide:** [`ADMIN_SETUP_GUIDE.md`](./ADMIN_SETUP_GUIDE.md) (detailed deployment)
+- 📗 **Overview:** [`SETUP_OVERVIEW.md`](./SETUP_OVERVIEW.md) (architecture & process)
 
 ## 🐛 Troubleshooting
 
@@ -227,10 +243,18 @@ npx prisma studio --schema prisma/schema.prisma
 
 ## 📖 Documentation
 
-- [Ward Onboarding Guide](./wards/README.md)
+### Setup & Onboarding
+- [Ward Setup Guide](./WARD_STRIPE_SETUP.md) - For wards (non-technical)
+- [Admin Setup Guide](./ADMIN_SETUP_GUIDE.md) - For platform admin
+- [Setup Overview](./SETUP_OVERVIEW.md) - Architecture & process
+- [Ward Config Reference](./wards/README.md) - Configuration options
+- [Deployment Script](./scripts/README.md) - Automated ward setup
+
+### Development Resources
 - [TanStack React Start Docs](https://tanstack.com/start/latest)
 - [Fly.io Docs](https://fly.io/docs/)
 - [Prisma Docs](https://www.prisma.io/docs/)
+- [Stripe Docs](https://stripe.com/docs)
 
 ## 📝 License
 

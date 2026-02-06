@@ -1,0 +1,70 @@
+app = "little-elm-3rd-mulch"
+primary_region = "dfw"
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = [ ]
+
+[experimental]
+allowed_public_ports = [ ]
+auto_rollback = true
+cmd = "start.sh"
+entrypoint = "sh"
+
+[mounts]
+source = "data"
+destination = "/data"
+
+# Ward-specific configuration (non-secrets)
+[env]
+WARD_NAME = "Little Elm 3rd Ward"
+WARD_CONTACT_EMAIL = "test@test.com"
+WARD_NEIGHBORHOODS = "Neighborhood 1,Neighborhood 2"
+MULCH_PRICE_DELIVERY = "7"
+MULCH_PRICE_SPREAD = "8"
+MULCH_DELIVERY_DATE_1 = "March 14"
+MULCH_DELIVERY_DATE_2 = "March 21"
+MULCH_ORDERS_START_DATE = "February 1, 2026"
+ACCEPTING_MULCH_ORDERS = "true"
+HOME_HERO_IMAGE = "/assets/crossroads/youth_with_mulch_bags.png"
+HOME_HERO_IMAGE_ALT = "Youth Prepared to Spread Mulch"
+OG_IMAGE = "/assets/crossroads/mulch_wagon.jpg"
+ORDER_CONFIRMATION_IMAGE = "/assets/crossroads/youth_jumping.png"
+ORDER_CONFIRMATION_IMAGE_ALT = "Youth Jumping for Joy"
+ORDER_FORM_IMAGE = "/assets/crossroads/youth_with_completed_mulch.png"
+ORDER_FORM_IMAGE_ALT = "Youth with Beautifully Spread Mulch"
+
+[[services]]
+internal_port = 8_080
+processes = [ "app" ]
+protocol = "tcp"
+script_checks = [ ]
+
+  [services.concurrency]
+  hard_limit = 25
+  soft_limit = 20
+  type = "connections"
+
+  [[services.ports]]
+  handlers = [ "http" ]
+  port = 80
+  force_https = true
+
+  [[services.ports]]
+  handlers = [ "tls", "http" ]
+  port = 443
+
+  [[services.tcp_checks]]
+  grace_period = "1s"
+  interval = "15s"
+  restart_limit = 0
+  timeout = "2s"
+
+  [[services.http_checks]]
+  interval = "10s"
+  grace_period = "5s"
+  method = "get"
+  path = "/api/healthcheck"
+  protocol = "http"
+  timeout = "2s"
+  tls_skip_verify = false
+  headers = { }
