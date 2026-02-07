@@ -148,6 +148,12 @@ jobs:
 
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v3
+      
+      - name: 🔑 Generate secret name
+        id: secret_name
+        run: |
+          WARD_UPPER=$(echo "${{ matrix.ward }}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+          echo "fly_token_secret=FLY_API_TOKEN_${WARD_UPPER}" >> $GITHUB_OUTPUT
 
       - name: 👀 Read app name
         uses: SebRollen/toml-action@v1.0.2
@@ -175,7 +181,7 @@ jobs:
         with:
           registry: registry.fly.io
           username: x
-          password: ${{ secrets[format('FLY_API_TOKEN_{0}', upper(replace(matrix.ward, '-', '_')))] }}
+          password: ${{ secrets[steps.secret_name.outputs.fly_token_secret] }}
 
       - name: 🐳 Docker build
         uses: docker/build-push-action@v3
@@ -219,6 +225,12 @@ jobs:
 
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v3
+      
+      - name: 🔑 Generate secret name
+        id: secret_name
+        run: |
+          WARD_UPPER=$(echo "${{ matrix.ward }}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+          echo "fly_token_secret=FLY_API_TOKEN_${WARD_UPPER}" >> $GITHUB_OUTPUT
 
       - name: 👀 Read app name
         uses: SebRollen/toml-action@v1.0.2
@@ -234,7 +246,7 @@ jobs:
           # Turn off HA since we use SQLite
           args: "deploy --ha=false --config wards/${{ matrix.ward }}/fly.toml --app ${{ steps.app_name.outputs.value }}-staging --image registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}-${{ github.sha }}"
         env:
-          FLY_API_TOKEN: ${{ secrets[format('FLY_API_TOKEN_{0}', upper(replace(matrix.ward, '-', '_')))] }}
+          FLY_API_TOKEN: ${{ secrets[steps.secret_name.outputs.fly_token_secret] }}
 
       - name: 🚀 Deploy Production | Ward - ${{ matrix.ward }}
         if: ${{ github.ref == 'refs/heads/main' }}
@@ -243,4 +255,4 @@ jobs:
           # Turn off HA since we use SQLite
           args: "deploy --ha=false --config wards/${{ matrix.ward }}/fly.toml --image registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}-${{ github.sha }}"
         env:
-          FLY_API_TOKEN: ${{ secrets[format('FLY_API_TOKEN_{0}', upper(replace(matrix.ward, '-', '_')))] }}
+          FLY_API_TOKEN: ${{ secrets[steps.secret_name.outputs.fly_token_secret] }}
