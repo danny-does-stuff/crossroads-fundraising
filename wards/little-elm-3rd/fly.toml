@@ -21,9 +21,9 @@ memory = "512mb"
 # Ward-specific configuration (non-secrets)
 [env]
 WARD_NAME = "Little Elm 3rd Ward"
-WARD_CONTACT_EMAIL = "test@test.com"
-WARD_NEIGHBORHOODS = "Neighborhood 1,Neighborhood 2"
-MULCH_PRICE_DELIVERY = "7"
+WARD_CONTACT_EMAIL = "LE3.YouthFundraising@gmail.com"
+WARD_NEIGHBORHOODS = "Paloma Creek North,Paloma Creek South,Paloma Creek Lakeview,Lakeside Estates at Paloma Creek,North Lake Estates"
+MULCH_PRICE_DELIVERY = "8"
 MULCH_PRICE_SPREAD = "8"
 MULCH_DELIVERY_DATE_1 = "March 14"
 MULCH_DELIVERY_DATE_2 = "March 21"
