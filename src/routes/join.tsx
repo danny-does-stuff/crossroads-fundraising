@@ -34,6 +34,13 @@ const joinFn = createServerFn()
   .handler(async ({ data }) => {
     const { email, password, redirectTo, code } = data;
 
+    console.log("[signup] join handler invoked", {
+      email,
+      passwordType: typeof password,
+      passwordLength: typeof password === "string" ? password.length : "n/a",
+      hasCode: typeof code === "string" && code.length > 0,
+    });
+
     const emptyErrors = {
       email: null,
       password: null,
@@ -67,6 +74,9 @@ const joinFn = createServerFn()
     const wantsAdmin = typeof code === "string" && code.length > 0;
 
     if (wantsAdmin) {
+      console.log("[signup] admin path", {
+        adminInviteCodeSet: !!adminInviteCode,
+      });
       if (!adminInviteCode) {
         return {
           errors: {
@@ -76,6 +86,7 @@ const joinFn = createServerFn()
         };
       }
       if (code !== adminInviteCode) {
+        console.log("[signup] invalid invite code");
         return {
           errors: {
             ...emptyErrors,
@@ -84,14 +95,18 @@ const joinFn = createServerFn()
         };
       }
 
+      console.log("[signup] creating admin user");
       const user = await createUserWithAdminRole({ email, password });
+      console.log("[signup] admin user created", { userId: user.id });
       await createUserSession({
         userId: user.id,
         remember: false,
         redirectTo: "/admin",
       });
     } else {
+      console.log("[signup] creating regular user");
       const user = await createUser({ email, password });
+      console.log("[signup] regular user created", { userId: user.id });
       await createUserSession({
         userId: user.id,
         remember: false,

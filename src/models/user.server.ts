@@ -38,9 +38,22 @@ export async function createUser({
   password,
   ...userData
 }: Pick<User, "email"> & { password: string }) {
+  console.log("[signup] createUser", {
+    passwordType: typeof password,
+    passwordLength: typeof password === "string" ? password.length : "n/a",
+  });
   // Ensure string - prod RPC can deserialize password as non-string
   const passwordStr = typeof password === "string" ? password : String(password ?? "");
-  const hashedPassword = await bcrypt.hash(passwordStr, 10);
+  let hashedPassword: string;
+  try {
+    hashedPassword = await bcrypt.hash(passwordStr, 10);
+    console.log("[signup] createUser bcrypt.hash done");
+  } catch (err) {
+    console.error("[signup] createUser bcrypt.hash failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
+  }
 
   return prisma.user.create({
     data: {
@@ -58,9 +71,30 @@ export async function createUserWithAdminRole({
   email,
   password,
 }: Pick<User, "email"> & { password: string }) {
+  console.log("[signup] createUserWithAdminRole", {
+    email,
+    passwordType: typeof password,
+    passwordLength: typeof password === "string" ? password.length : "n/a",
+    passwordConstructor: password?.constructor?.name,
+  });
   // Ensure string - prod RPC can deserialize password as non-string
   const passwordStr = typeof password === "string" ? password : String(password ?? "");
-  const hashedPassword = await bcrypt.hash(passwordStr, 10);
+  console.log("[signup] createUserWithAdminRole passwordStr", {
+    type: typeof passwordStr,
+    length: passwordStr.length,
+  });
+  let hashedPassword: string;
+  try {
+    hashedPassword = await bcrypt.hash(passwordStr, 10);
+    console.log("[signup] createUserWithAdminRole bcrypt.hash done");
+  } catch (err) {
+    console.error("[signup] createUserWithAdminRole bcrypt.hash failed", {
+      error: err instanceof Error ? err.message : String(err),
+      passwordStrType: typeof passwordStr,
+      passwordStrLength: passwordStr.length,
+    });
+    throw err;
+  }
 
   return prisma.user.create({
     data: {
