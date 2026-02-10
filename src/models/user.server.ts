@@ -38,22 +38,12 @@ export async function createUser({
   password,
   ...userData
 }: Pick<User, "email"> & { password: string }) {
-  console.log("[signup] createUser", {
-    passwordType: typeof password,
-    passwordLength: typeof password === "string" ? password.length : "n/a",
-  });
   // Ensure string - prod RPC can deserialize password as non-string
   const passwordStr = typeof password === "string" ? password : String(password ?? "");
-  let hashedPassword: string;
-  try {
-    hashedPassword = await bcrypt.hash(passwordStr, 10);
-    console.log("[signup] createUser bcrypt.hash done");
-  } catch (err) {
-    console.error("[signup] createUser bcrypt.hash failed", {
-      error: err instanceof Error ? err.message : String(err),
-    });
-    throw err;
-  }
+  // Workaround: genSalt then hash - passing rounds (10) directly to hash() can
+  // fail in prod builds (bcryptjs internal genSalt path)
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(passwordStr, salt);
 
   return prisma.user.create({
     data: {
@@ -71,30 +61,12 @@ export async function createUserWithAdminRole({
   email,
   password,
 }: Pick<User, "email"> & { password: string }) {
-  console.log("[signup] createUserWithAdminRole", {
-    email,
-    passwordType: typeof password,
-    passwordLength: typeof password === "string" ? password.length : "n/a",
-    passwordConstructor: password?.constructor?.name,
-  });
   // Ensure string - prod RPC can deserialize password as non-string
   const passwordStr = typeof password === "string" ? password : String(password ?? "");
-  console.log("[signup] createUserWithAdminRole passwordStr", {
-    type: typeof passwordStr,
-    length: passwordStr.length,
-  });
-  let hashedPassword: string;
-  try {
-    hashedPassword = await bcrypt.hash(passwordStr, 10);
-    console.log("[signup] createUserWithAdminRole bcrypt.hash done");
-  } catch (err) {
-    console.error("[signup] createUserWithAdminRole bcrypt.hash failed", {
-      error: err instanceof Error ? err.message : String(err),
-      passwordStrType: typeof passwordStr,
-      passwordStrLength: passwordStr.length,
-    });
-    throw err;
-  }
+  // Workaround: genSalt then hash - passing rounds (10) directly to hash() can
+  // fail in prod builds (bcryptjs internal genSalt path). Passing explicit salt string works.
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(passwordStr, salt);
 
   return prisma.user.create({
     data: {
