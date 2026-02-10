@@ -38,7 +38,9 @@ export async function createUser({
   password,
   ...userData
 }: Pick<User, "email"> & { password: string }) {
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // Ensure string - prod RPC can deserialize password as non-string
+  const passwordStr = typeof password === "string" ? password : String(password ?? "");
+  const hashedPassword = await bcrypt.hash(passwordStr, 10);
 
   return prisma.user.create({
     data: {
@@ -56,7 +58,9 @@ export async function createUserWithAdminRole({
   email,
   password,
 }: Pick<User, "email"> & { password: string }) {
-  const hashedPassword = await bcrypt.hash(password, 10);
+  // Ensure string - prod RPC can deserialize password as non-string
+  const passwordStr = typeof password === "string" ? password : String(password ?? "");
+  const hashedPassword = await bcrypt.hash(passwordStr, 10);
 
   return prisma.user.create({
     data: {
@@ -104,10 +108,14 @@ export async function verifyLogin(
     return null;
   }
 
-  const isValid = await bcrypt.compare(
-    password,
-    userWithPassword.password.hash,
-  );
+  const passwordStr =
+    typeof password === "string" ? password : String(password ?? "");
+  const hashStr =
+    typeof userWithPassword.password.hash === "string"
+      ? userWithPassword.password.hash
+      : String(userWithPassword.password.hash ?? "");
+
+  const isValid = await bcrypt.compare(passwordStr, hashStr);
 
   if (!isValid) {
     return null;
