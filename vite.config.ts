@@ -32,7 +32,7 @@ export default defineConfig({
     tanstackStart(),
     nitro({
       rollupConfig: {
-        external: [/^@prisma\//, /\.wasm$/],
+        external: [/^@prisma\//, /\.wasm$/, /bcryptjs/],
       },
     }),
     // react's vite plugin must come after start's vite plugin
