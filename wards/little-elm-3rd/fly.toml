@@ -22,7 +22,7 @@ memory = "512mb"
 [env]
 WARD_NAME = "Little Elm 3rd Ward"
 WARD_CONTACT_EMAIL = "LE3.YouthFundraising@gmail.com"
-WARD_NEIGHBORHOODS = "Paloma Creek North,Paloma Creek South,Paloma Creek Lakeview,Lakeside Estates at Paloma Creek,North Lake Estates"
+WARD_NEIGHBORHOODS = "Paloma Creek North,Paloma Creek South,Paloma Creek Lakeview,Lakeside Estates at Paloma Creek,North Lake Estates,Union Park"
 MULCH_PRICE_DELIVERY = "8"
 MULCH_PRICE_SPREAD = "8"
 MULCH_DELIVERY_DATE_1 = "March 14"
