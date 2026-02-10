@@ -181,6 +181,7 @@ Set via `flyctl secrets set` (NOT in fly.toml):
 | `SESSION_SECRET` | Random 64-char hex | During setup (auto-generated) |
 | `STRIPE_SECRET_KEY` | `sk_test_...` or `sk_live_...` | During setup (from ward) |
 | `STRIPE_PUBLISHABLE_KEY` | `pk_test_...` or `pk_live_...` | During setup (from ward) |
+| `ADMIN_INVITE_CODE` | Any string (e.g. from `openssl rand -hex 8`) | During setup - wards use `/join?code=YOUR_CODE` to create admin account |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | After first deployment |
 
 ---

@@ -11,18 +11,20 @@ This guide is for YOU (the platform admin) to set up a new ward on the Crossroad
 ### One-time Setup (If You Haven't Already)
 
 1. **Install Fly CLI**
+
    ```bash
    # macOS
    brew install flyctl
-   
+
    # Linux
    curl -L https://fly.io/install.sh | sh
-   
+
    # Windows
    # Download from: https://fly.io/docs/flyctl/install/
    ```
 
 2. **Login to Fly.io**
+
    ```bash
    flyctl auth login
    ```
@@ -72,6 +74,7 @@ The script handles everything: app creation, volume, secrets, config.
 ```
 
 The script will:
+
 1. ✅ Create Fly.io app (`oakridge-mulch`)
 2. ✅ Create 1GB volume in Dallas
 3. ✅ Set secrets (prompts you for Stripe keys)
@@ -79,6 +82,7 @@ The script will:
 5. ✅ Copy template `fly.toml`
 
 **You'll need:**
+
 - The ward's Stripe keys (from Step 1)
 - Webhook secret can be added later
 
@@ -117,15 +121,17 @@ ORDER_FORM_IMAGE_ALT = "Youth with Beautifully Spread Mulch"
 Edit `.github/workflows/deploy.yml` to add the new ward to the deployment matrix.
 
 **Line ~141 (build job):**
+
 ```yaml
 matrix:
-  ward: [crossroads, oakridge]  # Add new ward here
+  ward: [crossroads, oakridge] # Add new ward here
 ```
 
 **Line ~211 (deploy job):**
+
 ```yaml
 matrix:
-  ward: [crossroads, oakridge]  # Add new ward here (same list)
+  ward: [crossroads, oakridge] # Add new ward here (same list)
 ```
 
 ---
@@ -141,11 +147,13 @@ flyctl deploy --ha=false --config wards/oakridge/fly.toml --app oakridge-mulch
 ```
 
 This first deployment:
+
 - Builds the Docker image
 - Runs database migrations
 - Starts the app
 
 **Check the deployment:**
+
 ```bash
 # View logs
 flyctl logs --app oakridge-mulch
@@ -164,9 +172,10 @@ flyctl open --app oakridge-mulch
 Now that the app is deployed, configure Stripe to send payment notifications.
 
 1. **Get the webhook URL:**
+
    ```
    https://<ward-name>-mulch.fly.dev/api/stripe-webhook
-   
+
    Example: https://oakridge-mulch.fly.dev/api/stripe-webhook
    ```
 
@@ -182,6 +191,29 @@ Now that the app is deployed, configure Stripe to send payment notifications.
    ```bash
    flyctl secrets set STRIPE_WEBHOOK_SECRET='whsec_...' --app oakridge-mulch
    ```
+
+---
+
+### Step 6b: Set Admin Invite Code (Give Ward Access)
+
+So ward leaders can create their admin account:
+
+1. **Generate a code** (or use a simple phrase):
+   ```bash
+   openssl rand -hex 8
+   ```
+
+2. **Set the secret** (if not done during deploy):
+   ```bash
+   flyctl secrets set ADMIN_INVITE_CODE='your-code-here' --app oakridge-mulch
+   ```
+
+3. **Give the ward this URL:**
+   ```
+   https://oakridge-mulch.fly.dev/join?code=your-code-here
+   ```
+
+They visit that link, create an account with email/password, and get admin access.
 
 ---
 
@@ -213,6 +245,7 @@ https://<ward-name>-mulch.fly.dev
 ### 2. Test Order Flow
 
 Use Stripe test mode:
+
 - Card: `4242 4242 4242 4242`
 - Expiry: Any future date
 - CVC: Any 3 digits
@@ -220,6 +253,7 @@ Use Stripe test mode:
 ### 3. Verify Webhook
 
 In Stripe Dashboard → Developers → Webhooks:
+
 - Check "Recent deliveries"
 - Should see successful deliveries with `200` status
 
@@ -230,6 +264,7 @@ flyctl logs --app oakridge-mulch
 ```
 
 Look for:
+
 - ✅ "Stripe webhook received"
 - ✅ "Payment completed"
 - ❌ No errors
@@ -294,6 +329,7 @@ flyctl billing show
 ```
 
 **Typical costs per ward:**
+
 - Shared CPU: ~$2/month
 - 1GB volume: ~$0.15/month
 - Bandwidth: Usually free tier
@@ -302,6 +338,7 @@ flyctl billing show
 ### Billing Wards
 
 You can:
+
 1. Build hosting cost into fundraiser setup fee
 2. Bill quarterly (e.g., $20/year per ward)
 3. Pass through Fly.io charges directly
@@ -413,6 +450,7 @@ flyctl certs check mulch.oakridgeward.org --app oakridge-mulch
 ### 5. Update Webhook URL
 
 Ward updates Stripe webhook to use new domain:
+
 ```
 https://mulch.oakridgeward.org/api/stripe-webhook
 ```
@@ -434,6 +472,7 @@ https://mulch.oakridgeward.org/api/stripe-webhook
 When wards have issues:
 
 1. **Check logs first:**
+
    ```bash
    flyctl logs --app <ward>-mulch
    ```
@@ -444,10 +483,11 @@ When wards have issues:
    - Wrong pricing: Edit `fly.toml` [env] section and redeploy
 
 3. **Quick fixes:**
+
    ```bash
    # Restart app
    flyctl restart --app <ward>-mulch
-   
+
    # Redeploy
    git push origin main  # (if changes committed)
    # OR
@@ -459,6 +499,7 @@ When wards have issues:
 ## Future Improvements
 
 Consider building:
+
 - Admin dashboard to manage all wards
 - Automated billing/invoicing
 - Self-service portal for wards to update config

@@ -409,7 +409,7 @@ EXISTING_SECRETS=$(flyctl secrets list --app "${APP_NAME}" 2>/dev/null || echo "
 # SESSION_SECRET
 echo ""
 echo -e "${CYAN}─────────────────────────────────────────────${NC}"
-echo -e "${BLUE}Secret 1/4: SESSION_SECRET${NC}"
+echo -e "${BLUE}Secret 1/5: SESSION_SECRET${NC}"
 echo -e "${CYAN}─────────────────────────────────────────────${NC}"
 if echo "$EXISTING_SECRETS" | grep -q "SESSION_SECRET"; then
     echo -e "${YELLOW}⚠ SESSION_SECRET already exists, skipping${NC}"
@@ -429,7 +429,7 @@ fi
 # STRIPE_SECRET_KEY
 echo ""
 echo -e "${CYAN}─────────────────────────────────────────────${NC}"
-echo -e "${BLUE}Secret 2/4: STRIPE_SECRET_KEY${NC}"
+echo -e "${BLUE}Secret 2/5: STRIPE_SECRET_KEY${NC}"
 echo -e "${CYAN}─────────────────────────────────────────────${NC}"
 if echo "$EXISTING_SECRETS" | grep -q "STRIPE_SECRET_KEY"; then
     echo -e "${YELLOW}⚠ STRIPE_SECRET_KEY already exists, skipping${NC}"
@@ -459,7 +459,7 @@ fi
 # STRIPE_PUBLISHABLE_KEY
 echo ""
 echo -e "${CYAN}─────────────────────────────────────────────${NC}"
-echo -e "${BLUE}Secret 3/4: STRIPE_PUBLISHABLE_KEY${NC}"
+echo -e "${BLUE}Secret 3/5: STRIPE_PUBLISHABLE_KEY${NC}"
 echo -e "${CYAN}─────────────────────────────────────────────${NC}"
 if echo "$EXISTING_SECRETS" | grep -q "STRIPE_PUBLISHABLE_KEY"; then
     echo -e "${YELLOW}⚠ STRIPE_PUBLISHABLE_KEY already exists, skipping${NC}"
@@ -498,10 +498,43 @@ else
     fi
 fi
 
+# ADMIN_INVITE_CODE (for ward admin signup)
+echo ""
+echo -e "${CYAN}─────────────────────────────────────────────${NC}"
+echo -e "${BLUE}Secret 4/5: ADMIN_INVITE_CODE (Recommended)${NC}"
+echo -e "${CYAN}─────────────────────────────────────────────${NC}"
+if echo "$EXISTING_SECRETS" | grep -q "ADMIN_INVITE_CODE"; then
+    echo -e "${YELLOW}⚠ ADMIN_INVITE_CODE already exists, skipping${NC}"
+else
+    echo ""
+    echo -e "${YELLOW}Ward admins use this code to create their account at:${NC}"
+    echo -e "${CYAN}  https://${APP_NAME}.fly.dev/join?code=YOUR_CODE${NC}"
+    echo ""
+    echo -e "${YELLOW}Generate a random code (e.g. openssl rand -hex 8) or use a simple phrase${NC}"
+    echo ""
+    echo -e "${BLUE}Enter ADMIN_INVITE_CODE (or press Enter to skip):${NC}"
+    read -r ADMIN_INVITE_CODE
+    
+    if [ -n "$ADMIN_INVITE_CODE" ]; then
+        echo ""
+        if run_command \
+            "Set ADMIN_INVITE_CODE (for ward admin signup at /join?code=...)" \
+            "flyctl secrets set ADMIN_INVITE_CODE=\"${ADMIN_INVITE_CODE}\" --app \"${APP_NAME}\""; then
+            echo -e "${GREEN}✓ ADMIN_INVITE_CODE set${NC}"
+            echo -e "${YELLOW}Give the ward this URL: https://${APP_NAME}.fly.dev/join?code=${ADMIN_INVITE_CODE}${NC}"
+        fi
+    else
+        echo ""
+        echo -e "${YELLOW}⚠ Skipping ADMIN_INVITE_CODE${NC}"
+        echo -e "${YELLOW}Ward won't be able to create admin accounts until you set it:${NC}"
+        echo -e "${CYAN}  flyctl secrets set ADMIN_INVITE_CODE='your-code' --app ${APP_NAME}${NC}"
+    fi
+fi
+
 # STRIPE_WEBHOOK_SECRET (can be added later)
 echo ""
 echo -e "${CYAN}─────────────────────────────────────────────${NC}"
-echo -e "${BLUE}Secret 4/4: STRIPE_WEBHOOK_SECRET (Optional)${NC}"
+echo -e "${BLUE}Secret 5/5: STRIPE_WEBHOOK_SECRET (Optional)${NC}"
 echo -e "${CYAN}─────────────────────────────────────────────${NC}"
 if echo "$EXISTING_SECRETS" | grep -q "STRIPE_WEBHOOK_SECRET"; then
     echo -e "${YELLOW}⚠ STRIPE_WEBHOOK_SECRET already exists${NC}"
@@ -741,7 +774,10 @@ echo "   e. Copy the signing secret (whsec_...)"
 echo "   f. Set the secret:"
 echo "      flyctl secrets set STRIPE_WEBHOOK_SECRET='whsec_...' --app ${APP_NAME}"
 echo ""
-echo -e "${CYAN}6. Test the Site${NC}"
+echo -e "${CYAN}6. Give Ward Admin URL (if you set ADMIN_INVITE_CODE)${NC}"
+echo "   https://${APP_NAME}.fly.dev/join?code=YOUR_CODE"
+echo ""
+echo -e "${CYAN}7. Test the Site${NC}"
 echo "   Visit: https://${APP_NAME}.fly.dev"
 echo "   Try placing a test order (use Stripe test card: 4242 4242 4242 4242)"
 echo ""

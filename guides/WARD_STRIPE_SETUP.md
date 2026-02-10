@@ -140,7 +140,11 @@ Custom Images? (If yes, I'll provide separately): Yes / No
 1. **Your fundraiser URL:**  
    `https://<your-ward>-mulch.fly.dev`
 
-2. **Webhook URL** (for next step)
+2. **Admin signup link** (to create your account and view orders):  
+   `https://<your-ward>-mulch.fly.dev/join?code=XXXX`  
+   The admin will send you a unique link. Visit it, create an account with your email and password, and you'll have access to the admin panel to view orders.
+
+3. **Webhook URL** (for next step)
 
 ### Step 4: Set Up Stripe Webhook
 
@@ -210,7 +214,7 @@ A: Stripe charges 2.9% + $0.30 per successful card charge. This is automatically
 A: Stripe typically deposits funds to your bank account within 2 business days.
 
 **Q: Can I see all orders/donations?**  
-A: Yes! Your fundraiser site has an admin panel where you can view all orders. You can also see payments in the Stripe Dashboard.
+A: Yes! Use the admin signup link the platform admin sent you to create your account. Then log in and visit the admin panel to view all orders. You can also see payments in the Stripe Dashboard.
 
 **Q: How much does hosting cost?**  
 A: The platform admin manages hosting. They'll let you know if there's a fee (typically $20-50/year or included in a setup fee).

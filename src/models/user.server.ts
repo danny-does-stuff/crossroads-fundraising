@@ -52,6 +52,34 @@ export async function createUser({
   });
 }
 
+export async function createUserWithAdminRole({
+  email,
+  password,
+}: Pick<User, "email"> & { password: string }) {
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  return prisma.user.create({
+    data: {
+      email,
+      password: {
+        create: {
+          hash: hashedPassword,
+        },
+      },
+      roles: {
+        create: {
+          role: {
+            connectOrCreate: {
+              where: { name: "ADMIN" },
+              create: { name: "ADMIN" },
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function deleteUsersByEmail(email: User["email"]) {
   return prisma.user.deleteMany({ where: { email } });
 }

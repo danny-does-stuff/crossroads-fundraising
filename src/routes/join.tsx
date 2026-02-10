@@ -4,7 +4,11 @@ import * as React from "react";
 import z from "zod";
 
 import { getUserId, createUserSession } from "~/session.server";
-import { createUser, getUserByEmail } from "~/models/user.server";
+import {
+  createUser,
+  createUserWithAdminRole,
+  getUserByEmail,
+} from "~/models/user.server";
 import { safeRedirect, validateEmail } from "~/utils";
 import { Input } from "~/components/Input";
 import { Button } from "~/components/Button";
@@ -24,10 +28,11 @@ const joinFn = createServerFn()
       email: z.string(),
       password: z.string(),
       redirectTo: z.string().optional(),
+      code: z.string().optional(),
     }),
   )
   .handler(async ({ data }) => {
-    const { email, password, redirectTo } = data;
+    const { email, password, redirectTo, code } = data;
 
     const emptyErrors = {
       email: null,
@@ -58,21 +63,51 @@ const joinFn = createServerFn()
       };
     }
 
-    const user = await createUser({ email, password });
+    const adminInviteCode = process.env.ADMIN_INVITE_CODE;
+    const wantsAdmin = typeof code === "string" && code.length > 0;
 
-    // This will redirect on success
-    await createUserSession({
-      userId: user.id,
-      remember: false,
-      redirectTo: safeRedirect(redirectTo, "/fundraisers/mulch/orders"),
-    });
+    if (wantsAdmin) {
+      if (!adminInviteCode) {
+        return {
+          errors: {
+            ...emptyErrors,
+            password: "Admin signup is not configured for this site",
+          },
+        };
+      }
+      if (code !== adminInviteCode) {
+        return {
+          errors: {
+            ...emptyErrors,
+            password: "Invalid invite code",
+          },
+        };
+      }
 
-    // This line won't be reached due to redirect, but TypeScript needs it
+      const user = await createUserWithAdminRole({ email, password });
+      await createUserSession({
+        userId: user.id,
+        remember: false,
+        redirectTo: "/admin",
+      });
+    } else {
+      const user = await createUser({ email, password });
+      await createUserSession({
+        userId: user.id,
+        remember: false,
+        redirectTo: safeRedirect(redirectTo, "/fundraisers/mulch/orders"),
+      });
+    }
+
     return { errors: null };
   });
 
 export const Route = createFileRoute("/join")({
   component: JoinPage,
+  validateSearch: (search): { code?: string; redirectTo?: string } => ({
+    code: typeof search.code === "string" ? search.code : undefined,
+    redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
+  }),
   beforeLoad: async () => {
     await checkAuth();
   },
@@ -82,8 +117,8 @@ export const Route = createFileRoute("/join")({
 });
 
 function JoinPage() {
-  const searchParams = Route.useSearch() as { redirectTo?: string };
-  const redirectTo = searchParams.redirectTo;
+  const searchParams = Route.useSearch();
+  const { redirectTo, code } = searchParams;
 
   const [actionData, setActionData] = React.useState<{
     errors: {
@@ -116,6 +151,7 @@ function JoinPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const redirectToValue = formData.get("redirectTo") as string;
+    const codeValue = formData.get("code") as string;
 
     try {
       const result = await join({
@@ -123,6 +159,7 @@ function JoinPage() {
           email,
           password,
           redirectTo: redirectToValue,
+          code: codeValue || undefined,
         },
       });
       if (result?.errors) {
@@ -154,7 +191,8 @@ function JoinPage() {
             autoComplete="new-password"
             ref={passwordRef}
           />
-          <input type="hidden" name="redirectTo" value={redirectTo} />
+          <input type="hidden" name="redirectTo" value={redirectTo ?? ""} />
+          <input type="hidden" name="code" value={code ?? ""} />
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Creating Account..." : "Create Account"}
           </Button>
