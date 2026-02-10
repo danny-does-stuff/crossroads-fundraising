@@ -43,14 +43,7 @@ export async function createUser({
     typeof password === "string" ? password : String(password ?? "");
   // Workaround: genSalt then hash - passing rounds (10) directly to hash() can
   // fail in prod builds (bcryptjs internal genSalt path)
-  const salt = await bcrypt.genSalt(10);
-  console.log("[signup] createUser salt", salt);
-  console.log("[signup] createUser salt length", salt.length);
-  console.log("[signup] createUser passwordStr length", passwordStr.length);
-  console.log("[signup] createUser passwordStr type", typeof passwordStr);
-  console.log("[signup] createUser salt type", typeof salt);
-  const hashedPassword = await bcrypt.hash(passwordStr, salt);
-  console.log("[signup] createUser hashedPassword", hashedPassword);
+  const hashedPassword = await bcrypt.hash(passwordStr, 10);
 
   return prisma.user.create({
     data: {
@@ -73,24 +66,7 @@ export async function createUserWithAdminRole({
     typeof password === "string" ? password : String(password ?? "");
   // Workaround: genSalt then hash - passing rounds (10) directly to hash() can
   // fail in prod builds (bcryptjs internal genSalt path). Passing explicit salt string works.
-  const salt = await bcrypt.genSalt(10);
-  console.log("[signup] createUserWithAdminRole salt", salt);
-  console.log("[signup] createUserWithAdminRole passwordStr", passwordStr);
-  console.log("[signup] createUserWithAdminRole salt length", salt.length);
-  console.log(
-    "[signup] createUserWithAdminRole passwordStr length",
-    passwordStr.length,
-  );
-  console.log(
-    "[signup] createUserWithAdminRole passwordStr type",
-    typeof passwordStr,
-  );
-  console.log("[signup] createUserWithAdminRole salt type", typeof salt);
-  const hashedPassword = await bcrypt.hash(passwordStr, salt);
-  console.log(
-    "[signup] createUserWithAdminRole hashedPassword",
-    hashedPassword,
-  );
+  const hashedPassword = await bcrypt.hash(passwordStr, 10);
 
   return prisma.user.create({
     data: {
