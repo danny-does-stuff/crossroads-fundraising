@@ -48,6 +48,22 @@ const updateOrderStatus = createServerFn()
     return { orders, success: true };
   });
 
+// Server function to mark an order as a test order
+const markOrderAsTest = createServerFn()
+  .inputValidator(z.object({ orderId: z.string(), year: z.number() }))
+  .handler(async ({ data }) => {
+    const { orderId, year } = data;
+
+    await prisma.mulchOrder.update({
+      where: { id: orderId },
+      data: { isTestOrder: true },
+    });
+
+    const orders = await getAllOrdersForYear(year);
+
+    return { orders };
+  });
+
 // Server function to check admin auth
 const checkAdminAuth = createServerFn().handler(async () => {
   const user = await requireUser();
@@ -319,6 +335,7 @@ function AdminPage() {
         orders={orders}
         onOrdersUpdate={setOrders}
         wardConfig={wardConfig}
+        year={year}
       />
     </div>
   );
@@ -342,10 +359,12 @@ function OrdersTable({
   orders,
   onOrdersUpdate,
   wardConfig,
+  year,
 }: {
   orders: CompleteOrder[];
   onOrdersUpdate: (orders: CompleteOrder[]) => void;
   wardConfig: WardConfig;
+  year: number;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -475,8 +494,18 @@ function OrdersTable({
         header: "Note",
         accessorKey: "note",
       },
+      {
+        header: "Test",
+        cell: ({ row }) => (
+          <MarkAsTestButton
+            order={row.original}
+            year={year}
+            onOrdersUpdate={onOrdersUpdate}
+          />
+        ),
+      },
     ],
-    [onOrdersUpdate, wardConfig],
+    [onOrdersUpdate, wardConfig, year],
   );
 
   const data = useMemo(() => orders, [orders]);
@@ -624,6 +653,50 @@ function StatusCell({
         </a>
       )}
     </div>
+  );
+}
+
+function MarkAsTestButton({
+  order,
+  year,
+  onOrdersUpdate,
+}: {
+  order: CompleteOrder;
+  year: number;
+  onOrdersUpdate: (orders: CompleteOrder[]) => void;
+}) {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const markAsTest = useServerFn(markOrderAsTest);
+
+  async function handleClick() {
+    if (
+      !confirm(
+        "Mark this order as a test order? It will be hidden from the admin view and will not count towards totals.",
+      )
+    ) {
+      return;
+    }
+    setIsUpdating(true);
+    try {
+      const result = await markAsTest({
+        data: { orderId: order.id, year },
+      });
+      if (result.orders) {
+        onOrdersUpdate(result.orders);
+      }
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={isUpdating}
+      className="whitespace-nowrap rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200 disabled:opacity-50"
+    >
+      {isUpdating ? "..." : "Mark as Test"}
+    </button>
   );
 }
 

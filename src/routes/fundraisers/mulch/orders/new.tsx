@@ -80,6 +80,7 @@ const createOrderFn = createServerFn()
       pricePerUnit,
       referralSource: data.referralSource,
       referralSourceDetails: data.referralSourceDetails,
+      isTestOrder: false,
       customer: {
         name: data.name,
         email: data.email,

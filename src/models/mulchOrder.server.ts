@@ -71,6 +71,7 @@ export type CompleteOrder = Order & {
 
 export function getAllOrders(): Promise<CompleteOrder[]> {
   return prisma.mulchOrder.findMany({
+    where: { isTestOrder: false },
     orderBy: { createdAt: "asc" },
     include: { customer: true },
   });
@@ -83,6 +84,7 @@ export function getAllOrders(): Promise<CompleteOrder[]> {
 export function getAllOrdersForYear(year: number): Promise<CompleteOrder[]> {
   return prisma.mulchOrder.findMany({
     where: {
+      isTestOrder: false,
       createdAt: { gte: new Date(year, 0, 1), lt: new Date(year + 1, 0, 1) },
     },
     orderBy: { createdAt: "asc" },
@@ -104,6 +106,7 @@ export async function createOrder({
   | "streetAddress"
   | "referralSource"
   | "referralSourceDetails"
+  | "isTestOrder"
 > & {
   customer: Pick<Customer, "name" | "email" | "phone">;
 }) {
