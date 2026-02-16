@@ -204,10 +204,13 @@ function AdminPage() {
   const { orders: initialOrders, year } = Route.useLoaderData();
   const wardConfig = useWardConfig();
   const [orders, setOrders] = useState(initialOrders);
+  const [paidOnly, setPaidOnly] = useState(false);
 
   const paidOrders = orders.filter(
     (o) => o.status === "PAID" || o.status === "FULFILLED",
   );
+
+  const displayedOrders = paidOnly ? paidOrders : orders;
 
   const neighborhoodStats = (() => {
     const statsMap = orders.reduce(
@@ -324,15 +327,26 @@ function AdminPage() {
 
       <div className="mb-2 mt-4 flex items-center justify-between">
         <h2 className="text-4xl font-semibold">All Orders ({year})</h2>
-        <button
-          onClick={() => downloadOrdersCsv(orders)}
-          className="rounded bg-gray-100 px-4 py-2 text-sm hover:bg-gray-200"
-        >
-          Download CSV
-        </button>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={paidOnly}
+              onChange={(e) => setPaidOnly(e.target.checked)}
+              className="rounded"
+            />
+            Paid Only
+          </label>
+          <button
+            onClick={() => downloadOrdersCsv(displayedOrders)}
+            className="rounded bg-gray-100 px-4 py-2 text-sm hover:bg-gray-200"
+          >
+            Download CSV
+          </button>
+        </div>
       </div>
       <OrdersTable
-        orders={orders}
+        orders={displayedOrders}
         onOrdersUpdate={setOrders}
         wardConfig={wardConfig}
         year={year}
@@ -635,7 +649,7 @@ function StatusCell({
     <div className="flex items-center gap-2">
       <select
         name="status"
-        defaultValue={value}
+        value={value}
         onChange={handleStatusChange}
         disabled={isUpdating}
         className="rounded bg-transparent px-2 py-1 text-sm hover:bg-gray-50 focus:ring-1 focus:ring-gray-300"
