@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
 import {
@@ -367,6 +367,22 @@ function OrdersTable({
   year: number;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [altPressed, setAltPressed] = useState(false);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Alt") setAltPressed(true);
+    }
+    function handleKeyUp(e: KeyboardEvent) {
+      if (e.key === "Alt") setAltPressed(false);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
   const columns = useMemo<ColumnDef<CompleteOrder>[]>(
     () => [
@@ -494,18 +510,22 @@ function OrdersTable({
         header: "Note",
         accessorKey: "note",
       },
-      {
-        header: "Test",
-        cell: ({ row }) => (
-          <MarkAsTestButton
-            order={row.original}
-            year={year}
-            onOrdersUpdate={onOrdersUpdate}
-          />
-        ),
-      },
+      ...(altPressed ?
+        [
+          {
+            header: "Test",
+            cell: ({ row }: { row: { original: CompleteOrder } }) => (
+              <MarkAsTestButton
+                order={row.original}
+                year={year}
+                onOrdersUpdate={onOrdersUpdate}
+              />
+            ),
+          },
+        ]
+      : []),
     ],
-    [onOrdersUpdate, wardConfig, year],
+    [onOrdersUpdate, wardConfig, year, altPressed],
   );
 
   const data = useMemo(() => orders, [orders]);
