@@ -42,6 +42,7 @@ export async function getDonationsForYear(year: number) {
         gte: startDate,
         lt: endDate,
       },
+      isTestOrder: false,
     },
     orderBy: { createdAt: "desc" },
   });

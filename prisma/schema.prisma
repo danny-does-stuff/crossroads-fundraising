@@ -83,6 +83,7 @@ model MulchOrder {
 model Donation {
   id                    String    @id @default(cuid())
   amount                Float
+  isTestOrder           Boolean   @default(false)
   // PayPal fields (preserved for historical data)
   paypalOrderId         String?
   paypalPaymentSource   String?

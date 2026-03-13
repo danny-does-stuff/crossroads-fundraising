@@ -71,6 +71,22 @@ const markOrderAsTest = createServerFn()
     return { orders };
   });
 
+// Server function to mark a donation as a test order
+const markDonationAsTest = createServerFn()
+  .inputValidator(z.object({ donationId: z.string(), year: z.number() }))
+  .handler(async ({ data }) => {
+    const { donationId, year } = data;
+
+    await prisma.donation.update({
+      where: { id: donationId },
+      data: { isTestOrder: true },
+    });
+
+    const donations = await getDonationsForYear(year);
+
+    return { donations };
+  });
+
 // Server function to check admin auth
 const checkAdminAuth = createServerFn().handler(async () => {
   const user = await requireUser();
@@ -208,9 +224,14 @@ ${config.wardName} Youth Program`;
 }
 
 function AdminPage() {
-  const { orders: initialOrders, donations, year } = Route.useLoaderData();
+  const {
+    orders: initialOrders,
+    donations: initialDonations,
+    year,
+  } = Route.useLoaderData();
   const wardConfig = useWardConfig();
   const [orders, setOrders] = useState(initialOrders);
+  const [donations, setDonations] = useState(initialDonations);
   const [paidOnly, setPaidOnly] = useState(false);
 
   const paidOrders = orders.filter(
@@ -262,7 +283,10 @@ function AdminPage() {
     }));
   })();
 
-  const totalDonations = donations.reduce((total, d) => total + d.amount, 0);
+  const totalDonations = donations.reduce(
+    (total: number, d: { amount: number }) => total + d.amount,
+    0,
+  );
   const grossMulchSales = getTotalGrossIncome(orders);
   const grossIncome = grossMulchSales + totalDonations;
 
@@ -385,7 +409,11 @@ function AdminPage() {
       <div className="mb-2 mt-8 flex items-center justify-between">
         <h2 className="text-4xl font-semibold">All Donations ({year})</h2>
       </div>
-      <DonationsTable donations={donations} />
+      <DonationsTable
+        donations={donations}
+        onDonationsUpdate={setDonations}
+        year={year}
+      />
     </div>
   );
 }
@@ -653,7 +681,32 @@ function OrdersTable({
   );
 }
 
-function DonationsTable({ donations }: { donations: Donation[] }) {
+function DonationsTable({
+  donations,
+  onDonationsUpdate,
+  year,
+}: {
+  donations: Donation[];
+  onDonationsUpdate: (donations: Donation[]) => void;
+  year: number;
+}) {
+  const [altPressed, setAltPressed] = useState(false);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Alt") setAltPressed(true);
+    }
+    function handleKeyUp(e: KeyboardEvent) {
+      if (e.key === "Alt") setAltPressed(false);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
+
   const columns = useMemo<ColumnDef<Donation>[]>(
     () => [
       {
@@ -715,8 +768,22 @@ function DonationsTable({ donations }: { donations: Donation[] }) {
           return <span className="text-gray-400">—</span>;
         },
       },
+      ...(altPressed ?
+        [
+          {
+            header: "Test",
+            cell: ({ row }: { row: { original: Donation } }) => (
+              <MarkDonationAsTestButton
+                donation={row.original}
+                year={year}
+                onDonationsUpdate={onDonationsUpdate}
+              />
+            ),
+          },
+        ]
+      : []),
     ],
-    [],
+    [altPressed, onDonationsUpdate, year],
   );
 
   const data = useMemo(() => donations, [donations]);
@@ -889,6 +956,50 @@ function MarkAsTestButton({
       });
       if (result.orders) {
         onOrdersUpdate(result.orders);
+      }
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={isUpdating}
+      className="whitespace-nowrap rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200 disabled:opacity-50"
+    >
+      {isUpdating ? "..." : "Mark as Test"}
+    </button>
+  );
+}
+
+function MarkDonationAsTestButton({
+  donation,
+  year,
+  onDonationsUpdate,
+}: {
+  donation: Donation;
+  year: number;
+  onDonationsUpdate: (donations: Donation[]) => void;
+}) {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const markAsTest = useServerFn(markDonationAsTest);
+
+  async function handleClick() {
+    if (
+      !confirm(
+        "Mark this donation as a test donation? It will be hidden from the admin view and will not count towards totals.",
+      )
+    ) {
+      return;
+    }
+    setIsUpdating(true);
+    try {
+      const result = await markAsTest({
+        data: { donationId: donation.id, year },
+      });
+      if (result.donations) {
+        onDonationsUpdate(result.donations);
       }
     } finally {
       setIsUpdating(false);
