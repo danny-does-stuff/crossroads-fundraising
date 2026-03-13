@@ -9,13 +9,17 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import type { MulchOrder } from "../../prisma/generated/prisma/client";
+import type {
+  Donation,
+  MulchOrder,
+} from "../../prisma/generated/prisma/client";
 import z from "zod";
 
 import {
   type CompleteOrder,
   getAllOrdersForYear,
 } from "~/models/mulchOrder.server";
+import { getDonationsForYear } from "~/models/donation.server";
 import { requireUser } from "~/session.server";
 import { prisma } from "~/db.server";
 import { ReferralSource, REFERRAL_SOURCE_LABELS } from "~/constants";
@@ -27,8 +31,11 @@ const loadAdminData = createServerFn()
   .inputValidator((data: { year?: number }) => data)
   .handler(async ({ data }) => {
     const year = data.year || new Date().getFullYear();
-    const orders: CompleteOrder[] = await getAllOrdersForYear(year);
-    return { orders, year };
+    const [orders, donations] = await Promise.all([
+      getAllOrdersForYear(year),
+      getDonationsForYear(year),
+    ]);
+    return { orders, donations, year };
   });
 
 // Server function to update order status
@@ -201,7 +208,7 @@ ${config.wardName} Youth Program`;
 }
 
 function AdminPage() {
-  const { orders: initialOrders, year } = Route.useLoaderData();
+  const { orders: initialOrders, donations, year } = Route.useLoaderData();
   const wardConfig = useWardConfig();
   const [orders, setOrders] = useState(initialOrders);
   const [paidOnly, setPaidOnly] = useState(false);
@@ -255,14 +262,37 @@ function AdminPage() {
     }));
   })();
 
+  const totalDonations = donations.reduce((total, d) => total + d.amount, 0);
+  const grossMulchSales = getTotalGrossIncome(orders);
+  const grossIncome = grossMulchSales + totalDonations;
+
   return (
     <div className="p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:[&>*]:flex-1">
-        <RoundedBorder>
-          <span className="text-5xl sm:text-6xl">
-            {currencyFormatter.format(getTotalGrossIncome(orders))}
-          </span>
-          <h2 className="text-2xl sm:text-4xl">Gross Income</h2>
+        <RoundedBorder className="flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between">
+              <div>
+                <span className="text-3xl sm:text-4xl">
+                  {currencyFormatter.format(grossMulchSales)}
+                </span>
+                <h2 className="text-xl sm:text-2xl">Gross Mulch Sales</h2>
+              </div>
+              <div className="text-right">
+                <span className="text-3xl sm:text-4xl">
+                  {currencyFormatter.format(totalDonations)}
+                </span>
+                <h2 className="text-xl sm:text-2xl">Donations</h2>
+              </div>
+            </div>
+            <hr className="my-2" />
+          </div>
+          <div>
+            <span className="text-4xl sm:text-5xl">
+              {currencyFormatter.format(grossIncome)}
+            </span>
+            <h2 className="text-2xl sm:text-3xl">Gross Income</h2>
+          </div>
         </RoundedBorder>
         <RoundedBorder className="text-2xl sm:text-4xl [&>hr]:my-2 [&>span]:float-right">
           Orders:
@@ -351,6 +381,11 @@ function AdminPage() {
         wardConfig={wardConfig}
         year={year}
       />
+
+      <div className="mb-2 mt-8 flex items-center justify-between">
+        <h2 className="text-4xl font-semibold">All Donations ({year})</h2>
+      </div>
+      <DonationsTable donations={donations} />
     </div>
   );
 }
@@ -422,6 +457,13 @@ function OrdersTable({
         cell: ({ getValue }) => {
           const date = getValue<Date>();
           return new Date(date).toLocaleDateString();
+        },
+      },
+      {
+        header: "Name",
+        cell: ({ row }) => {
+          const customer = row.original.customer;
+          return customer?.name || "—";
         },
       },
       {
@@ -498,7 +540,7 @@ function OrdersTable({
         },
       },
       {
-        header: "Customer",
+        header: "Contact Info",
         accessorKey: "customer",
         cell: ({ getValue }) => {
           const customer = getValue<CompleteOrder["customer"]>();
@@ -554,6 +596,136 @@ function OrdersTable({
       sorting,
     },
     onSortingChange: setSorting,
+  });
+
+  return (
+    <div className="relative max-h-[95vh] overflow-x-auto rounded shadow-inner">
+      <table className="">
+        <thead className="sticky top-0 bg-gray-300">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th
+                  key={header.id}
+                  colSpan={header.colSpan}
+                  className="border px-4 py-2"
+                >
+                  {header.isPlaceholder ? null : (
+                    <div
+                      {...{
+                        className:
+                          header.column.getCanSort() ?
+                            "cursor-pointer select-none"
+                          : "",
+                        onClick: header.column.getToggleSortingHandler(),
+                      }}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                      <span>
+                        {{
+                          asc: " 🔼",
+                          desc: " 🔽",
+                        }[header.column.getIsSorted() as string] ?? ""}
+                      </span>
+                    </div>
+                  )}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="border px-4 py-2">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function DonationsTable({ donations }: { donations: Donation[] }) {
+  const columns = useMemo<ColumnDef<Donation>[]>(
+    () => [
+      {
+        header: "Date",
+        accessorKey: "createdAt",
+        cell: ({ getValue }) => {
+          const date = getValue<Date>();
+          return new Date(date).toLocaleDateString();
+        },
+      },
+      {
+        header: "Name",
+        cell: ({ row }) => {
+          const givenName = row.original.donorGivenName || "";
+          const surname = row.original.donorSurname || "";
+          return `${givenName} ${surname}`.trim() || "—";
+        },
+      },
+      {
+        header: "Email",
+        accessorKey: "donorEmail",
+      },
+      {
+        header: "Amount",
+        accessorKey: "amount",
+        cell: ({ getValue }) => {
+          const amount = getValue<number>();
+          return currencyFormatter.format(amount);
+        },
+      },
+      {
+        header: "Payment",
+        cell: ({ row }) => {
+          const stripeSessionId = row.original.stripeSessionId;
+          const paypalOrderId = row.original.paypalOrderId;
+
+          if (stripeSessionId) {
+            return (
+              <div className="whitespace-nowrap">
+                <div className="font-medium">Stripe</div>
+                <div className="text-xs text-gray-700">
+                  {stripeSessionId.slice(0, 18)}…
+                </div>
+              </div>
+            );
+          }
+
+          if (paypalOrderId) {
+            return (
+              <div className="whitespace-nowrap">
+                <div className="font-medium">PayPal</div>
+                <div className="text-xs text-gray-700">
+                  {paypalOrderId.slice(0, 18)}…
+                </div>
+              </div>
+            );
+          }
+
+          return <span className="text-gray-400">—</span>;
+        },
+      },
+    ],
+    [],
+  );
+
+  const data = useMemo(() => donations, [donations]);
+
+  const table = useReactTable({
+    columns,
+    data,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
@@ -737,6 +909,7 @@ function MarkAsTestButton({
 function downloadOrdersCsv(orders: CompleteOrder[]) {
   const headers = [
     "Date",
+    "Name",
     "Address",
     "Neighborhood",
     "Quantity",
@@ -753,6 +926,7 @@ function downloadOrdersCsv(orders: CompleteOrder[]) {
 
   const rows = orders.map((order) => [
     new Date(order.createdAt).toLocaleDateString(),
+    order.customer.name || "",
     order.streetAddress,
     order.neighborhood,
     order.quantity,

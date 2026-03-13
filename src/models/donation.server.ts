@@ -32,3 +32,17 @@ export async function getDonations() {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function getDonationsForYear(year: number) {
+  const startDate = new Date(year, 0, 1);
+  const endDate = new Date(year + 1, 0, 1);
+  return prisma.donation.findMany({
+    where: {
+      createdAt: {
+        gte: startDate,
+        lt: endDate,
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
