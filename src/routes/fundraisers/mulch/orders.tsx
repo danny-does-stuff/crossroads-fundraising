@@ -68,13 +68,11 @@ function OrdersLayout() {
     const startDate = new Date(wardConfig.ordersStartDate);
     let startYear = startDate.getFullYear();
 
-    // If the start date is in a past year and we're in the spring period (Jan-Mar),
-    // assume the start date hasn't been updated yet and treat it as current year
-    // This allows updating the start date anytime between January and February
+    // If the start date year is behind the current year and we're in Jan-Mar,
+    // assume the start date hasn't been updated yet for the new campaign.
+    // Show "starting soon" with the date adjusted to the current year.
     if (startYear < currentYear && currentMonth < 3) {
-      // We're in Jan-Mar and start date is from last year, so use current year
       startYear = currentYear;
-      // Adjust the start date to current year for display
       const startDateCurrentYear = new Date(startDate);
       startDateCurrentYear.setFullYear(currentYear);
       const displayStartDate = startDateCurrentYear.toLocaleDateString(
@@ -112,16 +110,17 @@ function OrdersLayout() {
       );
     }
 
-    // Otherwise, show the completion message for the previous year
-    const previousYear = startYear - 1;
+    // Otherwise, orders have ended. Show the completion message.
+    // Use currentYear if the start date is stale (from a previous year).
+    const campaignYear = startYear < currentYear ? currentYear : startYear;
     return (
       <div className="mx-auto max-w-7xl sm:px-6 sm:pt-6 lg:px-8">
         <h2 className="text-2xl font-medium">Thank you!</h2>
         <p>
-          We have reached our {previousYear} goal and could not have done it
+          We have reached our {campaignYear} goal and could not have done it
           without your support and generosity! We are grateful to live in a
           community that cares about the youth of today. We look forward to
-          serving you again in {startYear}.
+          serving you again in {campaignYear + 1}.
         </p>
         <p>Happy Gardening!</p>
       </div>
